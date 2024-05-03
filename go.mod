@@ -1,4 +1,4 @@
-module github.com/led0nk/clusterinfo
+module github.com/led0nk/ark-clusterinfo
 
 go 1.22.1
 

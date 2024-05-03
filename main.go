@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/led0nk/clusterinfo/internal/database/cluster"
+	"github.com/led0nk/ark-clusterinfo/internal/database/cluster"
 
 	"github.com/FlowingSPDG/go-steam"
 )
