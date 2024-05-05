@@ -3,29 +3,25 @@ package cluster
 import (
 	"encoding/json"
 	"errors"
+	"log"
 	"os"
+	"sort"
 	"sync"
 
 	"github.com/FlowingSPDG/go-steam"
+	"github.com/led0nk/ark-clusterinfo/internal/model"
 )
 
 type Cluster struct {
 	filename string
-	server   map[string]*Server
+	server   map[string]*model.Server
 	mu       sync.Mutex
-}
-
-type Server struct {
-	name        string
-	addr        string
-	serverInfo  *steam.InfoResponse
-	playersInfo *steam.PlayersInfoResponse
 }
 
 func NewCluster(filename string) (*Cluster, error) {
 	cluster := &Cluster{
 		filename: filename,
-		server:   make(map[string]*Server),
+		server:   make(map[string]*model.Server),
 	}
 	if err := cluster.readJSON(); err != nil {
 		return nil, err
@@ -60,23 +56,23 @@ func (c *Cluster) readJSON() error {
 	return json.Unmarshal(data, &c.server)
 }
 
-func (c *Cluster) CreateServer(server *Server) (string, error) {
+func (c *Cluster) CreateServer(server *model.Server) (string, error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	if server.name == "" {
-		server.name = "newServer"
+	if server.Name == "" {
+		server.Name = "newServer"
 	}
 
-	c.server[server.name] = server
+	c.server[server.Name] = server
 	if err := c.writeJSON(); err != nil {
 		return "", err
 	}
 
-	return server.name, nil
+	return server.Name, nil
 }
 
-func (c *Cluster) GetUserByName(name string) (*Server, error) {
+func (c *Cluster) GetServerByName(name string) (*model.Server, error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
@@ -84,9 +80,9 @@ func (c *Cluster) GetUserByName(name string) (*Server, error) {
 		return nil, errors.New("empty name")
 	}
 
-	fetchedServer := &Server{}
+	fetchedServer := &model.Server{}
 	for _, server := range c.server {
-		if server.name == name {
+		if server.Name == name {
 			fetchedServer = server
 		}
 	}
@@ -111,4 +107,32 @@ func (c *Cluster) DeleteServer(name string) error {
 		return err
 	}
 	return nil
+}
+
+func (c *Cluster) GetServerInfo() ([]*model.Server, error) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	serverlist := make([]*model.Server, 0, len(c.server))
+	for _, server := range c.server {
+		var err error
+		helpServer, _ := steam.Connect(server.Addr)
+		server.ServerInfo, _ = helpServer.Info()
+		server.PlayersInfo, err = helpServer.PlayersInfo()
+		if err != nil {
+			log.Println(err)
+		}
+		var playerList []*steam.Player
+
+		for _, player := range server.PlayersInfo.Players {
+			if player != nil && len(player.Name) > 2 {
+				playerList = append(playerList, player)
+			}
+		}
+		server.PlayersInfo.Players = playerList
+		server.ServerInfo.Players = len(playerList)
+		serverlist = append(serverlist, server)
+	}
+	sort.Slice(serverlist, func(i, j int) bool { return serverlist[i].Name < serverlist[j].Name })
+	return serverlist, nil
 }

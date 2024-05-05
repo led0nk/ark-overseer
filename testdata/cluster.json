@@ -1,0 +1,26 @@
+{
+	"Ragnarok": {
+		"Name": "Ragnarok",
+		"Addr": "51.195.60.114:27019",
+		"ServerInfo": null,
+		"PlayersInfo": null
+	},
+	"TheIsland": {
+		"Name": "TheIsland",
+		"Addr": "51.195.60.114:27016",
+		"ServerInfo": null,
+		"PlayersInfo": null
+	},
+	"LostIsland": {
+		"Name": "LostIsland",
+		"Addr": "51.195.60.114:27020",
+		"ServerInfo": null,
+		"PlayersInfo": null
+	},
+	"Aberration": {
+		"Name": "Aberration",
+		"Addr": "51.195.60.114:27018",
+		"ServerInfo": null,
+		"PlayersInfo": null
+	}
+}
