@@ -41,7 +41,34 @@ func (s *Server) showPlayers(w http.ResponseWriter, r *http.Request) {
 		s.logger.ErrorContext(ctx, "failed to get server", "error", err)
 		return
 	}
-	err = s.templates.TmplPlayer.ExecuteTemplate(w, "player", server.PlayersInfo)
+	err = s.templates.TmplPlayer.ExecuteTemplate(w, "player", server)
+	if err != nil {
+		s.logger.ErrorContext(ctx, "failed to execute template", "error", err)
+		return
+	}
+}
+
+func (s *Server) updatePlayers(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	id, err := uuid.Parse(r.PathValue("ID"))
+
+	if err != nil {
+		s.logger.ErrorContext(ctx, "failed to parse uuid", "error", err)
+		return
+	}
+	serverlist, err = s.cStore.GetServerInfo()
+	if err != nil {
+		s.logger.ErrorContext(ctx, "failed to get server info", "error", err)
+	}
+
+	server, err := s.cStore.GetServerByID(id)
+	if err != nil {
+		s.logger.ErrorContext(ctx, "failed to get server", "error", err)
+		return
+	}
+
+	err = s.templates.TmplPlayer.ExecuteTemplate(w, "player", server)
 	if err != nil {
 		s.logger.ErrorContext(ctx, "failed to execute template", "error", err)
 		return
