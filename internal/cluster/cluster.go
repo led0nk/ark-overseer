@@ -90,6 +90,23 @@ func (c *Cluster) GetServerByName(name string) (*model.Server, error) {
 	return fetchedServer, nil
 }
 
+func (c *Cluster) GetServerByID(id uuid.UUID) (*model.Server, error) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	if id == uuid.Nil {
+		return nil, errors.New("empty uuid")
+	}
+
+	fetchedServer := &model.Server{}
+	for _, server := range c.server {
+		if server.ID == id {
+			fetchedServer = server
+		}
+	}
+	return fetchedServer, nil
+}
+
 func (c *Cluster) DeleteServer(ID uuid.UUID) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()

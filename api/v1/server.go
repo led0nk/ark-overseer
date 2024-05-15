@@ -48,6 +48,7 @@ func (s *Server) ServeHTTP() {
 
 	r.Handle("GET /", http.HandlerFunc(s.mainPage))
 	r.Handle("POST /{ID}", http.HandlerFunc(s.showPlayers))
+	r.Handle("DELETE /{ID}", http.HandlerFunc(s.deleteServer))
 
 	s.logger.Info("listen and serve", "addr", s.addr)
 
