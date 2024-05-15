@@ -1,26 +1,30 @@
 {
-	"Ragnarok": {
-		"Name": "Ragnarok",
-		"Addr": "51.195.60.114:27019",
-		"ServerInfo": null,
-		"PlayersInfo": null
+	"157ef27c-46d6-4a74-bbc5-3c023748ec63": {
+		"id": "157ef27c-46d6-4a74-bbc5-3c023748ec63",
+		"name": "LostIsland",
+		"addr": "51.195.60.114:27020",
+		"serverinfo": null,
+		"playersinfo": null
 	},
-	"TheIsland": {
-		"Name": "TheIsland",
-		"Addr": "51.195.60.114:27016",
-		"ServerInfo": null,
-		"PlayersInfo": null
+	"90131c69-c179-40ec-b6df-51acf137e3ff": {
+		"id": "90131c69-c179-40ec-b6df-51acf137e3ff",
+		"name": "Ragnarok",
+		"addr": "51.195.60.114:27019",
+		"serverinfo": null,
+		"playersinfo": null
 	},
-	"LostIsland": {
-		"Name": "LostIsland",
-		"Addr": "51.195.60.114:27020",
-		"ServerInfo": null,
-		"PlayersInfo": null
+	"b006667c-b554-44c8-9df1-c5e8e4dbbed7": {
+		"id": "b006667c-b554-44c8-9df1-c5e8e4dbbed7",
+		"name": "TheIsland",
+		"addr": "51.195.60.114:27016",
+		"serverinfo": null,
+		"playersinfo": null
 	},
-	"Aberration": {
-		"Name": "Aberration",
-		"Addr": "51.195.60.114:27018",
-		"ServerInfo": null,
-		"PlayersInfo": null
+	"d90f6be6-cdcb-4a8c-b107-36546db2d924": {
+		"id": "d90f6be6-cdcb-4a8c-b107-36546db2d924",
+		"name": "Aberration",
+		"addr": "51.195.60.114:27018",
+		"serverinfo": null,
+		"playersinfo": null
 	}
 }

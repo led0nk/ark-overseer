@@ -9,19 +9,20 @@ import (
 	"sync"
 
 	"github.com/FlowingSPDG/go-steam"
+	"github.com/google/uuid"
 	"github.com/led0nk/ark-clusterinfo/internal/model"
 )
 
 type Cluster struct {
 	filename string
-	server   map[string]*model.Server
+	server   map[uuid.UUID]*model.Server
 	mu       sync.Mutex
 }
 
 func NewCluster(filename string) (*Cluster, error) {
 	cluster := &Cluster{
 		filename: filename,
-		server:   make(map[string]*model.Server),
+		server:   make(map[uuid.UUID]*model.Server),
 	}
 	if err := cluster.readJSON(); err != nil {
 		return nil, err
@@ -60,11 +61,11 @@ func (c *Cluster) CreateServer(server *model.Server) (string, error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	if server.Name == "" {
-		server.Name = "newServer"
+	if server.ID == uuid.Nil {
+		server.ID = uuid.New()
 	}
 
-	c.server[server.Name] = server
+	c.server[server.ID] = server
 	if err := c.writeJSON(); err != nil {
 		return "", err
 	}
@@ -89,19 +90,19 @@ func (c *Cluster) GetServerByName(name string) (*model.Server, error) {
 	return fetchedServer, nil
 }
 
-func (c *Cluster) DeleteServer(name string) error {
+func (c *Cluster) DeleteServer(ID uuid.UUID) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	if name == "" {
-		return errors.New("requires server name")
+	if ID == uuid.Nil {
+		return errors.New("requires server ID")
 	}
 
-	if _, exists := c.server[name]; !exists {
+	if _, exists := c.server[ID]; !exists {
 		return errors.New("server doesn't exist")
 	}
 
-	delete(c.server, name)
+	delete(c.server, ID)
 
 	if err := c.writeJSON(); err != nil {
 		return err

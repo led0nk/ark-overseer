@@ -1,0 +1,25 @@
+{{ define "content" }}
+
+<div
+  class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 pl-4 pr-4 justify-start items-start gap-4 mt-6">
+  {{range .}}
+  <div
+    class="w-full space-y-4 relative bg-white dark:bg-slate-800 rounded-xl px-6 py-3 ring-1 ring-slate-900/5 shadow-xl hover:shadow-2xl"
+    id="results">
+    <div>
+      <h3
+        class="text-slate-900 dark:text-white mt-1 text-base font-semibold tracking-tight border-b dark:border-gray-100/10 border-gray-900/10">
+        {{ .Name }}<br />
+      </h3>
+      <p class="flex text-slate-500 dark:text-slate-400 mt-2 mb-4 text-sm">
+        {{ .ServerInfo }}<br />
+      </p>
+      <p class="text-slate-400 mt-2 mr-2 text-sm absolute bottom-[8px] right-[8px]">
+        {{ .Addr }}<br />
+      </p>
+    </div>
+  </div>
+  {{end}}
+</div>
+
+{{ end}}
