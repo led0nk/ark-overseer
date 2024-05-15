@@ -24,3 +24,7 @@ func (s *Server) mainPage(w http.ResponseWriter, r *http.Request) {
 		s.logger.ErrorContext(ctx, "failed to execute template", "error", err)
 	}
 }
+
+func (s *Server) showPlayers(w http.ResponseWriter, r *http.Request) {
+
+}
