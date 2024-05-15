@@ -9,6 +9,7 @@ type Server struct {
 	ID          uuid.UUID                  `json:"id" form:"-"`
 	Name        string                     `json:"name" form:"-"`
 	Addr        string                     `json:"addr" form:"-"`
+	Status      bool                       `json:"status" form:"-"`
 	ServerInfo  *steam.InfoResponse        `json:"serverinfo" form:"-"`
 	PlayersInfo *steam.PlayersInfoResponse `json:"playersinfo" form:"-"`
 }

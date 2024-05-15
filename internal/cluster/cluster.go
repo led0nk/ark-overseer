@@ -3,10 +3,10 @@ package cluster
 import (
 	"encoding/json"
 	"errors"
-	"log"
 	"os"
 	"sort"
 	"sync"
+	"time"
 
 	"github.com/FlowingSPDG/go-steam"
 	"github.com/google/uuid"
@@ -128,19 +128,33 @@ func (c *Cluster) DeleteServer(ID uuid.UUID) error {
 }
 
 func (c *Cluster) GetServerInfo() ([]*model.Server, error) {
-	c.mu.Lock()
-	defer c.mu.Unlock()
 
 	serverlist := make([]*model.Server, 0, len(c.server))
 	for _, server := range c.server {
-		var err error
-		helpServer, _ := steam.Connect(server.Addr)
-		server.ServerInfo, _ = helpServer.Info()
+		var playerList []*steam.Player
+
+		helpServer, err := steam.Connect(server.Addr)
+		if err != nil {
+			return nil, err
+		}
+
+		server.ServerInfo, err = helpServer.Info()
+		if err != nil {
+			return nil, err
+		}
+
 		server.PlayersInfo, err = helpServer.PlayersInfo()
 		if err != nil {
-			log.Println(err)
+			return nil, err
 		}
-		var playerList []*steam.Player
+
+		ping, err := helpServer.Ping()
+		if err != nil {
+			return nil, err
+		}
+		if ping < (5 * time.Second) {
+			server.Status = true
+		}
 
 		for _, player := range server.PlayersInfo.Players {
 			if player != nil && len(player.Name) > 2 {
@@ -150,7 +164,43 @@ func (c *Cluster) GetServerInfo() ([]*model.Server, error) {
 		server.PlayersInfo.Players = playerList
 		server.ServerInfo.Players = len(playerList)
 		serverlist = append(serverlist, server)
+		err = c.UpdateServerInfo(server)
+		if err != nil {
+			return nil, err
+		}
 	}
 	sort.Slice(serverlist, func(i, j int) bool { return serverlist[i].Name < serverlist[j].Name })
 	return serverlist, nil
+}
+
+func (c *Cluster) UpdateServerInfo(srv *model.Server) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	c.server[srv.ID] = srv
+	if err := c.writeJSON(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *Cluster) DataPerServer(srv *model.Server) (*steam.InfoResponse, *steam.PlayersInfoResponse, error) {
+
+	helpServer, err := steam.Connect(srv.Addr)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	infoResponse, err := helpServer.Info()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	playerResponse, err := helpServer.PlayersInfo()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return infoResponse, playerResponse, nil
 }

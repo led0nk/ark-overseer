@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"github.com/FlowingSPDG/go-steam"
 	"github.com/google/uuid"
 	"github.com/led0nk/ark-clusterinfo/internal/model"
 )
@@ -11,4 +12,5 @@ type ClusterStore interface {
 	GetServerByID(uuid.UUID) (*model.Server, error)
 	DeleteServer(uuid.UUID) error
 	GetServerInfo() ([]*model.Server, error)
+	DataPerServer(*model.Server) (*steam.InfoResponse, *steam.PlayersInfoResponse, error)
 }

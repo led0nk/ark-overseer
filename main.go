@@ -38,6 +38,19 @@ func main() {
 	if err != nil {
 		logger.Error("failed to create new cluster", "error", err)
 	}
+	//TODO: missing result channel
+	serverlist, _ := cStore.GetServerInfo()
+	for _, server := range serverlist {
+		go cStore.DataPerServer(server)
+	}
+	go func() {
+		for {
+			_, err := cStore.GetServerInfo()
+			if err != nil {
+				logger.Error("failed to get server info", "error", err)
+			}
+		}
+	}()
 
 	templates := templates.NewTemplateHandler()
 

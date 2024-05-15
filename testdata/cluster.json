@@ -3,28 +3,157 @@
 		"id": "157ef27c-46d6-4a74-bbc5-3c023748ec63",
 		"name": "LostIsland",
 		"addr": "51.195.60.114:27020",
-		"serverinfo": null,
-		"playersinfo": null
+		"status": true,
+		"serverinfo": {
+			"Protocol": 17,
+			"Name": "ACC-NoWipe-PvP-X3-LostIsland - (v358.24)\u0000",
+			"Map": "LostIsland\u0000",
+			"Folder": "ark_survival_evolved\u0000",
+			"Game": "ARK: Survival Evolved\u0000",
+			"ID": 346110,
+			"Players": 1,
+			"MaxPlayers": 70,
+			"Bots": 0,
+			"ServerType": 1,
+			"Environment": 2,
+			"Visibility": 1,
+			"VAC": 2,
+			"Version": "1.0.0.0\u0000",
+			"Port": 7785,
+			"SteamID": 90198177739760660,
+			"SourceTVPort": 0,
+			"SourceTVName": "",
+			"Keywords": ",OWNINGID:90198177739760660,OWNINGNAME:90198177739760660,NUMOPENPUBCONN:69,P2PADDR:90198177739760660,P2PPORT:7785,LEGACY_i:0\u0000",
+			"GameID": 346110
+		},
+		"playersinfo": {
+			"Players": [
+				{
+					"Name": "K3DLA\u0000",
+					"Score": 0,
+					"Duration": 1029.362060546875
+				}
+			]
+		}
 	},
 	"90131c69-c179-40ec-b6df-51acf137e3ff": {
 		"id": "90131c69-c179-40ec-b6df-51acf137e3ff",
 		"name": "Ragnarok",
 		"addr": "51.195.60.114:27019",
-		"serverinfo": null,
-		"playersinfo": null
+		"status": true,
+		"serverinfo": {
+			"Protocol": 17,
+			"Name": "ACC-NoWipe-PvP-X3-Ragnarok - (v358.24)\u0000",
+			"Map": "Ragnarok\u0000",
+			"Folder": "ark_survival_evolved\u0000",
+			"Game": "ARK: Survival Evolved\u0000",
+			"ID": 346110,
+			"Players": 0,
+			"MaxPlayers": 70,
+			"Bots": 0,
+			"ServerType": 1,
+			"Environment": 2,
+			"Visibility": 1,
+			"VAC": 2,
+			"Version": "1.0.0.0\u0000",
+			"Port": 7783,
+			"SteamID": 90198215992642580,
+			"SourceTVPort": 0,
+			"SourceTVName": "",
+			"Keywords": ",OWNINGID:90198215992642580,OWNINGNAME:90198215992642580,NUMOPENPUBCONN:70,P2PADDR:90198215992642580,P2PPORT:7783,LEGACY_i:0\u0000",
+			"GameID": 346110
+		},
+		"playersinfo": {
+			"Players": null
+		}
 	},
 	"b006667c-b554-44c8-9df1-c5e8e4dbbed7": {
 		"id": "b006667c-b554-44c8-9df1-c5e8e4dbbed7",
 		"name": "TheIsland",
 		"addr": "51.195.60.114:27016",
-		"serverinfo": null,
-		"playersinfo": null
+		"status": true,
+		"serverinfo": {
+			"Protocol": 17,
+			"Name": "ACC-NoWipe-PvP-X3-TheIsland - (v358.24)\u0000",
+			"Map": "TheIsland\u0000",
+			"Folder": "ark_survival_evolved\u0000",
+			"Game": "ARK: Survival Evolved\u0000",
+			"ID": 346110,
+			"Players": 3,
+			"MaxPlayers": 70,
+			"Bots": 0,
+			"ServerType": 1,
+			"Environment": 2,
+			"Visibility": 1,
+			"VAC": 2,
+			"Version": "1.0.0.0\u0000",
+			"Port": 7777,
+			"SteamID": 90198177738170388,
+			"SourceTVPort": 0,
+			"SourceTVName": "",
+			"Keywords": ",OWNINGID:90198177738170388,OWNINGNAME:90198177738170388,NUMOPENPUBCONN:67,P2PADDR:90198177738170388,P2PPORT:7777,LEGACY_i:0\u0000",
+			"GameID": 346110
+		},
+		"playersinfo": {
+			"Players": [
+				{
+					"Name": "CABRALOCA\u0000",
+					"Score": 0,
+					"Duration": 6575.73681640625
+				},
+				{
+					"Name": "jesulillo\u0000",
+					"Score": 0,
+					"Duration": 714.8951416015625
+				},
+				{
+					"Name": "Lucky Luke\u0000",
+					"Score": 0,
+					"Duration": 544.2501831054688
+				}
+			]
+		}
 	},
 	"d90f6be6-cdcb-4a8c-b107-36546db2d924": {
 		"id": "d90f6be6-cdcb-4a8c-b107-36546db2d924",
 		"name": "Aberration",
 		"addr": "51.195.60.114:27018",
-		"serverinfo": null,
-		"playersinfo": null
+		"status": true,
+		"serverinfo": {
+			"Protocol": 17,
+			"Name": "ACC-NoWipe-PvP-X3-Aberration - (v358.24)\u0000",
+			"Map": "Aberration\u0000",
+			"Folder": "ark_survival_evolved\u0000",
+			"Game": "ARK: Survival Evolved\u0000",
+			"ID": 346110,
+			"Players": 2,
+			"MaxPlayers": 70,
+			"Bots": 0,
+			"ServerType": 1,
+			"Environment": 2,
+			"Visibility": 1,
+			"VAC": 2,
+			"Version": "1.0.0.0\u0000",
+			"Port": 7781,
+			"SteamID": 90198177740007444,
+			"SourceTVPort": 0,
+			"SourceTVName": "",
+			"Keywords": ",OWNINGID:90198177740007444,OWNINGNAME:90198177740007444,NUMOPENPUBCONN:68,P2PADDR:90198177740007444,P2PPORT:7781,LEGACY_i:0\u0000",
+			"GameID": 346110
+		},
+		"playersinfo": {
+			"Players": [
+				{
+					"Name": "SchmidtneySpears\u0000",
+					"Score": 0,
+					"Duration": 11314.21875
+				},
+				{
+					"Name": "WannaBeAussie\u0000",
+					"Score": 0,
+					"Duration": 1968.7103271484375
+				}
+			]
+		}
 	}
 }
