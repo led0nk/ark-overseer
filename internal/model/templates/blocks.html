@@ -1,0 +1,49 @@
+{{ block "player" . }}
+<div id="player">
+  <div class="overflow-hidden rounded-lg border border-gray-200 shadow-md m-5">
+    <table class="w-full border-collapse bg-white text-left text-gray-500 ">
+      <thead class="bg-gray-50">
+        <th class="px-6 py-4 font-medium text-gray-900">Playername:</th>
+        <th class="px-6 py-4 font-medium text-gray-900">Duration:</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-100 border-t border-gray-100">
+        {{ range .PlayersInfo.Players }}
+        <tr class="hover:bg-gray-50"">
+          <td class=" px-6 py-4">
+          <div class="font-medium text-gray-700">{{ .Name }}
+          </div>
+          </td>
+          <td class="px-6 py-4">
+            <div class="font-medium text-gray-700">
+              {{ .Duration }}
+            </div>
+          </td>
+        </tr>
+        {{ end }}
+      </tbody>
+    </table>
+  </div>
+  {{ end}}
+
+  {{ block "server" .}}
+  <tr id="new_server-container">
+    <form>
+      <td colspan="2" class="px-6 py-4">
+        <input type="text" id="servername" name="servername" placeholder="Servername..."
+          class="w-full text-base placeholder:italic placeholder:text-sm placeholder:text-gray-400 block rounded-lg border-0 px-3 md:px-4 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 focus:outline-none s:text-sm sm:leading-6 hover:ring-3 hover:ring-inset hover:ring-indigo-600 hover:shadow-sm" />
+      </td>
+      <td colspan="1" class="px-6 py-4">
+        <input type="text" id="address" name="address" placeholder="Address..."
+          class="w-full text-base placeholder:italic placeholder:text-sm placeholder:text-gray-400 block rounded-lg border-0 px-3 md:px-4 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 focus:outline-none s:text-sm sm:leading-6 hover:ring-3 hover:ring-inset hover:ring-indigo-600 hover:shadow-sm" />
+      </td>
+      <td colspan="1" class="px-6 py-4">
+        <div class="flex justify-end gap-4">
+          <button type="button" hx-put="/" hx-target="#new_server-container" hx-swap="outerHTML"
+            class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">Add
+            Server</button>
+        </div>
+      </td>
+    </form>
+  </tr>
+  {{ end}}

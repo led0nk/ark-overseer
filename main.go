@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"log/slog"
 	"os"
@@ -28,6 +29,9 @@ func main() {
 	)
 	flag.Parse()
 
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	err := logLevel.UnmarshalText([]byte(*logLevelStr))
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: logLevel}))
 	if err != nil {
@@ -52,10 +56,12 @@ func main() {
 		logger.Error("failed to create endpoint storage", "error", err)
 	}
 
-	obs.InitScraper()
+	go func() {
+		obs.InitScraper(ctx)
+	}()
 
 	templates := templates.NewTemplateHandler()
-
 	server := v1.NewServer(*addr, *domain, templates, logger, sStore)
 	server.ServeHTTP()
+
 }

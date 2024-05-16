@@ -15,7 +15,7 @@ type Server struct {
 	domain    string
 	templates *templates.TemplateHandler
 	logger    *slog.Logger
-	cStore    internal.ServerStore
+	sStore    internal.ServerStore
 }
 
 func NewServer(
@@ -23,14 +23,14 @@ func NewServer(
 	domain string,
 	templates *templates.TemplateHandler,
 	logger *slog.Logger,
-	cStore internal.ServerStore,
+	sStore internal.ServerStore,
 ) *Server {
 	return &Server{
 		addr:      address,
 		domain:    domain,
 		templates: templates,
 		logger:    slog.Default().WithGroup("http"),
-		cStore:    cStore,
+		sStore:    sStore,
 	}
 }
 
@@ -47,7 +47,8 @@ func (s *Server) ServeHTTP() {
 	)
 
 	r.Handle("GET /", http.HandlerFunc(s.mainPage))
-	r.Handle("POST /", http.HandlerFunc(s.showPlayers))
+	r.Handle("POST /", http.HandlerFunc(s.showServerInput))
+	r.Handle("PUT /", http.HandlerFunc(s.addServer))
 	r.Handle("POST /{ID}", http.HandlerFunc(s.showPlayers))
 	r.Handle("DELETE /{ID}", http.HandlerFunc(s.deleteServer))
 	r.Handle("GET /serverdata/{ID}", http.HandlerFunc(s.updatePlayerCounter))

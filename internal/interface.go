@@ -9,18 +9,17 @@ import (
 )
 
 type ServerStore interface {
-	CreateServer(*model.Server) (string, error)
+	CreateOrUpdateServer(*model.Server) (string, error)
 	ListServer() ([]*model.Server, error)
 	GetServerByName(string) (*model.Server, error)
 	GetServerByID(uuid.UUID) (*model.Server, error)
 	DeleteServer(uuid.UUID) error
-	UpdateServerInfo(*model.Server) error
 }
 
 type Observer interface {
 	ReadEndpoint(*parser.Target) error
-	DataScraper(context.Context, uuid.UUID, chan<- any)
-	InitScraper()
+	DataScraper(context.Context, uuid.UUID, chan<- *model.Server)
+	InitScraper(context.Context)
 }
 
 type Parser interface {

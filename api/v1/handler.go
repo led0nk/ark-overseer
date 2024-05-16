@@ -19,7 +19,7 @@ func (s *Server) mainPage(w http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()
 
-	serverList, err = s.cStore.ListServer()
+	serverList, err = s.sStore.ListServer()
 	if err != nil {
 		s.logger.ErrorContext(ctx, "failed to get server info", "error", err)
 	}
@@ -39,12 +39,12 @@ func (s *Server) showPlayers(w http.ResponseWriter, r *http.Request) {
 		s.logger.ErrorContext(ctx, "failed to parse uuid", "error", err)
 		return
 	}
-	server, err := s.cStore.GetServerByID(id)
+	server, err := s.sStore.GetServerByID(id)
 	if err != nil {
 		s.logger.ErrorContext(ctx, "failed to get server", "error", err)
 		return
 	}
-	err = s.templates.TmplPlayer.ExecuteTemplate(w, "player", server)
+	err = s.templates.TmplBlocks.ExecuteTemplate(w, "player", server)
 	if err != nil {
 		s.logger.ErrorContext(ctx, "failed to execute template", "error", err)
 		return
@@ -69,7 +69,7 @@ func (s *Server) updatePlayerCounter(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	for {
-		srv, err := s.cStore.GetServerByID(uuid.MustParse(r.PathValue("ID")))
+		srv, err := s.sStore.GetServerByID(uuid.MustParse(r.PathValue("ID")))
 		if err != nil {
 			s.logger.ErrorContext(ctx, "failed to get server", "error", err)
 		}
@@ -85,6 +85,24 @@ func (s *Server) deleteServer(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) showServerInput(w http.ResponseWriter, r *http.Request) {
-	//ctx := r.Context()
+	ctx := r.Context()
 
+	err := s.templates.TmplBlocks.ExecuteTemplate(w, "server", nil)
+	if err != nil {
+		s.logger.ErrorContext(ctx, "failed to execute template", "error", err)
+		return
+	}
+}
+
+func (s *Server) addServer(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	newServer := &model.Server{
+		Name: r.FormValue("servername"),
+		Addr: r.FormValue("address"),
+	}
+	_, err := s.sStore.CreateOrUpdateServer(newServer)
+	if err != nil {
+		s.logger.ErrorContext(ctx, "failed to create server", "error", err)
+	}
 }

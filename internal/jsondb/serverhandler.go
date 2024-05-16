@@ -55,7 +55,7 @@ func (s *ServerStorage) readJSON() error {
 	return json.Unmarshal(data, &s.server)
 }
 
-func (s *ServerStorage) CreateServer(server *model.Server) (string, error) {
+func (s *ServerStorage) CreateOrUpdateServer(server *model.Server) (string, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -122,18 +122,6 @@ func (s *ServerStorage) DeleteServer(ID uuid.UUID) error {
 	if err := s.writeJSON(); err != nil {
 		return err
 	}
-	return nil
-}
-
-func (s *ServerStorage) UpdateServerInfo(srv *model.Server) error {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	s.server[srv.ID] = srv
-	if err := s.writeJSON(); err != nil {
-		return err
-	}
-
 	return nil
 }
 

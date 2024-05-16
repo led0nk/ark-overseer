@@ -2,10 +2,12 @@ package observer
 
 import (
 	"context"
-	"fmt"
-	"log"
+	"errors"
 	"log/slog"
+	"math"
+	"strings"
 	"sync"
+	"time"
 
 	"github.com/FlowingSPDG/go-steam"
 	"github.com/google/uuid"
@@ -44,48 +46,56 @@ func (o *Observer) ReadEndpoint(target *parser.Target) error {
 	return nil
 }
 
-// only for testing purpose -> should be switched to unmarshalling data into *model.Server
-type Result struct {
-	ServerInfo *steam.InfoResponse
-	PlayerInfo *steam.PlayersInfoResponse
-}
-
-func (o *Observer) DataScraper(ctx context.Context, id uuid.UUID, c chan<- any) {
+func (o *Observer) DataScraper(ctx context.Context, id uuid.UUID, c chan<- *model.Server) {
 	for _, endpoint := range o.endpoints {
 		if endpoint.ID == id {
 			for {
 				helpSrv, err := steam.Connect(endpoint.Addr)
 				if err != nil {
-					log.Println("error connecting to endpoint", err)
+					o.logger.ErrorContext(ctx, "error connecting to endpoint", "error", err)
 					continue
 				}
 
 				infoResponse, err := helpSrv.Info()
 				if err != nil {
-					log.Println("error fetching ServerInfo", err)
+					o.logger.ErrorContext(ctx, "error fetching ServerInfo", "error", err)
 					continue
 				}
 
 				playerResponse, err := helpSrv.PlayersInfo()
 				if err != nil {
-					log.Println("error fetching PlayersInfo", err)
+					o.logger.ErrorContext(ctx, "error fetching PlayersInfo", "error", err)
 					continue
 				}
 
-				result := Result{
-					ServerInfo: infoResponse,
-					PlayerInfo: playerResponse,
+				ping, err := helpSrv.Ping()
+				if err != nil {
+					o.logger.ErrorContext(ctx, "failed to ping server", "error", err)
+					continue
 				}
-				c <- result
+
+				server, err := Unmarshal(infoResponse)
+				if err != nil {
+					o.logger.ErrorContext(ctx, "failed to unmarshal server info", "error", err)
+				}
+
+				player, err := Unmarshal(playerResponse)
+				if err != nil {
+					o.logger.ErrorContext(ctx, "failed to unmarshal server info", "error", err)
+				}
+				if ping < time.Duration(5*time.Second) {
+					server.Status = true
+				}
+				server.ID = id
+				server.PlayersInfo = player.PlayersInfo
+				c <- server
 			}
 		}
 	}
 }
 
-func (o *Observer) InitScraper() {
-	resultCh := make(chan any)
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+func (o *Observer) InitScraper(ctx context.Context) {
+	resultCh := make(chan *model.Server)
 
 	targets, err := o.parser.ListTargets()
 	if err != nil {
@@ -103,13 +113,53 @@ func (o *Observer) InitScraper() {
 	}
 
 	for result := range resultCh {
-		fmt.Println(result)
+		_, err = o.serverStore.CreateOrUpdateServer(result)
+		if err != nil {
+			o.logger.ErrorContext(ctx, "failed to update server info", "error", err)
+		}
 	}
 }
 
-func Unmarshal(data any) (*model.Server, error) {
-	srv := &model.Server{}
-	//structType := reflect.TypeOf(data)
+func Unmarshal(info interface{}) (*model.Server, error) {
+	server := &model.Server{}
 
-	return srv, nil
+	switch v := info.(type) {
+	case *steam.InfoResponse:
+		server.ServerInfo = &model.ServerInfo{
+			Protocol:     v.Protocol,
+			Name:         strings.Trim(v.Name, "\u0000"),
+			Map:          strings.Trim(v.Map, "\u0000"),
+			Folder:       strings.Trim(v.Folder, "\u0000"),
+			Game:         strings.Trim(v.Game, "\u0000"),
+			ID:           v.ID,
+			Players:      v.Players,
+			MaxPlayers:   v.MaxPlayers,
+			Bots:         v.Bots,
+			ServerType:   v.ServerType,
+			Environment:  v.Environment,
+			Visibility:   v.Visibility,
+			VAC:          v.VAC,
+			Version:      strings.Trim(v.Version, "\u0000"),
+			Port:         v.Port,
+			SteamID:      v.SteamID,
+			SourceTVPort: v.SourceTVPort,
+			SourceTVName: strings.Trim(v.SourceTVName, "\u0000"),
+			Keywords:     strings.Trim(v.Keywords, "\u0000"),
+			GameID:       v.GameID,
+		}
+	case *steam.PlayersInfoResponse:
+		var players []model.Players
+		for _, p := range v.Players {
+			player := model.Players{
+				Name:     strings.Trim(p.Name, "\u0000"),
+				Score:    p.Score,
+				Duration: time.Duration(math.Round(p.Duration) * 1e9),
+			}
+			players = append(players, player)
+		}
+		server.PlayersInfo = &model.PlayersInfo{Players: players}
+	default:
+		return nil, errors.New("unsupported type")
+	}
+	return server, nil
 }

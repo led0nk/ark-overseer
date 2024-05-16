@@ -1,153 +1,220 @@
 {
-	"157ef27c-46d6-4a74-bbc5-3c023748ec63": {
-		"id": "157ef27c-46d6-4a74-bbc5-3c023748ec63",
-		"name": "LostIsland",
-		"addr": "51.195.60.114:27020",
+	"0d73818b-4376-4918-a2d9-e2231eec8590": {
+		"id": "0d73818b-4376-4918-a2d9-e2231eec8590",
+		"name": "",
+		"addr": "",
 		"status": true,
 		"serverinfo": {
-			"Protocol": 17,
-			"Name": "ACC-NoWipe-PvP-X3-LostIsland - (v358.24)\u0000",
-			"Map": "LostIsland\u0000",
-			"Folder": "ark_survival_evolved\u0000",
-			"Game": "ARK: Survival Evolved\u0000",
-			"ID": 346110,
-			"Players": 1,
-			"MaxPlayers": 70,
-			"Bots": 0,
-			"ServerType": 1,
-			"Environment": 2,
-			"Visibility": 1,
-			"VAC": 2,
-			"Version": "1.0.0.0\u0000",
-			"Port": 7785,
-			"SteamID": 90198177739760660,
-			"SourceTVPort": 0,
-			"SourceTVName": "",
-			"Keywords": ",OWNINGID:90198177739760660,OWNINGNAME:90198177739760660,NUMOPENPUBCONN:69,P2PADDR:90198177739760660,P2PPORT:7785,LEGACY_i:0\u0000",
-			"GameID": 346110
+			"protocol": 17,
+			"name": "ACC-NoWipe-PvP-X3-Ragnarok - (v358.24)",
+			"map": "Ragnarok",
+			"folder": "ark_survival_evolved",
+			"game": "ARK: Survival Evolved",
+			"id": 346110,
+			"players": 1,
+			"maxplayers": 70,
+			"bots": 0,
+			"servertype": 1,
+			"environment": 2,
+			"visibility": 1,
+			"vac": 2,
+			"version": "1.0.0.0",
+			"port": 7783,
+			"steamid": 90198215992642580,
+			"sourcetvport": 0,
+			"sourcetvname": "",
+			"keywords": ",OWNINGID:90198215992642580,OWNINGNAME:90198215992642580,NUMOPENPUBCONN:69,P2PADDR:90198215992642580,P2PPORT:7783,LEGACY_i:0",
+			"gameid": 346110
 		},
 		"playersinfo": {
 			"Players": [
 				{
-					"Name": "K3DLA\u0000",
-					"Score": 0,
-					"Duration": 797.5087280273438
+					"name": "Junior K",
+					"score": 0,
+					"duration": 1119000000000
 				}
 			]
 		}
 	},
-	"90131c69-c179-40ec-b6df-51acf137e3ff": {
-		"id": "90131c69-c179-40ec-b6df-51acf137e3ff",
-		"name": "Ragnarok",
-		"addr": "51.195.60.114:27019",
+	"aa3564c8-7962-4901-999c-eaa684f6734a": {
+		"id": "aa3564c8-7962-4901-999c-eaa684f6734a",
+		"name": "",
+		"addr": "",
 		"status": true,
 		"serverinfo": {
-			"Protocol": 17,
-			"Name": "ACC-NoWipe-PvP-X3-Ragnarok - (v358.24)\u0000",
-			"Map": "Ragnarok\u0000",
-			"Folder": "ark_survival_evolved\u0000",
-			"Game": "ARK: Survival Evolved\u0000",
-			"ID": 346110,
-			"Players": 0,
-			"MaxPlayers": 70,
-			"Bots": 0,
-			"ServerType": 1,
-			"Environment": 2,
-			"Visibility": 1,
-			"VAC": 2,
-			"Version": "1.0.0.0\u0000",
-			"Port": 7783,
-			"SteamID": 90198215992642580,
-			"SourceTVPort": 0,
-			"SourceTVName": "",
-			"Keywords": ",OWNINGID:90198215992642580,OWNINGNAME:90198215992642580,NUMOPENPUBCONN:70,P2PADDR:90198215992642580,P2PPORT:7783,LEGACY_i:0\u0000",
-			"GameID": 346110
-		},
-		"playersinfo": {
-			"Players": null
-		}
-	},
-	"b006667c-b554-44c8-9df1-c5e8e4dbbed7": {
-		"id": "b006667c-b554-44c8-9df1-c5e8e4dbbed7",
-		"name": "TheIsland",
-		"addr": "51.195.60.114:27016",
-		"status": true,
-		"serverinfo": {
-			"Protocol": 17,
-			"Name": "ACC-NoWipe-PvP-X3-TheIsland - (v358.24)\u0000",
-			"Map": "TheIsland\u0000",
-			"Folder": "ark_survival_evolved\u0000",
-			"Game": "ARK: Survival Evolved\u0000",
-			"ID": 346110,
-			"Players": 4,
-			"MaxPlayers": 70,
-			"Bots": 0,
-			"ServerType": 1,
-			"Environment": 2,
-			"Visibility": 1,
-			"VAC": 2,
-			"Version": "1.0.0.0\u0000",
-			"Port": 7777,
-			"SteamID": 90198177738170388,
-			"SourceTVPort": 0,
-			"SourceTVName": "",
-			"Keywords": ",OWNINGID:90198177738170388,OWNINGNAME:90198177738170388,NUMOPENPUBCONN:66,P2PADDR:90198177738170388,P2PPORT:7777,LEGACY_i:0\u0000",
-			"GameID": 346110
+			"protocol": 17,
+			"name": "ACC-NoWipe-PvP-X3-TheIsland - (v358.24)",
+			"map": "TheIsland",
+			"folder": "ark_survival_evolved",
+			"game": "ARK: Survival Evolved",
+			"id": 346110,
+			"players": 5,
+			"maxplayers": 70,
+			"bots": 0,
+			"servertype": 1,
+			"environment": 2,
+			"visibility": 1,
+			"vac": 2,
+			"version": "1.0.0.0",
+			"port": 7777,
+			"steamid": 90198177738170388,
+			"sourcetvport": 0,
+			"sourcetvname": "",
+			"keywords": ",OWNINGID:90198177738170388,OWNINGNAME:90198177738170388,NUMOPENPUBCONN:66,P2PADDR:90198177738170388,P2PPORT:7777,LEGACY_i:0",
+			"gameid": 346110
 		},
 		"playersinfo": {
 			"Players": [
 				{
-					"Name": "Andrucha\u0000",
-					"Score": 0,
-					"Duration": 5272.71875
+					"name": "",
+					"score": 0,
+					"duration": 102798000000000
 				},
 				{
-					"Name": "MrBlingbling\u0000",
-					"Score": 0,
-					"Duration": 2741.125732421875
+					"name": "Omega",
+					"score": 0,
+					"duration": 22198000000000
 				},
 				{
-					"Name": "Fadem\u0000",
-					"Score": 0,
-					"Duration": 1034.125
+					"name": "CABRALOCA",
+					"score": 0,
+					"duration": 21252000000000
 				},
 				{
-					"Name": "Geronimo\u0000",
-					"Score": 0,
-					"Duration": 151.9873809814453
+					"name": "jesulillo",
+					"score": 0,
+					"duration": 18727000000000
+				},
+				{
+					"name": "Cr0wny",
+					"score": 0,
+					"duration": 1405000000000
 				}
 			]
 		}
 	},
-	"d90f6be6-cdcb-4a8c-b107-36546db2d924": {
-		"id": "d90f6be6-cdcb-4a8c-b107-36546db2d924",
-		"name": "Aberration",
-		"addr": "51.195.60.114:27018",
+	"c0ad0c6c-8ae0-4159-a273-7c4f039d9909": {
+		"id": "c0ad0c6c-8ae0-4159-a273-7c4f039d9909",
+		"name": "",
+		"addr": "",
 		"status": true,
 		"serverinfo": {
-			"Protocol": 17,
-			"Name": "ACC-NoWipe-PvP-X3-Aberration - (v358.24)\u0000",
-			"Map": "Aberration\u0000",
-			"Folder": "ark_survival_evolved\u0000",
-			"Game": "ARK: Survival Evolved\u0000",
-			"ID": 346110,
-			"Players": 0,
-			"MaxPlayers": 70,
-			"Bots": 0,
-			"ServerType": 1,
-			"Environment": 2,
-			"Visibility": 1,
-			"VAC": 2,
-			"Version": "1.0.0.0\u0000",
-			"Port": 7781,
-			"SteamID": 90198177740007444,
-			"SourceTVPort": 0,
-			"SourceTVName": "",
-			"Keywords": ",OWNINGID:90198177740007444,OWNINGNAME:90198177740007444,NUMOPENPUBCONN:70,P2PADDR:90198177740007444,P2PPORT:7781,LEGACY_i:0\u0000",
-			"GameID": 346110
+			"protocol": 17,
+			"name": "ACC-NoWipe-PvP-X3-LostIsland - (v358.24)",
+			"map": "LostIsland",
+			"folder": "ark_survival_evolved",
+			"game": "ARK: Survival Evolved",
+			"id": 346110,
+			"players": 9,
+			"maxplayers": 70,
+			"bots": 0,
+			"servertype": 1,
+			"environment": 2,
+			"visibility": 1,
+			"vac": 2,
+			"version": "1.0.0.0",
+			"port": 7785,
+			"steamid": 90198177739760660,
+			"sourcetvport": 0,
+			"sourcetvname": "",
+			"keywords": ",OWNINGID:90198177739760660,OWNINGNAME:90198177739760660,NUMOPENPUBCONN:62,P2PADDR:90198177739760660,P2PPORT:7785,LEGACY_i:0",
+			"gameid": 346110
 		},
 		"playersinfo": {
-			"Players": null
+			"Players": [
+				{
+					"name": "",
+					"score": 0,
+					"duration": 148543000000000
+				},
+				{
+					"name": "ast",
+					"score": 0,
+					"duration": 12075000000000
+				},
+				{
+					"name": "Fuzionix_72",
+					"score": 0,
+					"duration": 8034000000000
+				},
+				{
+					"name": "EnderJD",
+					"score": 0,
+					"duration": 4745000000000
+				},
+				{
+					"name": "Jupp",
+					"score": 0,
+					"duration": 3221000000000
+				},
+				{
+					"name": "K3DLA",
+					"score": 0,
+					"duration": 3167000000000
+				},
+				{
+					"name": "flame",
+					"score": 0,
+					"duration": 2804000000000
+				},
+				{
+					"name": "bebe_dragon",
+					"score": 0,
+					"duration": 1642000000000
+				},
+				{
+					"name": "mohamedmelena10",
+					"score": 0,
+					"duration": 470000000000
+				}
+			]
+		}
+	},
+	"fb868ad9-a0e7-4ece-91ae-4e561e54d9cd": {
+		"id": "fb868ad9-a0e7-4ece-91ae-4e561e54d9cd",
+		"name": "",
+		"addr": "",
+		"status": true,
+		"serverinfo": {
+			"protocol": 17,
+			"name": "ACC-NoWipe-PvP-X3-Aberration - (v358.24)",
+			"map": "Aberration",
+			"folder": "ark_survival_evolved",
+			"game": "ARK: Survival Evolved",
+			"id": 346110,
+			"players": 3,
+			"maxplayers": 70,
+			"bots": 0,
+			"servertype": 1,
+			"environment": 2,
+			"visibility": 1,
+			"vac": 2,
+			"version": "1.0.0.0",
+			"port": 7781,
+			"steamid": 90198177740007444,
+			"sourcetvport": 0,
+			"sourcetvname": "",
+			"keywords": ",OWNINGID:90198177740007444,OWNINGNAME:90198177740007444,NUMOPENPUBCONN:68,P2PADDR:90198177740007444,P2PPORT:7781,LEGACY_i:0",
+			"gameid": 346110
+		},
+		"playersinfo": {
+			"Players": [
+				{
+					"name": "",
+					"score": 0,
+					"duration": 62041000000000
+				},
+				{
+					"name": "Defolt",
+					"score": 0,
+					"duration": 748000000000
+				},
+				{
+					"name": "123",
+					"score": 0,
+					"duration": 522000000000
+				}
+			]
 		}
 	}
 }
