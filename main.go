@@ -56,12 +56,13 @@ func main() {
 		logger.Error("failed to create endpoint storage", "error", err)
 	}
 
-	go func() {
-		obs.InitScraper(ctx)
-	}()
+	targets, err := parse.ListTargets()
+	if err != nil {
+		logger.Error("failed to list targets", "error", err)
+	}
+	go obs.InitScraper(ctx, targets)
 
 	templates := templates.NewTemplateHandler()
-	server := v1.NewServer(*addr, *domain, templates, logger, sStore)
+	server := v1.NewServer(*addr, *domain, templates, logger, sStore, parse)
 	server.ServeHTTP()
-
 }

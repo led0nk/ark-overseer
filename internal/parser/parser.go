@@ -2,6 +2,7 @@ package parser
 
 import (
 	"encoding/json"
+	"errors"
 	"os"
 	"sort"
 	"sync"
@@ -81,6 +82,26 @@ func (p *Parser) CreateTarget(trg *Target) error {
 	p.targets[trg.ID] = trg
 	err := p.writeJSON()
 	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (p *Parser) DeleteTarget(ID uuid.UUID) error {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+
+	if ID == uuid.Nil {
+		return errors.New("requires server ID")
+	}
+
+	if _, exists := p.targets[ID]; !exists {
+		return errors.New("target doesn't exist")
+	}
+
+	delete(p.targets, ID)
+
+	if err := p.writeJSON(); err != nil {
 		return err
 	}
 	return nil

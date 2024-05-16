@@ -9,6 +9,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/led0nk/ark-clusterinfo/internal/model"
+	"github.com/led0nk/ark-clusterinfo/internal/parser"
 )
 
 func (s *Server) mainPage(w http.ResponseWriter, r *http.Request) {
@@ -58,15 +59,20 @@ func (s *Server) updatePlayerCounter(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	dataCh := make(chan any)
 
-	_, cancel := context.WithCancel(ctx)
+	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	go func() {
+	go func(ctx context.Context) {
 		for data := range dataCh {
-			fmt.Fprintf(w, "data: %s\n\n", data)
-			w.(http.Flusher).Flush()
+			select {
+			case <-ctx.Done():
+				return
+			default:
+				fmt.Fprintf(w, "data: %s\n\n", data)
+				w.(http.Flusher).Flush()
+			}
 		}
-	}()
+	}(ctx)
 
 	for {
 		srv, err := s.sStore.GetServerByID(uuid.MustParse(r.PathValue("ID")))
@@ -97,12 +103,14 @@ func (s *Server) showServerInput(w http.ResponseWriter, r *http.Request) {
 func (s *Server) addServer(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	newServer := &model.Server{
+	newServer := &parser.Target{
 		Name: r.FormValue("servername"),
 		Addr: r.FormValue("address"),
 	}
-	_, err := s.sStore.CreateOrUpdateServer(newServer)
+	err := s.parser.CreateTarget(newServer)
 	if err != nil {
 		s.logger.ErrorContext(ctx, "failed to create server", "error", err)
 	}
+
+	//TODO: template
 }
