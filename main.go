@@ -7,8 +7,10 @@ import (
 
 	v1 "github.com/led0nk/ark-clusterinfo/api/v1"
 	"github.com/led0nk/ark-clusterinfo/internal"
-	"github.com/led0nk/ark-clusterinfo/internal/cluster"
+	"github.com/led0nk/ark-clusterinfo/internal/jsondb"
 	"github.com/led0nk/ark-clusterinfo/internal/model/templates"
+	"github.com/led0nk/ark-clusterinfo/internal/parser"
+	"github.com/led0nk/ark-clusterinfo/observer"
 )
 
 func main() {
@@ -19,7 +21,9 @@ func main() {
 		//dbase       = flag.String("db", "file://testdata", "path to database")
 		domain      = flag.String("domain", "127.0.0.1", "given domain for cookies/mail")
 		logLevelStr = flag.String("loglevel", "INFO", "define the level for logs")
-		cStore      internal.ClusterStore
+		parse       internal.Parser
+		sStore      internal.ServerStore
+		obs         internal.Observer
 		logLevel    slog.Level
 	)
 	flag.Parse()
@@ -33,28 +37,25 @@ func main() {
 
 	logger.Info("server address", "addr", *addr)
 	//	logger.Info("otlp/grpc", "gprcaddr", *grpcaddr)
+	parse, err = parser.NewParserWithTargets("testdata/targets.json")
+	if err != nil {
+		logger.Error("failed to create parser", "error", err)
+	}
 
-	cStore, err = cluster.NewCluster("testdata/cluster.json")
+	sStore, err = jsondb.NewServerStorage("testdata/cluster.json")
 	if err != nil {
 		logger.Error("failed to create new cluster", "error", err)
 	}
-	//TODO: missing result channel
-	serverlist, _ := cStore.GetServerInfo()
-	for _, server := range serverlist {
-		go cStore.DataPerServer(server)
+
+	obs, err = observer.NewObserver(sStore, parse)
+	if err != nil {
+		logger.Error("failed to create endpoint storage", "error", err)
 	}
-	go func() {
-		for {
-			_, err := cStore.GetServerInfo()
-			if err != nil {
-				logger.Error("failed to get server info", "error", err)
-			}
-		}
-	}()
+
+	obs.InitScraper()
 
 	templates := templates.NewTemplateHandler()
 
-	server := v1.NewServer(*addr, *domain, templates, logger, cStore)
+	server := v1.NewServer(*addr, *domain, templates, logger, sStore)
 	server.ServeHTTP()
-
 }

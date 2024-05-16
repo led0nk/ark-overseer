@@ -19,7 +19,7 @@ func (s *Server) mainPage(w http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()
 
-	serverList, err = s.cStore.GetServerInfo()
+	serverList, err = s.cStore.ListServer()
 	if err != nil {
 		s.logger.ErrorContext(ctx, "failed to get server info", "error", err)
 	}

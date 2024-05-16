@@ -15,7 +15,7 @@ type Server struct {
 	domain    string
 	templates *templates.TemplateHandler
 	logger    *slog.Logger
-	cStore    internal.ClusterStore
+	cStore    internal.ServerStore
 }
 
 func NewServer(
@@ -23,7 +23,7 @@ func NewServer(
 	domain string,
 	templates *templates.TemplateHandler,
 	logger *slog.Logger,
-	cStore internal.ClusterStore,
+	cStore internal.ServerStore,
 ) *Server {
 	return &Server{
 		addr:      address,

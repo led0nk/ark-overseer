@@ -31,7 +31,7 @@
 				{
 					"Name": "K3DLA\u0000",
 					"Score": 0,
-					"Duration": 1029.362060546875
+					"Duration": 797.5087280273438
 				}
 			]
 		}
@@ -79,7 +79,7 @@
 			"Folder": "ark_survival_evolved\u0000",
 			"Game": "ARK: Survival Evolved\u0000",
 			"ID": 346110,
-			"Players": 3,
+			"Players": 4,
 			"MaxPlayers": 70,
 			"Bots": 0,
 			"ServerType": 1,
@@ -91,25 +91,30 @@
 			"SteamID": 90198177738170388,
 			"SourceTVPort": 0,
 			"SourceTVName": "",
-			"Keywords": ",OWNINGID:90198177738170388,OWNINGNAME:90198177738170388,NUMOPENPUBCONN:67,P2PADDR:90198177738170388,P2PPORT:7777,LEGACY_i:0\u0000",
+			"Keywords": ",OWNINGID:90198177738170388,OWNINGNAME:90198177738170388,NUMOPENPUBCONN:66,P2PADDR:90198177738170388,P2PPORT:7777,LEGACY_i:0\u0000",
 			"GameID": 346110
 		},
 		"playersinfo": {
 			"Players": [
 				{
-					"Name": "CABRALOCA\u0000",
+					"Name": "Andrucha\u0000",
 					"Score": 0,
-					"Duration": 6575.73681640625
+					"Duration": 5272.71875
 				},
 				{
-					"Name": "jesulillo\u0000",
+					"Name": "MrBlingbling\u0000",
 					"Score": 0,
-					"Duration": 714.8951416015625
+					"Duration": 2741.125732421875
 				},
 				{
-					"Name": "Lucky Luke\u0000",
+					"Name": "Fadem\u0000",
 					"Score": 0,
-					"Duration": 544.2501831054688
+					"Duration": 1034.125
+				},
+				{
+					"Name": "Geronimo\u0000",
+					"Score": 0,
+					"Duration": 151.9873809814453
 				}
 			]
 		}
@@ -126,7 +131,7 @@
 			"Folder": "ark_survival_evolved\u0000",
 			"Game": "ARK: Survival Evolved\u0000",
 			"ID": 346110,
-			"Players": 2,
+			"Players": 0,
 			"MaxPlayers": 70,
 			"Bots": 0,
 			"ServerType": 1,
@@ -138,22 +143,11 @@
 			"SteamID": 90198177740007444,
 			"SourceTVPort": 0,
 			"SourceTVName": "",
-			"Keywords": ",OWNINGID:90198177740007444,OWNINGNAME:90198177740007444,NUMOPENPUBCONN:68,P2PADDR:90198177740007444,P2PPORT:7781,LEGACY_i:0\u0000",
+			"Keywords": ",OWNINGID:90198177740007444,OWNINGNAME:90198177740007444,NUMOPENPUBCONN:70,P2PADDR:90198177740007444,P2PPORT:7781,LEGACY_i:0\u0000",
 			"GameID": 346110
 		},
 		"playersinfo": {
-			"Players": [
-				{
-					"Name": "SchmidtneySpears\u0000",
-					"Score": 0,
-					"Duration": 11314.21875
-				},
-				{
-					"Name": "WannaBeAussie\u0000",
-					"Score": 0,
-					"Duration": 1968.7103271484375
-				}
-			]
+			"Players": null
 		}
 	}
 }
