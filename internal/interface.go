@@ -18,11 +18,14 @@ type ServerStore interface {
 
 type Observer interface {
 	ReadEndpoint(*parser.Target) error
-	DataScraper(context.Context, *parser.Target, chan<- *model.Server)
+	DataScraper(context.Context, *parser.Target)
 	InitScraper(context.Context, []*parser.Target)
+	AddScraper(context.Context, *parser.Target) error
+	KillScraper(uuid.UUID) error
 }
 
 type Parser interface {
-	CreateTarget(*parser.Target) error
+	CreateTarget(*parser.Target) (*parser.Target, error)
+	DeleteTarget(uuid.UUID) error
 	ListTargets() ([]*parser.Target, error)
 }

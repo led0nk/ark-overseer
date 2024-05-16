@@ -72,19 +72,22 @@ func (p *Parser) ListTargets() ([]*Target, error) {
 	return trgtlist, nil
 }
 
-func (p *Parser) CreateTarget(trg *Target) error {
+func (p *Parser) CreateTarget(trg *Target) (*Target, error) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
 	if trg.ID == uuid.Nil {
 		trg.ID = uuid.New()
 	}
+	if trg.Name == "" || trg.Addr == "" {
+		return nil, errors.New("empty values are not allowed")
+	}
 	p.targets[trg.ID] = trg
 	err := p.writeJSON()
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return trg, nil
 }
 
 func (p *Parser) DeleteTarget(ID uuid.UUID) error {

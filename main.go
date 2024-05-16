@@ -41,6 +41,7 @@ func main() {
 
 	logger.Info("server address", "addr", *addr)
 	//	logger.Info("otlp/grpc", "gprcaddr", *grpcaddr)
+
 	parse, err = parser.NewParserWithTargets("testdata/targets.json")
 	if err != nil {
 		logger.Error("failed to create parser", "error", err)
@@ -63,6 +64,6 @@ func main() {
 	go obs.InitScraper(ctx, targets)
 
 	templates := templates.NewTemplateHandler()
-	server := v1.NewServer(*addr, *domain, templates, logger, sStore, parse)
+	server := v1.NewServer(*addr, *domain, templates, logger, sStore, parse, obs)
 	server.ServeHTTP()
 }

@@ -3,6 +3,7 @@ package v1
 import (
 	"context"
 	"fmt"
+	"html"
 	"net/http"
 	"strconv"
 	"time"
@@ -86,8 +87,33 @@ func (s *Server) updatePlayerCounter(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) deleteServer(w http.ResponseWriter, r *http.Request) {
-	id := r.PathValue("ID")
-	fmt.Println(id)
+	ctx := r.Context()
+
+	id, err := uuid.Parse(r.PathValue("ID"))
+	if err != nil {
+		s.logger.ErrorContext(ctx, "failed to parse uuid", "error", err)
+		return
+	}
+
+	err = s.observer.KillScraper(id)
+	if err != nil {
+		s.logger.ErrorContext(ctx, "failed to kill scraper", "error", err)
+		return
+	}
+
+	err = s.parser.DeleteTarget(id)
+	if err != nil {
+		s.logger.ErrorContext(ctx, "failed to delete target", "error", err)
+		return
+	}
+
+	//TODO: server in cluster.json doesn't get deleted therefor it gets displayed on refresh
+	time.Sleep(1 * time.Second)
+	err = s.sStore.DeleteServer(id)
+	if err != nil {
+		s.logger.ErrorContext(ctx, "failed to delete server", "error", err)
+		return
+	}
 }
 
 func (s *Server) showServerInput(w http.ResponseWriter, r *http.Request) {
@@ -103,14 +129,36 @@ func (s *Server) showServerInput(w http.ResponseWriter, r *http.Request) {
 func (s *Server) addServer(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	newServer := &parser.Target{
-		Name: r.FormValue("servername"),
-		Addr: r.FormValue("address"),
+	err := r.ParseForm()
+	if err != nil {
+		s.logger.ErrorContext(ctx, "failed to parse form", "error", err)
+		return
 	}
-	err := s.parser.CreateTarget(newServer)
+
+	newTarget := &parser.Target{
+		Name: html.EscapeString(r.FormValue("servername")),
+		Addr: html.EscapeString(r.FormValue("address")),
+	}
+	target, err := s.parser.CreateTarget(newTarget)
 	if err != nil {
 		s.logger.ErrorContext(ctx, "failed to create server", "error", err)
 	}
 
-	//TODO: template
+	err = s.observer.AddScraper(ctx, target)
+	if err != nil {
+		s.logger.ErrorContext(ctx, "failed to add target", "error", err)
+		return
+	}
+
+	server, err := s.sStore.GetServerByID(target.ID)
+	if err != nil {
+		s.logger.ErrorContext(ctx, "failed to get server", "error", err)
+		return
+	}
+
+	err = s.templates.TmplBlocks.ExecuteTemplate(w, "newServer", server)
+	if err != nil {
+		s.logger.ErrorContext(ctx, "failed to execute template", "error", err)
+		return
+	}
 }

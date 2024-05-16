@@ -2,6 +2,7 @@ package observer
 
 import (
 	"context"
+	"errors"
 	"log/slog"
 	"reflect"
 	"strings"
@@ -17,19 +18,24 @@ import (
 
 type Observer struct {
 	endpoints   map[uuid.UUID]*parser.Target
+	cancelFuncs map[uuid.UUID]context.CancelFunc
 	serverStore internal.ServerStore
 	parser      internal.Parser
 	logger      *slog.Logger
 	mu          sync.Mutex
+	resultCh    chan *model.Server
 }
 
 func NewObserver(sStore internal.ServerStore, prs internal.Parser) (*Observer, error) {
 	observer := &Observer{
 		endpoints:   make(map[uuid.UUID]*parser.Target),
+		cancelFuncs: make(map[uuid.UUID]context.CancelFunc),
 		serverStore: sStore,
 		parser:      prs,
 		logger:      slog.Default(),
+		resultCh:    make(chan *model.Server),
 	}
+	go observer.processResults()
 	return observer, nil
 }
 
@@ -45,7 +51,7 @@ func (o *Observer) ReadEndpoint(target *parser.Target) error {
 	return nil
 }
 
-func (o *Observer) DataScraper(ctx context.Context, t *parser.Target, c chan<- *model.Server) {
+func (o *Observer) DataScraper(ctx context.Context, t *parser.Target) {
 	for {
 		select {
 		case <-ctx.Done():
@@ -89,30 +95,53 @@ func (o *Observer) DataScraper(ctx context.Context, t *parser.Target, c chan<- *
 				PlayersInfo: model.ToPlayerInfo(playerResponse),
 			}
 			ReplaceNullCharsInStruct(server)
-
-			c <- server
+			o.resultCh <- server
 		}
 	}
 }
 
 func (o *Observer) InitScraper(ctx context.Context, targets []*parser.Target) {
-	resultCh := make(chan *model.Server)
-
 	for _, target := range targets {
-		err := o.ReadEndpoint(target)
+		err := o.AddScraper(ctx, target)
 		if err != nil {
 			o.logger.ErrorContext(ctx, "failed to read endpoints", "error", err)
 			return
 		}
-		go o.DataScraper(ctx, target, resultCh)
 	}
+}
 
-	for result := range resultCh {
+func (o *Observer) processResults() {
+	for result := range o.resultCh {
 		_, err := o.serverStore.CreateOrUpdateServer(result)
 		if err != nil {
-			o.logger.ErrorContext(ctx, "failed to update server info", "error", err)
+			o.logger.Error("failed to update server info", "error", err)
 		}
 	}
+}
+
+func (o *Observer) AddScraper(ctx context.Context, target *parser.Target) error {
+	err := o.ReadEndpoint(target)
+	if err != nil {
+		return err
+	}
+
+	ctx, cancel := context.WithCancel(ctx)
+	o.cancelFuncs[target.ID] = cancel
+	go o.DataScraper(ctx, target)
+	return nil
+}
+
+func (o *Observer) KillScraper(targetID uuid.UUID) error {
+	o.mu.Lock()
+	defer o.mu.Unlock()
+
+	if cancel, exists := o.cancelFuncs[targetID]; exists {
+		cancel()
+		delete(o.cancelFuncs, targetID)
+		delete(o.endpoints, targetID)
+		return nil
+	}
+	return errors.New("Scraper with ID not found")
 }
 
 func ReplaceNullCharsInStruct(s any) {
