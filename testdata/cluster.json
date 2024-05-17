@@ -31,75 +31,13 @@
 				{
 					"name": "Jupp",
 					"score": 0,
-					"duration": 4508000000000
+					"duration": 5300000000000
 				}
 			]
 		}
 	},
-	"aa3564c8-7962-4901-999c-eaa684f6734a": {
-		"id": "aa3564c8-7962-4901-999c-eaa684f6734a",
-		"name": "TheIsland",
-		"addr": "51.195.60.114:27016",
-		"status": true,
-		"serverinfo": {
-			"protocol": 17,
-			"name": "ACC-NoWipe-PvP-X3-TheIsland - (v358.24)",
-			"map": "TheIsland",
-			"folder": "ark_survival_evolved",
-			"game": "ARK: Survival Evolved",
-			"id": 346110,
-			"players": 6,
-			"maxplayers": 70,
-			"bots": 0,
-			"servertype": 1,
-			"environment": 2,
-			"visibility": 1,
-			"vac": 2,
-			"version": "1.0.0.0",
-			"port": 7777,
-			"steamid": 90198177738170388,
-			"sourcetvport": 0,
-			"sourcetvname": "",
-			"keywords": ",OWNINGID:90198177738170388,OWNINGNAME:90198177738170388,NUMOPENPUBCONN:65,P2PADDR:90198177738170388,P2PPORT:7777,LEGACY_i:0",
-			"gameid": 346110
-		},
-		"playersinfo": {
-			"Players": [
-				{
-					"name": "",
-					"score": 0,
-					"duration": 182663000000000
-				},
-				{
-					"name": "Andrucha",
-					"score": 0,
-					"duration": 33722000000000
-				},
-				{
-					"name": "jesulillo",
-					"score": 0,
-					"duration": 12163000000000
-				},
-				{
-					"name": "CABRALOCA",
-					"score": 0,
-					"duration": 10700000000000
-				},
-				{
-					"name": "MrBlingbling",
-					"score": 0,
-					"duration": 5896000000000
-				},
-				{
-					"name": "Cr0wny",
-					"score": 0,
-					"duration": 914000000000
-				}
-			]
-		}
-	},
-	"c0ad0c6c-8ae0-4159-a273-7c4f039d9909": {
-		"id": "c0ad0c6c-8ae0-4159-a273-7c4f039d9909",
+	"4fc8234e-3b5a-4cc0-b574-ec9b9558d2c0": {
+		"id": "4fc8234e-3b5a-4cc0-b574-ec9b9558d2c0",
 		"name": "LostIsland",
 		"addr": "51.195.60.114:27020",
 		"status": true,
@@ -130,17 +68,84 @@
 				{
 					"name": "crazyfenix88",
 					"score": 0,
-					"duration": 2650000000000
+					"duration": 3442000000000
 				},
 				{
 					"name": "ast",
 					"score": 0,
-					"duration": 1585000000000
+					"duration": 2377000000000
 				},
 				{
 					"name": "Holgulator",
 					"score": 0,
-					"duration": 462000000000
+					"duration": 1254000000000
+				}
+			]
+		}
+	},
+	"aa3564c8-7962-4901-999c-eaa684f6734a": {
+		"id": "aa3564c8-7962-4901-999c-eaa684f6734a",
+		"name": "TheIsland",
+		"addr": "51.195.60.114:27016",
+		"status": true,
+		"serverinfo": {
+			"protocol": 17,
+			"name": "ACC-NoWipe-PvP-X3-TheIsland - (v358.24)",
+			"map": "TheIsland",
+			"folder": "ark_survival_evolved",
+			"game": "ARK: Survival Evolved",
+			"id": 346110,
+			"players": 7,
+			"maxplayers": 70,
+			"bots": 0,
+			"servertype": 1,
+			"environment": 2,
+			"visibility": 1,
+			"vac": 2,
+			"version": "1.0.0.0",
+			"port": 7777,
+			"steamid": 90198177738170388,
+			"sourcetvport": 0,
+			"sourcetvname": "",
+			"keywords": ",OWNINGID:90198177738170388,OWNINGNAME:90198177738170388,NUMOPENPUBCONN:64,P2PADDR:90198177738170388,P2PPORT:7777,LEGACY_i:0",
+			"gameid": 346110
+		},
+		"playersinfo": {
+			"Players": [
+				{
+					"name": "",
+					"score": 0,
+					"duration": 183455000000000
+				},
+				{
+					"name": "Andrucha",
+					"score": 0,
+					"duration": 34514000000000
+				},
+				{
+					"name": "jesulillo",
+					"score": 0,
+					"duration": 12955000000000
+				},
+				{
+					"name": "CABRALOCA",
+					"score": 0,
+					"duration": 11492000000000
+				},
+				{
+					"name": "MrBlingbling",
+					"score": 0,
+					"duration": 6688000000000
+				},
+				{
+					"name": "Cr0wny",
+					"score": 0,
+					"duration": 1706000000000
+				},
+				{
+					"name": "de_vrieskees",
+					"score": 0,
+					"duration": 247000000000
 				}
 			]
 		}
@@ -157,7 +162,7 @@
 			"folder": "ark_survival_evolved",
 			"game": "ARK: Survival Evolved",
 			"id": 346110,
-			"players": 2,
+			"players": 1,
 			"maxplayers": 70,
 			"bots": 0,
 			"servertype": 1,
@@ -169,20 +174,15 @@
 			"steamid": 90198177740007444,
 			"sourcetvport": 0,
 			"sourcetvname": "",
-			"keywords": ",OWNINGID:90198177740007444,OWNINGNAME:90198177740007444,NUMOPENPUBCONN:69,P2PADDR:90198177740007444,P2PPORT:7781,LEGACY_i:0",
+			"keywords": ",OWNINGID:90198177740007444,OWNINGNAME:90198177740007444,NUMOPENPUBCONN:70,P2PADDR:90198177740007444,P2PPORT:7781,LEGACY_i:0",
 			"gameid": 346110
 		},
 		"playersinfo": {
 			"Players": [
 				{
-					"name": "Vik",
-					"score": 0,
-					"duration": 3064000000000
-				},
-				{
 					"name": "",
 					"score": 0,
-					"duration": 2590000000000
+					"duration": 3382000000000
 				}
 			]
 		}
