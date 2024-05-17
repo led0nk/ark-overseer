@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"os"
@@ -62,7 +63,7 @@ func (p *Parser) readJSON() error {
 	return json.Unmarshal(data, &p.targets)
 }
 
-func (p *Parser) ListTargets() ([]*Target, error) {
+func (p *Parser) List(ctx context.Context) ([]*Target, error) {
 	trgtlist := make([]*Target, 0, len(p.targets))
 	for _, target := range p.targets {
 		trgtlist = append(trgtlist, target)
@@ -72,7 +73,7 @@ func (p *Parser) ListTargets() ([]*Target, error) {
 	return trgtlist, nil
 }
 
-func (p *Parser) CreateTarget(trg *Target) (*Target, error) {
+func (p *Parser) Create(ctx context.Context, trg *Target) (*Target, error) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
@@ -90,7 +91,7 @@ func (p *Parser) CreateTarget(trg *Target) (*Target, error) {
 	return trg, nil
 }
 
-func (p *Parser) DeleteTarget(ID uuid.UUID) error {
+func (p *Parser) Delete(ctx context.Context, ID uuid.UUID) error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 

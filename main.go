@@ -10,6 +10,7 @@ import (
 	"github.com/led0nk/ark-clusterinfo/internal"
 	"github.com/led0nk/ark-clusterinfo/internal/jsondb"
 	"github.com/led0nk/ark-clusterinfo/internal/model/templates"
+	"github.com/led0nk/ark-clusterinfo/internal/notifier"
 	"github.com/led0nk/ark-clusterinfo/internal/parser"
 	"github.com/led0nk/ark-clusterinfo/observer"
 )
@@ -57,13 +58,13 @@ func main() {
 		logger.Error("failed to create endpoint storage", "error", err)
 	}
 
-	targets, err := parse.ListTargets()
-	if err != nil {
-		logger.Error("failed to list targets", "error", err)
-	}
-	go obs.InitScraper(ctx, targets)
+	notify := notifier.NewNotifier(parse)
+	parse = notify
+
+	go notify.Run(obs, ctx)
+	go obs.ManageScraper(ctx)
 
 	templates := templates.NewTemplateHandler()
-	server := v1.NewServer(*addr, *domain, templates, logger, sStore, parse, obs)
+	server := v1.NewServer(*addr, *domain, templates, logger, sStore, parse)
 	server.ServeHTTP()
 }

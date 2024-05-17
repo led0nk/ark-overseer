@@ -100,19 +100,52 @@ func (o *Observer) DataScraper(ctx context.Context, t *parser.Target) {
 	}
 }
 
-func (o *Observer) InitScraper(ctx context.Context, targets []*parser.Target) {
-	for _, target := range targets {
-		err := o.AddScraper(ctx, target)
+func (o *Observer) ManageScraper(ctx context.Context) {
+	select {
+	case <-ctx.Done():
+		return
+	default:
+		targetList, err := o.parser.List(ctx)
 		if err != nil {
-			o.logger.ErrorContext(ctx, "failed to read endpoints", "error", err)
-			return
+			o.logger.ErrorContext(ctx, "failed to list targets", "error", err)
+		}
+
+		newTargets := make(map[uuid.UUID]*parser.Target)
+
+		for _, target := range targetList {
+			newTargets[target.ID] = target
+		}
+
+		for id := range o.endpoints {
+			if _, exists := newTargets[id]; !exists {
+				err := o.KillScraper(id)
+				if err != nil {
+					o.logger.ErrorContext(ctx, "failed to kill scraper", "error", err)
+					continue
+				}
+				time.Sleep(200 * time.Millisecond)
+				err = o.serverStore.Delete(ctx, id)
+				if err != nil {
+					o.logger.ErrorContext(ctx, "failed to delete server from db", "error", err)
+				}
+			}
+		}
+
+		for id, target := range newTargets {
+			if _, exists := o.endpoints[id]; !exists {
+				err := o.AddScraper(ctx, target)
+				if err != nil {
+					o.logger.ErrorContext(ctx, "failed to read endpoints", "error", err)
+					return
+				}
+			}
 		}
 	}
 }
 
 func (o *Observer) processResults() {
 	for result := range o.resultCh {
-		_, err := o.serverStore.CreateOrUpdateServer(result)
+		_, err := o.serverStore.Create(context.Background(), result)
 		if err != nil {
 			o.logger.Error("failed to update server info", "error", err)
 		}

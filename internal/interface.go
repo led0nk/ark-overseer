@@ -9,23 +9,23 @@ import (
 )
 
 type ServerStore interface {
-	CreateOrUpdateServer(*model.Server) (string, error)
-	ListServer() ([]*model.Server, error)
-	GetServerByName(string) (*model.Server, error)
-	GetServerByID(uuid.UUID) (*model.Server, error)
-	DeleteServer(uuid.UUID) error
+	Create(context.Context, *model.Server) (string, error)
+	List(context.Context) ([]*model.Server, error)
+	GetByName(context.Context, string) (*model.Server, error)
+	GetByID(context.Context, uuid.UUID) (*model.Server, error)
+	Delete(context.Context, uuid.UUID) error
 }
 
 type Observer interface {
 	ReadEndpoint(*parser.Target) error
 	DataScraper(context.Context, *parser.Target)
-	InitScraper(context.Context, []*parser.Target)
+	ManageScraper(context.Context)
 	AddScraper(context.Context, *parser.Target) error
 	KillScraper(uuid.UUID) error
 }
 
 type Parser interface {
-	CreateTarget(*parser.Target) (*parser.Target, error)
-	DeleteTarget(uuid.UUID) error
-	ListTargets() ([]*parser.Target, error)
+	Create(context.Context, *parser.Target) (*parser.Target, error)
+	Delete(context.Context, uuid.UUID) error
+	List(context.Context) ([]*parser.Target, error)
 }

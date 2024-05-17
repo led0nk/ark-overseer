@@ -4,15 +4,15 @@
 		"Name": "Ragnarok",
 		"Addr": "51.195.60.114:27019"
 	},
+	"30fc2cfc-cb28-412c-aab4-6d2d2c5c9b5b": {
+		"ID": "30fc2cfc-cb28-412c-aab4-6d2d2c5c9b5b",
+		"Name": "Genesis",
+		"Addr": "51.195.60.114:27022"
+	},
 	"aa3564c8-7962-4901-999c-eaa684f6734a": {
 		"ID": "aa3564c8-7962-4901-999c-eaa684f6734a",
 		"Name": "TheIsland",
 		"Addr": "51.195.60.114:27016"
-	},
-	"c0ad0c6c-8ae0-4159-a273-7c4f039d9909": {
-		"ID": "c0ad0c6c-8ae0-4159-a273-7c4f039d9909",
-		"Name": "LostIsland",
-		"Addr": "51.195.60.114:27020"
 	},
 	"fb868ad9-a0e7-4ece-91ae-4e561e54d9cd": {
 		"ID": "fb868ad9-a0e7-4ece-91ae-4e561e54d9cd",

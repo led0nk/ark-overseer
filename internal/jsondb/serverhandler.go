@@ -1,6 +1,7 @@
 package jsondb
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"os"
@@ -55,7 +56,7 @@ func (s *ServerStorage) readJSON() error {
 	return json.Unmarshal(data, &s.server)
 }
 
-func (s *ServerStorage) CreateOrUpdateServer(server *model.Server) (string, error) {
+func (s *ServerStorage) Create(ctx context.Context, server *model.Server) (string, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -71,7 +72,7 @@ func (s *ServerStorage) CreateOrUpdateServer(server *model.Server) (string, erro
 	return server.Name, nil
 }
 
-func (s *ServerStorage) GetServerByName(name string) (*model.Server, error) {
+func (s *ServerStorage) GetByName(ctx context.Context, name string) (*model.Server, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -88,7 +89,7 @@ func (s *ServerStorage) GetServerByName(name string) (*model.Server, error) {
 	return fetchedServer, nil
 }
 
-func (s *ServerStorage) GetServerByID(id uuid.UUID) (*model.Server, error) {
+func (s *ServerStorage) GetByID(ctx context.Context, id uuid.UUID) (*model.Server, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -105,7 +106,7 @@ func (s *ServerStorage) GetServerByID(id uuid.UUID) (*model.Server, error) {
 	return fetchedServer, nil
 }
 
-func (s *ServerStorage) DeleteServer(ID uuid.UUID) error {
+func (s *ServerStorage) Delete(ctx context.Context, ID uuid.UUID) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -125,7 +126,7 @@ func (s *ServerStorage) DeleteServer(ID uuid.UUID) error {
 	return nil
 }
 
-func (s *ServerStorage) ListServer() ([]*model.Server, error) {
+func (s *ServerStorage) List(ctx context.Context) ([]*model.Server, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 

@@ -21,7 +21,7 @@ func (s *Server) mainPage(w http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()
 
-	serverList, err = s.sStore.ListServer()
+	serverList, err = s.sStore.List(ctx)
 	if err != nil {
 		s.logger.ErrorContext(ctx, "failed to get server info", "error", err)
 	}
@@ -41,7 +41,7 @@ func (s *Server) showPlayers(w http.ResponseWriter, r *http.Request) {
 		s.logger.ErrorContext(ctx, "failed to parse uuid", "error", err)
 		return
 	}
-	server, err := s.sStore.GetServerByID(id)
+	server, err := s.sStore.GetByID(ctx, id)
 	if err != nil {
 		s.logger.ErrorContext(ctx, "failed to get server", "error", err)
 		return
@@ -76,7 +76,7 @@ func (s *Server) updatePlayerCounter(w http.ResponseWriter, r *http.Request) {
 	}(ctx)
 
 	for {
-		srv, err := s.sStore.GetServerByID(uuid.MustParse(r.PathValue("ID")))
+		srv, err := s.sStore.GetByID(ctx, uuid.MustParse(r.PathValue("ID")))
 		if err != nil {
 			s.logger.ErrorContext(ctx, "failed to get server", "error", err)
 		}
@@ -95,23 +95,9 @@ func (s *Server) deleteServer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = s.observer.KillScraper(id)
-	if err != nil {
-		s.logger.ErrorContext(ctx, "failed to kill scraper", "error", err)
-		return
-	}
-
-	err = s.parser.DeleteTarget(id)
+	err = s.parser.Delete(ctx, id)
 	if err != nil {
 		s.logger.ErrorContext(ctx, "failed to delete target", "error", err)
-		return
-	}
-
-	//TODO: server in cluster.json doesn't get deleted therefor it gets displayed on refresh
-	time.Sleep(1 * time.Second)
-	err = s.sStore.DeleteServer(id)
-	if err != nil {
-		s.logger.ErrorContext(ctx, "failed to delete server", "error", err)
 		return
 	}
 }
@@ -139,18 +125,12 @@ func (s *Server) addServer(w http.ResponseWriter, r *http.Request) {
 		Name: html.EscapeString(r.FormValue("servername")),
 		Addr: html.EscapeString(r.FormValue("address")),
 	}
-	target, err := s.parser.CreateTarget(newTarget)
+	target, err := s.parser.Create(ctx, newTarget)
 	if err != nil {
 		s.logger.ErrorContext(ctx, "failed to create server", "error", err)
 	}
 
-	err = s.observer.AddScraper(ctx, target)
-	if err != nil {
-		s.logger.ErrorContext(ctx, "failed to add target", "error", err)
-		return
-	}
-
-	server, err := s.sStore.GetServerByID(target.ID)
+	server, err := s.sStore.GetByID(ctx, target.ID)
 	if err != nil {
 		s.logger.ErrorContext(ctx, "failed to get server", "error", err)
 		return

@@ -11,7 +11,7 @@
 			"folder": "ark_survival_evolved",
 			"game": "ARK: Survival Evolved",
 			"id": 346110,
-			"players": 0,
+			"players": 1,
 			"maxplayers": 70,
 			"bots": 0,
 			"servertype": 1,
@@ -23,11 +23,17 @@
 			"steamid": 90198215992642580,
 			"sourcetvport": 0,
 			"sourcetvname": "",
-			"keywords": ",OWNINGID:90198215992642580,OWNINGNAME:90198215992642580,NUMOPENPUBCONN:70,P2PADDR:90198215992642580,P2PPORT:7783,LEGACY_i:0",
+			"keywords": ",OWNINGID:90198215992642580,OWNINGNAME:90198215992642580,NUMOPENPUBCONN:69,P2PADDR:90198215992642580,P2PPORT:7783,LEGACY_i:0",
 			"gameid": 346110
 		},
 		"playersinfo": {
-			"Players": []
+			"Players": [
+				{
+					"name": "Jupp",
+					"score": 0,
+					"duration": 4508000000000
+				}
+			]
 		}
 	},
 	"aa3564c8-7962-4901-999c-eaa684f6734a": {
@@ -42,7 +48,7 @@
 			"folder": "ark_survival_evolved",
 			"game": "ARK: Survival Evolved",
 			"id": 346110,
-			"players": 5,
+			"players": 6,
 			"maxplayers": 70,
 			"bots": 0,
 			"servertype": 1,
@@ -54,7 +60,7 @@
 			"steamid": 90198177738170388,
 			"sourcetvport": 0,
 			"sourcetvname": "",
-			"keywords": ",OWNINGID:90198177738170388,OWNINGNAME:90198177738170388,NUMOPENPUBCONN:66,P2PADDR:90198177738170388,P2PPORT:7777,LEGACY_i:0",
+			"keywords": ",OWNINGID:90198177738170388,OWNINGNAME:90198177738170388,NUMOPENPUBCONN:65,P2PADDR:90198177738170388,P2PPORT:7777,LEGACY_i:0",
 			"gameid": 346110
 		},
 		"playersinfo": {
@@ -62,27 +68,32 @@
 				{
 					"name": "",
 					"score": 0,
-					"duration": 129441000000000
+					"duration": 182663000000000
+				},
+				{
+					"name": "Andrucha",
+					"score": 0,
+					"duration": 33722000000000
 				},
 				{
 					"name": "jesulillo",
 					"score": 0,
-					"duration": 14328000000000
+					"duration": 12163000000000
 				},
 				{
 					"name": "CABRALOCA",
 					"score": 0,
-					"duration": 4331000000000
+					"duration": 10700000000000
 				},
 				{
-					"name": "Martin",
+					"name": "MrBlingbling",
 					"score": 0,
-					"duration": 3459000000000
+					"duration": 5896000000000
 				},
 				{
-					"name": "Lucky Luke",
+					"name": "Cr0wny",
 					"score": 0,
-					"duration": 650000000000
+					"duration": 914000000000
 				}
 			]
 		}
@@ -99,7 +110,7 @@
 			"folder": "ark_survival_evolved",
 			"game": "ARK: Survival Evolved",
 			"id": 346110,
-			"players": 0,
+			"players": 3,
 			"maxplayers": 70,
 			"bots": 0,
 			"servertype": 1,
@@ -111,42 +122,27 @@
 			"steamid": 90198177739760660,
 			"sourcetvport": 0,
 			"sourcetvname": "",
-			"keywords": ",OWNINGID:90198177739760660,OWNINGNAME:90198177739760660,NUMOPENPUBCONN:70,P2PADDR:90198177739760660,P2PPORT:7785,LEGACY_i:0",
+			"keywords": ",OWNINGID:90198177739760660,OWNINGNAME:90198177739760660,NUMOPENPUBCONN:67,P2PADDR:90198177739760660,P2PPORT:7785,LEGACY_i:0",
 			"gameid": 346110
 		},
 		"playersinfo": {
-			"Players": []
-		}
-	},
-	"c9832595-2ca3-4a62-b13a-06085cc8089a": {
-		"id": "c9832595-2ca3-4a62-b13a-06085cc8089a",
-		"name": "Genesis",
-		"addr": "51.195.60.114:27022",
-		"status": true,
-		"serverinfo": {
-			"protocol": 17,
-			"name": "ACC-NoWipe-PvP-X3-Genesis [Beta] - (v358.24)",
-			"map": "Genesis",
-			"folder": "ark_survival_evolved",
-			"game": "ARK: Survival Evolved",
-			"id": 346110,
-			"players": 0,
-			"maxplayers": 70,
-			"bots": 0,
-			"servertype": 1,
-			"environment": 2,
-			"visibility": 2,
-			"vac": 2,
-			"version": "1.0.0.0",
-			"port": 7789,
-			"steamid": 90198177905403924,
-			"sourcetvport": 0,
-			"sourcetvname": "",
-			"keywords": ",OWNINGID:90198177905403924,OWNINGNAME:90198177905403924,NUMOPENPUBCONN:70,P2PADDR:90198177905403924,P2PPORT:7789,LEGACY_i:0",
-			"gameid": 346110
-		},
-		"playersinfo": {
-			"Players": []
+			"Players": [
+				{
+					"name": "crazyfenix88",
+					"score": 0,
+					"duration": 2650000000000
+				},
+				{
+					"name": "ast",
+					"score": 0,
+					"duration": 1585000000000
+				},
+				{
+					"name": "Holgulator",
+					"score": 0,
+					"duration": 462000000000
+				}
+			]
 		}
 	},
 	"fb868ad9-a0e7-4ece-91ae-4e561e54d9cd": {
@@ -161,7 +157,7 @@
 			"folder": "ark_survival_evolved",
 			"game": "ARK: Survival Evolved",
 			"id": 346110,
-			"players": 3,
+			"players": 2,
 			"maxplayers": 70,
 			"bots": 0,
 			"servertype": 1,
@@ -173,25 +169,20 @@
 			"steamid": 90198177740007444,
 			"sourcetvport": 0,
 			"sourcetvname": "",
-			"keywords": ",OWNINGID:90198177740007444,OWNINGNAME:90198177740007444,NUMOPENPUBCONN:68,P2PADDR:90198177740007444,P2PPORT:7781,LEGACY_i:0",
+			"keywords": ",OWNINGID:90198177740007444,OWNINGNAME:90198177740007444,NUMOPENPUBCONN:69,P2PADDR:90198177740007444,P2PPORT:7781,LEGACY_i:0",
 			"gameid": 346110
 		},
 		"playersinfo": {
 			"Players": [
 				{
-					"name": "SchmidtneySpears",
+					"name": "Vik",
 					"score": 0,
-					"duration": 12886000000000
-				},
-				{
-					"name": "123",
-					"score": 0,
-					"duration": 5355000000000
+					"duration": 3064000000000
 				},
 				{
 					"name": "",
 					"score": 0,
-					"duration": 2791000000000
+					"duration": 2590000000000
 				}
 			]
 		}
