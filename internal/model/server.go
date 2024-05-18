@@ -40,7 +40,7 @@ type ServerInfo struct {
 }
 
 type PlayersInfo struct {
-	Players []Players
+	Players []*Players
 }
 
 type Players struct {

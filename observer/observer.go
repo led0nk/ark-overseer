@@ -92,6 +92,7 @@ func (o *Observer) DataScraper(ctx context.Context, s *model.Server) {
 				PlayersInfo: model.ToPlayerInfo(playerResponse),
 			}
 			ReplaceNullCharsInStruct(server)
+			server = correctPlayerNum(server)
 			o.resultCh <- server
 		}
 	}
@@ -202,4 +203,18 @@ func replaceNullChars(v reflect.Value) {
 			replaceNullChars(v.Index(i))
 		}
 	}
+}
+
+func correctPlayerNum(srv *model.Server) *model.Server {
+	var playerList []*model.Players
+	for _, player := range srv.PlayersInfo.Players {
+		if player.Name != "" {
+			playerList = append(playerList, player)
+		}
+	}
+
+	srv.PlayersInfo.Players = playerList
+	srv.ServerInfo.Players = len(playerList)
+
+	return srv
 }

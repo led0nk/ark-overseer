@@ -63,6 +63,7 @@ func (s *Server) updatePlayerCounter(w http.ResponseWriter, r *http.Request) {
 	defer cancel()
 
 	go func(ctx context.Context) {
+		defer close(dataCh)
 		for data := range dataCh {
 			select {
 			case <-ctx.Done():
@@ -82,6 +83,44 @@ func (s *Server) updatePlayerCounter(w http.ResponseWriter, r *http.Request) {
 		playerInfo := strconv.Itoa(srv.ServerInfo.Players) + "/" + strconv.Itoa(srv.ServerInfo.MaxPlayers)
 		dataCh <- playerInfo
 		time.Sleep(5 * time.Second)
+	}
+}
+
+func (s *Server) updatePlayerInfo(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/event-stream")
+	w.Header().Set("Cache-Control", "no-cache")
+	w.Header().Set("Connection", "keep-alive")
+	ctx := r.Context()
+	dataCh := make(chan *model.Server)
+
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	go func(ctx context.Context) {
+		defer close(dataCh)
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			default:
+				srv, err := s.sStore.GetByID(ctx, uuid.MustParse(r.PathValue("ID")))
+				if err != nil {
+					s.logger.ErrorContext(ctx, "failed to get server", "error", err)
+				}
+				dataCh <- srv
+				time.Sleep(1 * time.Second)
+			}
+		}
+	}(ctx)
+
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case data := <-dataCh:
+			fmt.Fprintf(w, "data: %v\n\n", data)
+			w.(http.Flusher).Flush()
+		}
 	}
 }
 

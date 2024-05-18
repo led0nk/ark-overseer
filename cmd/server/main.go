@@ -9,6 +9,7 @@ import (
 	v1 "github.com/led0nk/ark-clusterinfo/api/v1"
 	"github.com/led0nk/ark-clusterinfo/internal"
 	"github.com/led0nk/ark-clusterinfo/internal/jsondb"
+	"github.com/led0nk/ark-clusterinfo/internal/model"
 	"github.com/led0nk/ark-clusterinfo/internal/model/templates"
 	"github.com/led0nk/ark-clusterinfo/internal/notifier"
 	"github.com/led0nk/ark-clusterinfo/observer"
@@ -46,6 +47,8 @@ func main() {
 		logger.ErrorContext(ctx, "failed to create new cluster", "error", err)
 	}
 
+	//initTargets(ctx, sStore)
+
 	notify := notifier.NewNotifier(sStore)
 	sStore = notify
 
@@ -60,4 +63,27 @@ func main() {
 	templates := templates.NewTemplateHandler()
 	server := v1.NewServer(*addr, *domain, templates, logger, sStore)
 	server.ServeHTTP()
+}
+
+func initTargets(ctx context.Context, sStore internal.ServerStore) error {
+	sStore.Create(ctx, &model.Server{
+		Name: "Ragnarok",
+		Addr: "51.195.60.114:27019",
+	})
+
+	sStore.Create(ctx, &model.Server{
+		Name: "LostIsland",
+		Addr: "51.195.60.114:27020",
+	})
+
+	sStore.Create(ctx, &model.Server{
+		Name: "Aberration",
+		Addr: "51.195.60.114:27018",
+	})
+
+	sStore.Create(ctx, &model.Server{
+		Name: "TheIsland",
+		Addr: "51.195.60.114:27016",
+	})
+	return nil
 }

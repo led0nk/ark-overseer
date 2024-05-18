@@ -35,10 +35,10 @@ func ToServerInfo(infoResponse *steam.InfoResponse) *ServerInfo {
 
 func ToPlayerInfo(playersInfoResponse *steam.PlayersInfoResponse) *PlayersInfo {
 	playersInfo := &PlayersInfo{
-		make([]Players, 0, len(playersInfoResponse.Players)),
+		make([]*Players, 0, len(playersInfoResponse.Players)),
 	}
 	for _, player := range playersInfoResponse.Players {
-		newPlayer := Players{
+		newPlayer := &Players{
 			Name:     player.Name,
 			Score:    player.Score,
 			Duration: time.Duration(math.Round(player.Duration) * 1e9),
