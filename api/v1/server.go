@@ -16,7 +16,6 @@ type Server struct {
 	templates *templates.TemplateHandler
 	logger    *slog.Logger
 	sStore    internal.ServerStore
-	parser    internal.Parser
 }
 
 func NewServer(
@@ -25,7 +24,6 @@ func NewServer(
 	templates *templates.TemplateHandler,
 	logger *slog.Logger,
 	sStore internal.ServerStore,
-	parser internal.Parser,
 ) *Server {
 	return &Server{
 		addr:      address,
@@ -33,7 +31,6 @@ func NewServer(
 		templates: templates,
 		logger:    slog.Default().WithGroup("http"),
 		sStore:    sStore,
-		parser:    parser,
 	}
 }
 

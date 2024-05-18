@@ -13,25 +13,22 @@ import (
 	"github.com/google/uuid"
 	"github.com/led0nk/ark-clusterinfo/internal"
 	"github.com/led0nk/ark-clusterinfo/internal/model"
-	"github.com/led0nk/ark-clusterinfo/internal/parser"
 )
 
 type Observer struct {
-	endpoints   map[uuid.UUID]*parser.Target
+	endpoints   map[uuid.UUID]*model.Server
 	cancelFuncs map[uuid.UUID]context.CancelFunc
 	serverStore internal.ServerStore
-	parser      internal.Parser
 	logger      *slog.Logger
 	mu          sync.Mutex
 	resultCh    chan *model.Server
 }
 
-func NewObserver(sStore internal.ServerStore, prs internal.Parser) (*Observer, error) {
+func NewObserver(sStore internal.ServerStore) (*Observer, error) {
 	observer := &Observer{
-		endpoints:   make(map[uuid.UUID]*parser.Target),
+		endpoints:   make(map[uuid.UUID]*model.Server),
 		cancelFuncs: make(map[uuid.UUID]context.CancelFunc),
 		serverStore: sStore,
-		parser:      prs,
 		logger:      slog.Default(),
 		resultCh:    make(chan *model.Server),
 	}
@@ -39,7 +36,7 @@ func NewObserver(sStore internal.ServerStore, prs internal.Parser) (*Observer, e
 	return observer, nil
 }
 
-func (o *Observer) ReadEndpoint(target *parser.Target) error {
+func (o *Observer) ReadEndpoint(target *model.Server) error {
 	o.mu.Lock()
 	defer o.mu.Unlock()
 
@@ -51,13 +48,13 @@ func (o *Observer) ReadEndpoint(target *parser.Target) error {
 	return nil
 }
 
-func (o *Observer) DataScraper(ctx context.Context, t *parser.Target) {
+func (o *Observer) DataScraper(ctx context.Context, s *model.Server) {
 	for {
 		select {
 		case <-ctx.Done():
 			return
 		default:
-			helpSrv, err := steam.Connect(t.Addr)
+			helpSrv, err := steam.Connect(s.Addr)
 			if err != nil {
 				o.logger.ErrorContext(ctx, "error connecting to endpoint", "error", err)
 				continue
@@ -87,9 +84,9 @@ func (o *Observer) DataScraper(ctx context.Context, t *parser.Target) {
 			}
 
 			server := &model.Server{
-				Name:        t.Name,
-				Addr:        t.Addr,
-				ID:          t.ID,
+				Name:        s.Name,
+				Addr:        s.Addr,
+				ID:          s.ID,
 				Status:      status,
 				ServerInfo:  model.ToServerInfo(infoResponse),
 				PlayersInfo: model.ToPlayerInfo(playerResponse),
@@ -105,19 +102,19 @@ func (o *Observer) ManageScraper(ctx context.Context) {
 	case <-ctx.Done():
 		return
 	default:
-		targetList, err := o.parser.List(ctx)
+		serverList, err := o.serverStore.List(ctx)
 		if err != nil {
 			o.logger.ErrorContext(ctx, "failed to list targets", "error", err)
 		}
 
-		newTargets := make(map[uuid.UUID]*parser.Target)
+		newServers := make(map[uuid.UUID]*model.Server)
 
-		for _, target := range targetList {
-			newTargets[target.ID] = target
+		for _, server := range serverList {
+			newServers[server.ID] = server
 		}
 
 		for id := range o.endpoints {
-			if _, exists := newTargets[id]; !exists {
+			if _, exists := newServers[id]; !exists {
 				err := o.KillScraper(id)
 				if err != nil {
 					o.logger.ErrorContext(ctx, "failed to kill scraper", "error", err)
@@ -131,9 +128,9 @@ func (o *Observer) ManageScraper(ctx context.Context) {
 			}
 		}
 
-		for id, target := range newTargets {
+		for id, server := range newServers {
 			if _, exists := o.endpoints[id]; !exists {
-				err := o.AddScraper(ctx, target)
+				err := o.AddScraper(ctx, server)
 				if err != nil {
 					o.logger.ErrorContext(ctx, "failed to read endpoints", "error", err)
 					return
@@ -145,14 +142,14 @@ func (o *Observer) ManageScraper(ctx context.Context) {
 
 func (o *Observer) processResults() {
 	for result := range o.resultCh {
-		_, err := o.serverStore.Create(context.Background(), result)
+		err := o.serverStore.Update(context.Background(), result)
 		if err != nil {
 			o.logger.Error("failed to update server info", "error", err)
 		}
 	}
 }
 
-func (o *Observer) AddScraper(ctx context.Context, target *parser.Target) error {
+func (o *Observer) AddScraper(ctx context.Context, target *model.Server) error {
 	err := o.ReadEndpoint(target)
 	if err != nil {
 		return err

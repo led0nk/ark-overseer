@@ -11,7 +11,6 @@ import (
 	"github.com/led0nk/ark-clusterinfo/internal/jsondb"
 	"github.com/led0nk/ark-clusterinfo/internal/model/templates"
 	"github.com/led0nk/ark-clusterinfo/internal/notifier"
-	"github.com/led0nk/ark-clusterinfo/internal/parser"
 	"github.com/led0nk/ark-clusterinfo/observer"
 )
 
@@ -23,7 +22,6 @@ func main() {
 		//dbase       = flag.String("db", "file://testdata", "path to database")
 		domain      = flag.String("domain", "127.0.0.1", "given domain for cookies/mail")
 		logLevelStr = flag.String("loglevel", "INFO", "define the level for logs")
-		parse       internal.Parser
 		sStore      internal.ServerStore
 		obs         internal.Observer
 		logLevel    slog.Level
@@ -36,35 +34,30 @@ func main() {
 	err := logLevel.UnmarshalText([]byte(*logLevelStr))
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: logLevel}))
 	if err != nil {
-		logger.Error("error parsing loglevel", "loglevel", *logLevelStr, "error", err)
+		logger.ErrorContext(ctx, "error parsing loglevel", "loglevel", *logLevelStr, "error", err)
 	}
 	slog.SetDefault(logger)
 
 	logger.Info("server address", "addr", *addr)
 	//	logger.Info("otlp/grpc", "gprcaddr", *grpcaddr)
 
-	parse, err = parser.NewParserWithTargets("testdata/targets.json")
-	if err != nil {
-		logger.Error("failed to create parser", "error", err)
-	}
-
 	sStore, err = jsondb.NewServerStorage("testdata/cluster.json")
 	if err != nil {
-		logger.Error("failed to create new cluster", "error", err)
+		logger.ErrorContext(ctx, "failed to create new cluster", "error", err)
 	}
 
-	obs, err = observer.NewObserver(sStore, parse)
+	notify := notifier.NewNotifier(sStore)
+	sStore = notify
+
+	obs, err = observer.NewObserver(sStore)
 	if err != nil {
-		logger.Error("failed to create endpoint storage", "error", err)
+		logger.ErrorContext(ctx, "failed to create endpoint storage", "error", err)
 	}
 
-	notify := notifier.NewNotifier(parse)
-	parse = notify
-
-	go notify.Run(obs, ctx)
+	go notify.Run(obs.ManageScraper, ctx)
 	go obs.ManageScraper(ctx)
 
 	templates := templates.NewTemplateHandler()
-	server := v1.NewServer(*addr, *domain, templates, logger, sStore, parse)
+	server := v1.NewServer(*addr, *domain, templates, logger, sStore)
 	server.ServeHTTP()
 }

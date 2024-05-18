@@ -10,7 +10,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/led0nk/ark-clusterinfo/internal/model"
-	"github.com/led0nk/ark-clusterinfo/internal/parser"
 )
 
 func (s *Server) mainPage(w http.ResponseWriter, r *http.Request) {
@@ -95,7 +94,7 @@ func (s *Server) deleteServer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = s.parser.Delete(ctx, id)
+	err = s.sStore.Delete(ctx, id)
 	if err != nil {
 		s.logger.ErrorContext(ctx, "failed to delete target", "error", err)
 		return
@@ -121,16 +120,18 @@ func (s *Server) addServer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newTarget := &parser.Target{
+	newServer := &model.Server{
 		Name: html.EscapeString(r.FormValue("servername")),
 		Addr: html.EscapeString(r.FormValue("address")),
 	}
-	target, err := s.parser.Create(ctx, newTarget)
+	_, err = s.sStore.Create(ctx, newServer)
 	if err != nil {
 		s.logger.ErrorContext(ctx, "failed to create server", "error", err)
 	}
 
-	server, err := s.sStore.GetByID(ctx, target.ID)
+	time.Sleep(1 * time.Second)
+
+	server, err := s.sStore.GetByID(ctx, newServer.ID)
 	if err != nil {
 		s.logger.ErrorContext(ctx, "failed to get server", "error", err)
 		return

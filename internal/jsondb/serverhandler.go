@@ -56,7 +56,7 @@ func (s *ServerStorage) readJSON() error {
 	return json.Unmarshal(data, &s.server)
 }
 
-func (s *ServerStorage) Create(ctx context.Context, server *model.Server) (string, error) {
+func (s *ServerStorage) Create(ctx context.Context, server *model.Server) (*model.Server, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -66,10 +66,22 @@ func (s *ServerStorage) Create(ctx context.Context, server *model.Server) (strin
 
 	s.server[server.ID] = server
 	if err := s.writeJSON(); err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return server.Name, nil
+	return server, nil
+}
+
+func (s *ServerStorage) Update(ctx context.Context, server *model.Server) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.server[server.ID] = server
+	if err := s.writeJSON(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (s *ServerStorage) GetByName(ctx context.Context, name string) (*model.Server, error) {
