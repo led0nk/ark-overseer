@@ -37,3 +37,7 @@ type Overseer interface {
 	AddScanner(context.Context, *model.Server) error
 	KillScanner(uuid.UUID) error
 }
+
+type Notification interface {
+	Send() error
+}

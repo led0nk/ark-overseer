@@ -8,9 +8,9 @@ import (
 
 	v1 "github.com/led0nk/ark-clusterinfo/api/v1"
 	"github.com/led0nk/ark-clusterinfo/internal"
+	blist "github.com/led0nk/ark-clusterinfo/internal/blacklist"
 	"github.com/led0nk/ark-clusterinfo/internal/jsondb"
 	"github.com/led0nk/ark-clusterinfo/internal/model"
-	blist "github.com/led0nk/ark-clusterinfo/internal/notification-service"
 	"github.com/led0nk/ark-clusterinfo/internal/notifier"
 	"github.com/led0nk/ark-clusterinfo/internal/overseer"
 	"github.com/led0nk/ark-clusterinfo/observer"
@@ -65,10 +65,10 @@ func main() {
 		logger.ErrorContext(ctx, "failed to create blacklist", "error", err)
 	}
 
-	err = initBlacklist(ctx, blacklist, logger)
-	if err != nil {
-		logger.ErrorContext(ctx, "failed to initialize blacklist", "error", err)
-	}
+	//err = initBlacklist(ctx, blacklist, logger)
+	//if err != nil {
+	//	logger.ErrorContext(ctx, "failed to initialize blacklist", "error", err)
+	//}
 
 	ovs = overseer.NewOverseer(sStore, blacklist)
 
