@@ -29,7 +29,7 @@ func NewObserver(sStore internal.ServerStore) (*Observer, error) {
 		endpoints:   make(map[uuid.UUID]*model.Server),
 		cancelFuncs: make(map[uuid.UUID]context.CancelFunc),
 		serverStore: sStore,
-		logger:      slog.Default(),
+		logger:      slog.Default().WithGroup("observer"),
 		resultCh:    make(chan *model.Server),
 	}
 	go observer.processResults()
@@ -143,6 +143,9 @@ func (o *Observer) ManageScraper(ctx context.Context) {
 
 func (o *Observer) processResults() {
 	for result := range o.resultCh {
+		if result == nil {
+			continue
+		}
 		err := o.serverStore.Update(context.Background(), result)
 		if err != nil {
 			o.logger.Error("failed to update server info", "error", err)

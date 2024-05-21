@@ -36,12 +36,12 @@ func (n *Notifier) Delete(ctx context.Context, id uuid.UUID) error {
 }
 
 func (n *Notifier) GetByID(ctx context.Context, id uuid.UUID) (*model.Server, error) {
-	n.notify("get by id")
+	//n.notify("get by id")
 	return n.sStore.GetByID(ctx, id)
 }
 
 func (n *Notifier) GetByName(ctx context.Context, name string) (*model.Server, error) {
-	n.notify("get by name")
+	//n.notify("get by name")
 	return n.sStore.GetByName(ctx, name)
 }
 
@@ -90,13 +90,14 @@ func (n *Notifier) Unsubscribe(id uuid.UUID) {
 	n.logger.Info("notifier unsubscribed", "notifier id", id)
 }
 
-func (n *Notifier) Run(gofunc func(context.Context), ctx context.Context) {
+func (n *Notifier) Run(scraper func(context.Context), scanner func(context.Context), ctx context.Context) {
 	id, signal := n.Subscribe()
 	defer n.Unsubscribe(id)
 	for {
 		notification := <-signal
 		n.logger.InfoContext(ctx, "targets were updated", "type", notification)
 		//go obs.ManageScraper(ctx)
-		go gofunc(ctx)
+		go scraper(ctx)
+		go scanner(ctx)
 	}
 }

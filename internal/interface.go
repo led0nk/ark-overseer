@@ -23,3 +23,17 @@ type Observer interface {
 	AddScraper(context.Context, *model.Server) error
 	KillScraper(uuid.UUID) error
 }
+
+type Blacklist interface {
+	Create(context.Context, *model.Players) (*model.Players, error)
+	List(context.Context) []*model.Players
+	Delete(context.Context, uuid.UUID) error
+}
+
+type Overseer interface {
+	ReadEndpoint(*model.Server) error
+	Scanner(context.Context, *model.Server)
+	ManageScanner(context.Context)
+	AddScanner(context.Context, *model.Server) error
+	KillScanner(uuid.UUID) error
+}

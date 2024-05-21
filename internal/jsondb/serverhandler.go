@@ -30,7 +30,6 @@ func NewServerStorage(filename string) (*ServerStorage, error) {
 }
 
 func (s *ServerStorage) writeJSON() error {
-
 	as_json, err := json.MarshalIndent(s.server, "", "\t")
 	if err != nil {
 		return err
@@ -45,9 +44,11 @@ func (s *ServerStorage) writeJSON() error {
 
 // read JSON data from file = filename
 func (s *ServerStorage) readJSON() error {
-
 	if _, err := os.Stat(s.filename); os.IsNotExist(err) {
-		return errors.New("file does not exist")
+		err = s.writeJSON()
+		if err != nil {
+			return err
+		}
 	}
 	data, err := os.ReadFile(s.filename)
 	if err != nil {

@@ -4,6 +4,7 @@ go 1.22.1
 
 require (
 	github.com/FlowingSPDG/go-steam v0.0.0-20200304111708-e30ea2f91a83
+	github.com/a-h/templ v0.2.680
 	github.com/google/uuid v1.6.0
 	github.com/samber/slog-http v1.3.1
 )
@@ -13,5 +14,5 @@ require (
 	github.com/sirupsen/logrus v1.4.2 // indirect
 	go.opentelemetry.io/otel v1.19.0 // indirect
 	go.opentelemetry.io/otel/trace v1.19.0 // indirect
-	golang.org/x/sys v0.17.0 // indirect
+	golang.org/x/sys v0.19.0 // indirect
 )

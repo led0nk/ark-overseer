@@ -6,31 +6,27 @@ import (
 	"os"
 
 	"github.com/led0nk/ark-clusterinfo/internal"
-	"github.com/led0nk/ark-clusterinfo/internal/model/templates"
 	sloghttp "github.com/samber/slog-http"
 )
 
 type Server struct {
-	addr      string
-	domain    string
-	templates *templates.TemplateHandler
-	logger    *slog.Logger
-	sStore    internal.ServerStore
+	addr   string
+	domain string
+	logger *slog.Logger
+	sStore internal.ServerStore
 }
 
 func NewServer(
 	address string,
 	domain string,
-	templates *templates.TemplateHandler,
 	logger *slog.Logger,
 	sStore internal.ServerStore,
 ) *Server {
 	return &Server{
-		addr:      address,
-		domain:    domain,
-		templates: templates,
-		logger:    slog.Default().WithGroup("http"),
-		sStore:    sStore,
+		addr:   address,
+		domain: domain,
+		logger: slog.Default().WithGroup("http"),
+		sStore: sStore,
 	}
 }
 

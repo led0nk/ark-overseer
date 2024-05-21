@@ -10,8 +10,9 @@ import (
 	"github.com/led0nk/ark-clusterinfo/internal"
 	"github.com/led0nk/ark-clusterinfo/internal/jsondb"
 	"github.com/led0nk/ark-clusterinfo/internal/model"
-	"github.com/led0nk/ark-clusterinfo/internal/model/templates"
+	blist "github.com/led0nk/ark-clusterinfo/internal/notification-service"
 	"github.com/led0nk/ark-clusterinfo/internal/notifier"
+	"github.com/led0nk/ark-clusterinfo/internal/overseer"
 	"github.com/led0nk/ark-clusterinfo/observer"
 )
 
@@ -25,6 +26,8 @@ func main() {
 		logLevelStr = flag.String("loglevel", "INFO", "define the level for logs")
 		sStore      internal.ServerStore
 		obs         internal.Observer
+		ovs         internal.Overseer
+		blacklist   internal.Blacklist
 		logLevel    slog.Level
 	)
 	flag.Parse()
@@ -57,15 +60,27 @@ func main() {
 		logger.ErrorContext(ctx, "failed to create endpoint storage", "error", err)
 	}
 
-	go notify.Run(obs.ManageScraper, ctx)
-	go obs.ManageScraper(ctx)
+	blacklist, err = blist.NewBlacklist("testdata/blacklist.json")
+	if err != nil {
+		logger.ErrorContext(ctx, "failed to create blacklist", "error", err)
+	}
 
-	templates := templates.NewTemplateHandler()
-	server := v1.NewServer(*addr, *domain, templates, logger, sStore)
+	err = initBlacklist(ctx, blacklist, logger)
+	if err != nil {
+		logger.ErrorContext(ctx, "failed to initialize blacklist", "error", err)
+	}
+
+	ovs = overseer.NewOverseer(sStore, blacklist)
+
+	go notify.Run(obs.ManageScraper, ovs.ManageScanner, ctx)
+	go obs.ManageScraper(ctx)
+	go ovs.ManageScanner(ctx)
+
+	server := v1.NewServer(*addr, *domain, logger, sStore)
 	server.ServeHTTP()
 }
 
-func initTargets(ctx context.Context, sStore internal.ServerStore) error {
+func initTargets(ctx context.Context, sStore internal.ServerStore, logger *slog.Logger) error {
 	sStore.Create(ctx, &model.Server{
 		Name: "Ragnarok",
 		Addr: "51.195.60.114:27019",
@@ -85,5 +100,16 @@ func initTargets(ctx context.Context, sStore internal.ServerStore) error {
 		Name: "TheIsland",
 		Addr: "51.195.60.114:27016",
 	})
+	return nil
+}
+
+func initBlacklist(ctx context.Context, blacklist internal.Blacklist, logger *slog.Logger) error {
+	_, err := blacklist.Create(ctx, &model.Players{
+		Name: "Fadem",
+	})
+	if err != nil {
+		logger.ErrorContext(ctx, "failed to create blacklist entry", "error", err)
+		return err
+	}
 	return nil
 }

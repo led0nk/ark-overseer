@@ -8,8 +8,10 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/a-h/templ"
 	"github.com/google/uuid"
 	"github.com/led0nk/ark-clusterinfo/internal/model"
+	"github.com/led0nk/ark-clusterinfo/internal/model/templates/layout"
 )
 
 func (s *Server) mainPage(w http.ResponseWriter, r *http.Request) {
@@ -25,9 +27,11 @@ func (s *Server) mainPage(w http.ResponseWriter, r *http.Request) {
 		s.logger.ErrorContext(ctx, "failed to get server info", "error", err)
 	}
 
-	err = s.templates.TmplHome.Execute(w, serverList)
+	templ.Handler(layout.Table(serverList))
+
+	err = layout.Render(ctx, w, layout.Main(serverList))
 	if err != nil {
-		s.logger.ErrorContext(ctx, "failed to execute template", "error", err)
+		s.logger.ErrorContext(ctx, "failed to render templ", "error", err)
 		return
 	}
 }
@@ -45,9 +49,9 @@ func (s *Server) showPlayers(w http.ResponseWriter, r *http.Request) {
 		s.logger.ErrorContext(ctx, "failed to get server", "error", err)
 		return
 	}
-	err = s.templates.TmplBlocks.ExecuteTemplate(w, "player", server)
+	err = layout.Render(ctx, w, layout.PlayerTable(server))
 	if err != nil {
-		s.logger.ErrorContext(ctx, "failed to execute template", "error", err)
+		s.logger.ErrorContext(ctx, "failed to render templ", "error", err)
 		return
 	}
 }
@@ -143,9 +147,9 @@ func (s *Server) deleteServer(w http.ResponseWriter, r *http.Request) {
 func (s *Server) showServerInput(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	err := s.templates.TmplBlocks.ExecuteTemplate(w, "server", nil)
+	err := layout.Render(ctx, w, layout.NewServerInput())
 	if err != nil {
-		s.logger.ErrorContext(ctx, "failed to execute template", "error", err)
+		s.logger.ErrorContext(ctx, "failed to render templ", "error", err)
 		return
 	}
 }
@@ -175,10 +179,6 @@ func (s *Server) addServer(w http.ResponseWriter, r *http.Request) {
 		s.logger.ErrorContext(ctx, "failed to get server", "error", err)
 		return
 	}
+	fmt.Println(server)
 
-	err = s.templates.TmplBlocks.ExecuteTemplate(w, "newServer", server)
-	if err != nil {
-		s.logger.ErrorContext(ctx, "failed to execute template", "error", err)
-		return
-	}
 }
