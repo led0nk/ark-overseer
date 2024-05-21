@@ -12,6 +12,7 @@ import (
 	"github.com/led0nk/ark-clusterinfo/internal/jsondb"
 	"github.com/led0nk/ark-clusterinfo/internal/model"
 	"github.com/led0nk/ark-clusterinfo/internal/notifier"
+	"github.com/led0nk/ark-clusterinfo/internal/notifier/services/discord"
 	"github.com/led0nk/ark-clusterinfo/internal/overseer"
 	"github.com/led0nk/ark-clusterinfo/observer"
 )
@@ -28,6 +29,7 @@ func main() {
 		obs         internal.Observer
 		ovs         internal.Overseer
 		blacklist   internal.Blacklist
+		messaging   internal.Notification
 		logLevel    slog.Level
 	)
 	flag.Parse()
@@ -39,6 +41,7 @@ func main() {
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: logLevel}))
 	if err != nil {
 		logger.ErrorContext(ctx, "error parsing loglevel", "loglevel", *logLevelStr, "error", err)
+		os.Exit(1)
 	}
 	slog.SetDefault(logger)
 
@@ -48,9 +51,8 @@ func main() {
 	sStore, err = jsondb.NewServerStorage("testdata/cluster.json")
 	if err != nil {
 		logger.ErrorContext(ctx, "failed to create new cluster", "error", err)
+		os.Exit(1)
 	}
-
-	//initTargets(ctx, sStore)
 
 	notify := notifier.NewNotifier(sStore)
 	sStore = notify
@@ -58,19 +60,22 @@ func main() {
 	obs, err = observer.NewObserver(sStore)
 	if err != nil {
 		logger.ErrorContext(ctx, "failed to create endpoint storage", "error", err)
+		os.Exit(1)
 	}
 
 	blacklist, err = blist.NewBlacklist("testdata/blacklist.json")
 	if err != nil {
 		logger.ErrorContext(ctx, "failed to create blacklist", "error", err)
+		os.Exit(1)
 	}
 
-	//err = initBlacklist(ctx, blacklist, logger)
-	//if err != nil {
-	//	logger.ErrorContext(ctx, "failed to initialize blacklist", "error", err)
-	//}
+	messaging, err = discord.NewDiscordNotifier("")
+	if err != nil {
+		logger.ErrorContext(ctx, "failed to create notification service", "error", err)
+		os.Exit(1)
+	}
 
-	ovs = overseer.NewOverseer(sStore, blacklist)
+	ovs = overseer.NewOverseer(sStore, blacklist, messaging)
 
 	go notify.Run(obs.ManageScraper, ovs.ManageScanner, ctx)
 	go obs.ManageScraper(ctx)
@@ -80,6 +85,7 @@ func main() {
 	server.ServeHTTP()
 }
 
+// NOTE: just to initialize first Targets
 func initTargets(ctx context.Context, sStore internal.ServerStore, logger *slog.Logger) error {
 	sStore.Create(ctx, &model.Server{
 		Name: "Ragnarok",

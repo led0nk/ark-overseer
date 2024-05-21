@@ -39,5 +39,6 @@ type Overseer interface {
 }
 
 type Notification interface {
-	Send() error
+	Connect(context.Context) error
+	Send(context.Context, string, string) error
 }

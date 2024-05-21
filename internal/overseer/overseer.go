@@ -17,6 +17,7 @@ type Overseer struct {
 	cancelFuncs map[uuid.UUID]context.CancelFunc
 	blacklist   internal.Blacklist
 	serverStore internal.ServerStore
+	messaging   internal.Notification
 	logger      *slog.Logger
 	mu          sync.Mutex
 	resultCh    chan any
@@ -28,12 +29,17 @@ type NotificationStatus struct {
 	leftNotified   bool
 }
 
-func NewOverseer(sStore internal.ServerStore, blacklist internal.Blacklist) *Overseer {
+func NewOverseer(
+	sStore internal.ServerStore,
+	blacklist internal.Blacklist,
+	messaging internal.Notification,
+) *Overseer {
 	overseer := &Overseer{
 		endpoints:   make(map[uuid.UUID]*model.Server),
 		cancelFuncs: make(map[uuid.UUID]context.CancelFunc),
 		blacklist:   blacklist,
 		serverStore: sStore,
+		messaging:   messaging,
 		logger:      slog.Default().WithGroup("overseer"),
 		resultCh:    make(chan any),
 	}
@@ -52,6 +58,10 @@ func (o *Overseer) ReadEndpoint(target *model.Server) error {
 }
 
 func (o *Overseer) ManageScanner(ctx context.Context) {
+	err := o.messaging.Connect(ctx)
+	if err != nil {
+		o.logger.ErrorContext(ctx, "failed to connect messaging service", "error", err)
+	}
 	select {
 	case <-ctx.Done():
 		return
@@ -155,7 +165,12 @@ func (o *Overseer) Scan(blacklist []*model.Players, server *model.Server, previo
 
 		if blacklistMap[player.Name] {
 			if !status.joinedNotified {
-				//TODO: call function for notification services
+				//TODO: call function for notification services, context
+				err := o.messaging.Send(context.TODO(), "1204937103750725634", player.Name+" joined the server "+server.Name)
+				if err != nil {
+					o.logger.Error("failed to send message", "error", err)
+					continue
+				}
 				fmt.Println(player.Name + " joined the server " + server.Name)
 				status.joinedNotified = true
 				status.leftNotified = false
@@ -165,7 +180,12 @@ func (o *Overseer) Scan(blacklist []*model.Players, server *model.Server, previo
 
 	for playerName, status := range previousPlayers {
 		if blacklistMap[playerName] && !status.isActive && !status.leftNotified {
-			//TODO: call function for notification services
+			//TODO: call function for notification services, context
+			err := o.messaging.Send(context.TODO(), "1204937103750725634", playerName+" left the server "+server.Name)
+			if err != nil {
+				o.logger.Error("failed to send message", "error", err)
+				continue
+			}
 			fmt.Println(playerName + " left the server " + server.Name)
 			status.leftNotified = true
 			status.joinedNotified = false
