@@ -13,7 +13,7 @@ type DiscordNotifier struct {
 }
 
 func NewDiscordNotifier(token string) (*DiscordNotifier, error) {
-	session, err := discordgo.New("Bot " + token)
+	session, err := discordgo.New(token)
 	if err != nil {
 		return nil, err
 	}
@@ -33,7 +33,7 @@ func (d *DiscordNotifier) Connect(ctx context.Context) error {
 	return nil
 }
 
-func (d *DiscordNotifier) Send(ctx context.Context, message string, channelID string) error {
+func (d *DiscordNotifier) Send(ctx context.Context, channelID string, message string) error {
 	_, err := d.session.ChannelMessageSend(channelID, message)
 	if err != nil {
 		d.logger.ErrorContext(ctx, "failed to send discord message", "error", err)

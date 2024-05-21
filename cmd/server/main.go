@@ -69,13 +69,19 @@ func main() {
 		os.Exit(1)
 	}
 
-	messaging, err = discord.NewDiscordNotifier("")
+	//initBlacklist(ctx, blacklist, logger)
+
+	messaging, err = discord.NewDiscordNotifier("Bot MTIwNDkzNTM5NTI3MjU1NjYxNA.GLZqH7.pgsr5s3I8Wg1pK_g6mABwmjjrbViT5yj8LAKDg")
 	if err != nil {
 		logger.ErrorContext(ctx, "failed to create notification service", "error", err)
 		os.Exit(1)
 	}
 
-	ovs = overseer.NewOverseer(sStore, blacklist, messaging)
+	ovs, err = overseer.NewOverseer(ctx, sStore, blacklist, messaging)
+	if err != nil {
+		logger.ErrorContext(ctx, "failed to create overseer", "error", err)
+		os.Exit(1)
+	}
 
 	go notify.Run(obs.ManageScraper, ovs.ManageScanner, ctx)
 	go obs.ManageScraper(ctx)
@@ -112,6 +118,20 @@ func initTargets(ctx context.Context, sStore internal.ServerStore, logger *slog.
 func initBlacklist(ctx context.Context, blacklist internal.Blacklist, logger *slog.Logger) error {
 	_, err := blacklist.Create(ctx, &model.Players{
 		Name: "Fadem",
+	})
+	if err != nil {
+		logger.ErrorContext(ctx, "failed to create blacklist entry", "error", err)
+		return err
+	}
+	_, err = blacklist.Create(ctx, &model.Players{
+		Name: "FisherSpider",
+	})
+	if err != nil {
+		logger.ErrorContext(ctx, "failed to create blacklist entry", "error", err)
+		return err
+	}
+	_, err = blacklist.Create(ctx, &model.Players{
+		Name: "Hermes Headquart...",
 	})
 	if err != nil {
 		logger.ErrorContext(ctx, "failed to create blacklist entry", "error", err)
