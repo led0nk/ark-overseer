@@ -2,48 +2,42 @@ package discord
 
 import (
 	"context"
-	"errors"
 	"log/slog"
-	"os"
-	"os/signal"
-	"syscall"
 
-	"github.com/disgoorg/disgo"
-	"github.com/disgoorg/disgo/bot"
-	"github.com/disgoorg/disgo/discord"
-	"github.com/disgoorg/disgo/events"
+	"github.com/bwmarrin/discordgo"
 )
 
 type DiscordNotifier struct {
-	logger   *slog.Logger
-	client   bot.Client
-	notifyCh chan os.Signal
+	logger  *slog.Logger
+	session *discordgo.Session
 }
 
-func NewDiscordNotifier(token string, opts ...bot.ConfigOpt) *DiscordNotifier {
-	discord := &DiscordNotifier{
-		logger:   slog.Default().WithGroup("discord"),
-		client:   disgo.New(token, opts...),
-		notifyCh: make(chan os.Signal, 1),
-	}
-	return discord
-}
-
-func (d *DiscordNotifier) Connect(ctx context.Context) {
-	err := d.client.OpenGateway(ctx)
+func NewDiscordNotifier(token string) (*DiscordNotifier, error) {
+	session, err := discordgo.New(token)
 	if err != nil {
-		d.logger.ErrorContext(ctx, "failed to open gateway", "error", err)
+		return nil, err
 	}
-
-	signal.Notify(d.notifyCh, syscall.SIGINT, syscall.SIGTERM)
-	<-d.notifyCh
+	discord := &DiscordNotifier{
+		logger:  slog.Default().WithGroup("discord"),
+		session: session,
+	}
+	return discord, nil
 }
 
-func (d *DiscordNotifier) Message(event *events.MessageCreate, message string) error {
-	if message == "" {
-		return errors.New("message cannot be empty")
+func (d *DiscordNotifier) Connect(ctx context.Context) error {
+	err := d.session.Open()
+	if err != nil {
+		d.logger.ErrorContext(ctx, "failed to open session", "error", err)
+		return err
 	}
+	return nil
+}
 
-	event.Client().Rest().CreateMessage(event.ChannelID, discord.NewMessageCreateBuilder().SetContent(message).Build())
+func (d *DiscordNotifier) Send(ctx context.Context, channelID string, message string) error {
+	_, err := d.session.ChannelMessageSend(channelID, message)
+	if err != nil {
+		d.logger.ErrorContext(ctx, "failed to send discord message", "error", err)
+		return err
+	}
 	return nil
 }

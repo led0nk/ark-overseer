@@ -1,2 +1,6 @@
 bin
+.tools
+src
+SRPMS
 *.env
+*json

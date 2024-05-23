@@ -12,6 +12,7 @@ import (
 	"github.com/led0nk/ark-clusterinfo/internal/jsondb"
 	"github.com/led0nk/ark-clusterinfo/internal/model"
 	"github.com/led0nk/ark-clusterinfo/internal/notifier"
+	"github.com/led0nk/ark-clusterinfo/internal/notifier/services/discord"
 	"github.com/led0nk/ark-clusterinfo/internal/overseer"
 	"github.com/led0nk/ark-clusterinfo/observer"
 )
@@ -19,15 +20,17 @@ import (
 func main() {
 
 	var (
-		addr = flag.String("addr", "localhost:8080", "server port")
+		addr   = flag.String("addr", "localhost:8080", "server port")
+		db     = flag.String("db", "testdata", "path to the database")
+		blpath = flag.String("blacklist", "testdata", "path to the blacklist")
 		//grpcaddr    = flag.String("grpcaddr", "", "grpc address, e.g. localhost:4317")
-		//dbase       = flag.String("db", "file://testdata", "path to database")
 		domain      = flag.String("domain", "127.0.0.1", "given domain for cookies/mail")
 		logLevelStr = flag.String("loglevel", "INFO", "define the level for logs")
 		sStore      internal.ServerStore
 		obs         internal.Observer
 		ovs         internal.Overseer
 		blacklist   internal.Blacklist
+		messaging   internal.Notification
 		logLevel    slog.Level
 	)
 	flag.Parse()
@@ -39,18 +42,18 @@ func main() {
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: logLevel}))
 	if err != nil {
 		logger.ErrorContext(ctx, "error parsing loglevel", "loglevel", *logLevelStr, "error", err)
+		os.Exit(1)
 	}
 	slog.SetDefault(logger)
 
 	logger.Info("server address", "addr", *addr)
 	//	logger.Info("otlp/grpc", "gprcaddr", *grpcaddr)
 
-	sStore, err = jsondb.NewServerStorage("testdata/cluster.json")
+	sStore, err = jsondb.NewServerStorage(*db + "/cluster.json")
 	if err != nil {
 		logger.ErrorContext(ctx, "failed to create new cluster", "error", err)
+		os.Exit(1)
 	}
-
-	//initTargets(ctx, sStore)
 
 	notify := notifier.NewNotifier(sStore)
 	sStore = notify
@@ -58,19 +61,28 @@ func main() {
 	obs, err = observer.NewObserver(sStore)
 	if err != nil {
 		logger.ErrorContext(ctx, "failed to create endpoint storage", "error", err)
+		os.Exit(1)
 	}
 
-	blacklist, err = blist.NewBlacklist("testdata/blacklist.json")
+	blacklist, err = blist.NewBlacklist(*blpatch + "/blacklist.json")
 	if err != nil {
 		logger.ErrorContext(ctx, "failed to create blacklist", "error", err)
+		os.Exit(1)
 	}
 
-	//err = initBlacklist(ctx, blacklist, logger)
-	//if err != nil {
-	//	logger.ErrorContext(ctx, "failed to initialize blacklist", "error", err)
-	//}
+	//initBlacklist(ctx, blacklist, logger)
 
-	ovs = overseer.NewOverseer(sStore, blacklist)
+	messaging, err = discord.NewDiscordNotifier("Bot MTIwNDkzNTM5NTI3MjU1NjYxNA.GLZqH7.pgsr5s3I8Wg1pK_g6mABwmjjrbViT5yj8LAKDg")
+	if err != nil {
+		logger.ErrorContext(ctx, "failed to create notification service", "error", err)
+		os.Exit(1)
+	}
+
+	ovs, err = overseer.NewOverseer(ctx, sStore, blacklist, messaging)
+	if err != nil {
+		logger.ErrorContext(ctx, "failed to create overseer", "error", err)
+		os.Exit(1)
+	}
 
 	go notify.Run(obs.ManageScraper, ovs.ManageScanner, ctx)
 	go obs.ManageScraper(ctx)
@@ -80,6 +92,7 @@ func main() {
 	server.ServeHTTP()
 }
 
+// NOTE: just to initialize first Targets
 func initTargets(ctx context.Context, sStore internal.ServerStore, logger *slog.Logger) error {
 	sStore.Create(ctx, &model.Server{
 		Name: "Ragnarok",
@@ -106,6 +119,20 @@ func initTargets(ctx context.Context, sStore internal.ServerStore, logger *slog.
 func initBlacklist(ctx context.Context, blacklist internal.Blacklist, logger *slog.Logger) error {
 	_, err := blacklist.Create(ctx, &model.Players{
 		Name: "Fadem",
+	})
+	if err != nil {
+		logger.ErrorContext(ctx, "failed to create blacklist entry", "error", err)
+		return err
+	}
+	_, err = blacklist.Create(ctx, &model.Players{
+		Name: "FisherSpider",
+	})
+	if err != nil {
+		logger.ErrorContext(ctx, "failed to create blacklist entry", "error", err)
+		return err
+	}
+	_, err = blacklist.Create(ctx, &model.Players{
+		Name: "Hermes Headquart...",
 	})
 	if err != nil {
 		logger.ErrorContext(ctx, "failed to create blacklist entry", "error", err)

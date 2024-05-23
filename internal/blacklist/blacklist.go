@@ -40,7 +40,6 @@ func (b *Blacklist) writeJSON() error {
 	return nil
 }
 
-// read JSON data from file = filename
 func (b *Blacklist) readJSON() error {
 	if _, err := os.Stat(b.filename); os.IsNotExist(err) {
 		err = b.writeJSON()

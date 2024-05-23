@@ -17,9 +17,10 @@ type Overseer struct {
 	cancelFuncs map[uuid.UUID]context.CancelFunc
 	blacklist   internal.Blacklist
 	serverStore internal.ServerStore
+	messaging   internal.Notification
 	logger      *slog.Logger
 	mu          sync.Mutex
-	resultCh    chan any
+	resultCh    chan map[string]*NotificationStatus
 }
 
 type NotificationStatus struct {
@@ -28,16 +29,27 @@ type NotificationStatus struct {
 	leftNotified   bool
 }
 
-func NewOverseer(sStore internal.ServerStore, blacklist internal.Blacklist) *Overseer {
+func NewOverseer(
+	ctx context.Context,
+	sStore internal.ServerStore,
+	blacklist internal.Blacklist,
+	messaging internal.Notification,
+) (*Overseer, error) {
 	overseer := &Overseer{
 		endpoints:   make(map[uuid.UUID]*model.Server),
 		cancelFuncs: make(map[uuid.UUID]context.CancelFunc),
 		blacklist:   blacklist,
 		serverStore: sStore,
+		messaging:   messaging,
 		logger:      slog.Default().WithGroup("overseer"),
-		resultCh:    make(chan any),
+		resultCh:    make(chan map[string]*NotificationStatus),
 	}
-	return overseer
+	err := messaging.Connect(ctx)
+	if err != nil {
+		overseer.logger.ErrorContext(ctx, "failed to connect messaging service", "error", err)
+		return nil, err
+	}
+	return overseer, nil
 }
 
 func (o *Overseer) ReadEndpoint(target *model.Server) error {
@@ -104,7 +116,7 @@ func (o *Overseer) Scanner(ctx context.Context, target *model.Server) {
 				continue
 			}
 
-			previousPlayers = o.Scan(blacklist, server, previousPlayers)
+			previousPlayers = o.Scan(ctx, blacklist, server, previousPlayers)
 		}
 	}
 }
@@ -133,8 +145,7 @@ func (o *Overseer) KillScanner(targetID uuid.UUID) error {
 	return errors.New("Scraper with ID not found")
 }
 
-func (o *Overseer) Scan(blacklist []*model.Players, server *model.Server, previousPlayers map[string]*NotificationStatus) map[string]*NotificationStatus {
-	//currentPlayers := make(map[string]*NotificationStatus)
+func (o *Overseer) Scan(ctx context.Context, blacklist []*model.Players, server *model.Server, previousPlayers map[string]*NotificationStatus) map[string]*NotificationStatus {
 
 	blacklistMap := make(map[string]bool)
 	for _, blacklistedPlayer := range blacklist {
@@ -155,7 +166,12 @@ func (o *Overseer) Scan(blacklist []*model.Players, server *model.Server, previo
 
 		if blacklistMap[player.Name] {
 			if !status.joinedNotified {
-				//TODO: call function for notification services
+				//TODO: call function for notification services, context
+				err := o.messaging.Send(ctx, "1204937103750725634", player.Name+" joined the server "+server.Name)
+				if err != nil {
+					o.logger.Error("failed to send message", "error", err)
+					continue
+				}
 				fmt.Println(player.Name + " joined the server " + server.Name)
 				status.joinedNotified = true
 				status.leftNotified = false
@@ -165,7 +181,12 @@ func (o *Overseer) Scan(blacklist []*model.Players, server *model.Server, previo
 
 	for playerName, status := range previousPlayers {
 		if blacklistMap[playerName] && !status.isActive && !status.leftNotified {
-			//TODO: call function for notification services
+			//TODO: call function for notification services, context
+			err := o.messaging.Send(ctx, "1204937103750725634", playerName+" left the server "+server.Name)
+			if err != nil {
+				o.logger.Error("failed to send message", "error", err)
+				continue
+			}
 			fmt.Println(playerName + " left the server " + server.Name)
 			status.leftNotified = true
 			status.joinedNotified = false
@@ -174,3 +195,5 @@ func (o *Overseer) Scan(blacklist []*model.Players, server *model.Server, previo
 
 	return previousPlayers
 }
+
+//TODO: figure out a processor func to process the messaging
