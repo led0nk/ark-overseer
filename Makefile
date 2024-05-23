@@ -63,7 +63,7 @@ vendor: tidy
 	$(GOCMD) mod vendor
 
 .PHONY: build
-build: generate
+build: tools generate
 	$(GOCMD) build -o bin/clusterinfo cmd/server/main.go
 
 .PHONY: exec
