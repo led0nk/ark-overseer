@@ -41,3 +41,4 @@ func (d *DiscordNotifier) Send(ctx context.Context, channelID string, message st
 	}
 	return nil
 }
+
