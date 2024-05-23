@@ -1,31 +1,45 @@
 package layout
 
-templ ButtonPost(title string, hxpost string, hxtarget string, hxswap string){
-                <button type="button" hx-post={ hxpost } hx-target={ hxtarget } hx-swap={ hxswap }
-                  class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">{ title }</button>
+templ ButtonPost(title string, hxpost string, hxtarget string, hxswap string) {
+	<button
+		type="button"
+		hx-post={ hxpost }
+		hx-target={ hxtarget }
+		hx-swap={ hxswap }
+		class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
+	>{ title }</button>
 }
 
-templ ButtonDelete(title string, hxdelete string, hxtarget string, hxswap string){
-                <button type="button" hx-delete={ hxdelete } hx-target={ hxtarget } hx-swap={ hxswap }
-                  class="focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900">{ title }</button>
+templ ButtonDelete(title string, hxdelete string, hxtarget string, hxswap string) {
+	<button
+		type="button"
+		hx-delete={ hxdelete }
+		hx-target={ hxtarget }
+		hx-swap={ hxswap }
+		class="focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900"
+	>{ title }</button>
 }
 
-templ StatusFlag(status bool){
-              if status{
-                <span
-                  class="inline-flex items-center gap-1 rounded-full bg-green-50 px-2 py-1 text-xs font-semibold text-green-600">
-                  <span class="h-1.5 w-1.5 rounded-full bg-green-600"></span>online
-                  </span>
-              } else{
-                      <span
-                        class="inline-flex items-center gap-1 rounded-full bg-red-50 px-2 py-1 text-xs font-semibold text-red-600">
-                        <span class="h-1.5 w-1.5 rounded-full bg-red-600"></span>offline
-                        </span>
-                } 
+templ StatusFlag(status bool) {
+	if status {
+		<span
+			class="inline-flex items-center gap-1 rounded-full bg-green-50 px-2 py-1 text-xs font-semibold text-green-600"
+		>
+			<span class="h-1.5 w-1.5 rounded-full bg-green-600"></span>online
+		</span>
+	} else {
+		<span
+			class="inline-flex items-center gap-1 rounded-full bg-red-50 px-2 py-1 text-xs font-semibold text-red-600"
+		>
+			<span class="h-1.5 w-1.5 rounded-full bg-red-600"></span>offline
+		</span>
+	}
 }
 
-templ NavItem(title string, href templ.SafeURL){
-            <a href={ href }
-              class="text-gray-300 hover:bg-gray-700 hover:text-white rounded-md px-3 py-2 text-sm font-medium"
-              aria-current="page">{ title }</a>
+templ NavItem(title string, href templ.SafeURL) {
+	<a
+		href={ href }
+		class="text-gray-300 hover:bg-gray-700 hover:text-white rounded-md px-3 py-2 text-sm font-medium"
+		aria-current="page"
+	>{ title }</a>
 }

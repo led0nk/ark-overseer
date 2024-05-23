@@ -20,9 +20,10 @@ import (
 func main() {
 
 	var (
-		addr = flag.String("addr", "localhost:8080", "server port")
+		addr   = flag.String("addr", "localhost:8080", "server port")
+		db     = flag.String("db", "testdata", "path to the database")
+		blpath = flag.String("blacklist", "testdata", "path to the blacklist")
 		//grpcaddr    = flag.String("grpcaddr", "", "grpc address, e.g. localhost:4317")
-		//dbase       = flag.String("db", "file://testdata", "path to database")
 		domain      = flag.String("domain", "127.0.0.1", "given domain for cookies/mail")
 		logLevelStr = flag.String("loglevel", "INFO", "define the level for logs")
 		sStore      internal.ServerStore
@@ -48,7 +49,7 @@ func main() {
 	logger.Info("server address", "addr", *addr)
 	//	logger.Info("otlp/grpc", "gprcaddr", *grpcaddr)
 
-	sStore, err = jsondb.NewServerStorage("testdata/cluster.json")
+	sStore, err = jsondb.NewServerStorage(*db + "/cluster.json")
 	if err != nil {
 		logger.ErrorContext(ctx, "failed to create new cluster", "error", err)
 		os.Exit(1)
@@ -63,7 +64,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	blacklist, err = blist.NewBlacklist("testdata/blacklist.json")
+	blacklist, err = blist.NewBlacklist(*blpatch + "/blacklist.json")
 	if err != nil {
 		logger.ErrorContext(ctx, "failed to create blacklist", "error", err)
 		os.Exit(1)
