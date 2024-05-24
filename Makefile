@@ -75,17 +75,26 @@ run: generate
 	$(GOCMD) run cmd/server/main.go
 
 .PHONY: archive
-archive: build
+archive: vendor
 	mkdir -p src/
-	@echo "create a tarball..."
+	mkdir -p _build/$(PROJECT)-$(CLUSTERINFO_VERSION)
+	GO_DIRS=$$(find . -type f -name '*.go' -exec dirname {} \; | awk -F'/' '{print $$2}' | sort -u) && \
+	for DIR in $$GO_DIRS; do \
+		echo "copying files from $$DIR to _build/$$DIR"; \
+		cp -r $$DIR _build/$(PROJECT)-$(CLUSTERINFO_VERSION); \
+	done  
+
+	@echo "create a tarball..." 
 	tar -cz \
 	--file ./src/$(PROJECT)-$(CLUSTERINFO_VERSION).tar.gz \
-	-C ./bin .
-	@echo "output:"
-	@find src/*.tar.gz
+	-C ./_build . 
+	@echo "output:" 
+	@find src/*.tar.gz 
 
 .PHONY: clean
 clean:
 	rm -rf *.tar.gz *.rpm
 	rm -rf ./SRPMS
 	rm -rf ark-clusterinfo-0.1.0*
+	rm -rf ./src
+	rm -rf ./_build
