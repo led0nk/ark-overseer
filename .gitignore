@@ -4,3 +4,6 @@ src
 SRPMS
 *.env
 *json
+*.tar.gz
+vendor
+x86_64

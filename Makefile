@@ -11,9 +11,9 @@ clusterinfo := $(ROOT_DIR)/bin/ark-clusterinfo
 ALL_GO_FILES=$(shell find $(ROOT_DIR) -type f -name "*.go")
 
 LINT := $(TOOLS_DIR)/golangci-lint
+TEMPL := $(TOOLS_DIR)/templ
 
 GOCMD ?= go
-TEMPLCMD ?= templ
 GO_ENV=$(shell CGO_ENABLED=0)
 
 
@@ -22,7 +22,7 @@ $(TOOLS_DIR):
 
 .PHONY: generate
 generate: 
-	$(TEMPLCMD) generate
+	$(TEMPL) generate
 
 .PHONY: check-fmt
 check-fmt: fmt
@@ -31,14 +31,14 @@ check-fmt: fmt
 .PHONY: fmt
 fmt:
 	$(GOCMD) fmt ./...
-	$(TEMPLCMD) fmt .
+	$(TEMPL) fmt .
 
 .PHONY: govet
 govet:
 	$(GOCMD) vet ./...
 
-.PHONY: gotest
-test: gofmt govet ensure-fmt
+.PHONY: test
+test: govet 
 	$(GO_ENV) $(GOCMD) test -v ./... -failfast
 
 .PHONY: gomoddownload
@@ -50,16 +50,20 @@ tools: $(TOOLS_DIR)
 	GOBIN=$(TOOLS_DIR) go install github.com/golangci/golangci-lint/cmd/golangci-lint@$(GOLINT_VERSION)
 	GOBIN=$(TOOLS_DIR) go install github.com/a-h/templ/cmd/templ@$(TEMPL_VERSION)
 
-.PHONY: golint
-golint:
+.PHONY: lint
+lint:
 	$(LINT) run --verbose --allow-parallel-runners --timeout=10m 
 
-.PHONY: gotidy
-gotidy:
+.PHONY: tidy
+tidy:
 	$(GOCMD) mod tidy -compat=$(GO_VERSION)
 
+.PHONY: vendor
+vendor: tidy
+	$(GOCMD) mod vendor
+
 .PHONY: build
-build: generate
+build: tools generate
 	$(GOCMD) build -o bin/clusterinfo cmd/server/main.go
 
 .PHONY: exec
@@ -79,3 +83,9 @@ archive: build
 	-C ./bin .
 	@echo "output:"
 	@find src/*.tar.gz
+
+.PHONY: clean
+clean:
+	rm -rf *.tar.gz *.rpm
+	rm -rf ./SRPMS
+	rm -rf ark-clusterinfo-0.1.0*

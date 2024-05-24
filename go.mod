@@ -1,6 +1,6 @@
 module github.com/led0nk/ark-clusterinfo
 
-go 1.22.1
+go 1.22
 
 require (
 	github.com/FlowingSPDG/go-steam v0.0.0-20200304111708-e30ea2f91a83

@@ -10,7 +10,6 @@ import (
 	"github.com/led0nk/ark-clusterinfo/internal"
 	blist "github.com/led0nk/ark-clusterinfo/internal/blacklist"
 	"github.com/led0nk/ark-clusterinfo/internal/jsondb"
-	"github.com/led0nk/ark-clusterinfo/internal/model"
 	"github.com/led0nk/ark-clusterinfo/internal/notifier"
 	"github.com/led0nk/ark-clusterinfo/internal/notifier/services/discord"
 	"github.com/led0nk/ark-clusterinfo/internal/overseer"
@@ -64,7 +63,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	blacklist, err = blist.NewBlacklist(*blpatch + "/blacklist.json")
+	blacklist, err = blist.NewBlacklist(*blpath + "/blacklist.json")
 	if err != nil {
 		logger.ErrorContext(ctx, "failed to create blacklist", "error", err)
 		os.Exit(1)
@@ -93,50 +92,50 @@ func main() {
 }
 
 // NOTE: just to initialize first Targets
-func initTargets(ctx context.Context, sStore internal.ServerStore, logger *slog.Logger) error {
-	sStore.Create(ctx, &model.Server{
-		Name: "Ragnarok",
-		Addr: "51.195.60.114:27019",
-	})
-
-	sStore.Create(ctx, &model.Server{
-		Name: "LostIsland",
-		Addr: "51.195.60.114:27020",
-	})
-
-	sStore.Create(ctx, &model.Server{
-		Name: "Aberration",
-		Addr: "51.195.60.114:27018",
-	})
-
-	sStore.Create(ctx, &model.Server{
-		Name: "TheIsland",
-		Addr: "51.195.60.114:27016",
-	})
-	return nil
-}
-
-func initBlacklist(ctx context.Context, blacklist internal.Blacklist, logger *slog.Logger) error {
-	_, err := blacklist.Create(ctx, &model.Players{
-		Name: "Fadem",
-	})
-	if err != nil {
-		logger.ErrorContext(ctx, "failed to create blacklist entry", "error", err)
-		return err
-	}
-	_, err = blacklist.Create(ctx, &model.Players{
-		Name: "FisherSpider",
-	})
-	if err != nil {
-		logger.ErrorContext(ctx, "failed to create blacklist entry", "error", err)
-		return err
-	}
-	_, err = blacklist.Create(ctx, &model.Players{
-		Name: "Hermes Headquart...",
-	})
-	if err != nil {
-		logger.ErrorContext(ctx, "failed to create blacklist entry", "error", err)
-		return err
-	}
-	return nil
-}
+//func initTargets(ctx context.Context, sStore internal.ServerStore, logger *slog.Logger) error {
+//	sStore.Create(ctx, &model.Server{
+//		Name: "Ragnarok",
+//		Addr: "51.195.60.114:27019",
+//	})
+//
+//	sStore.Create(ctx, &model.Server{
+//		Name: "LostIsland",
+//		Addr: "51.195.60.114:27020",
+//	})
+//
+//	sStore.Create(ctx, &model.Server{
+//		Name: "Aberration",
+//		Addr: "51.195.60.114:27018",
+//	})
+//
+//	sStore.Create(ctx, &model.Server{
+//		Name: "TheIsland",
+//		Addr: "51.195.60.114:27016",
+//	})
+//	return nil
+//}
+//
+//func initBlacklist(ctx context.Context, blacklist internal.Blacklist, logger *slog.Logger) error {
+//	_, err := blacklist.Create(ctx, &model.Players{
+//		Name: "Fadem",
+//	})
+//	if err != nil {
+//		logger.ErrorContext(ctx, "failed to create blacklist entry", "error", err)
+//		return err
+//	}
+//	_, err = blacklist.Create(ctx, &model.Players{
+//		Name: "FisherSpider",
+//	})
+//	if err != nil {
+//		logger.ErrorContext(ctx, "failed to create blacklist entry", "error", err)
+//		return err
+//	}
+//	_, err = blacklist.Create(ctx, &model.Players{
+//		Name: "Hermes Headquart...",
+//	})
+//	if err != nil {
+//		logger.ErrorContext(ctx, "failed to create blacklist entry", "error", err)
+//		return err
+//	}
+//	return nil
+//}
