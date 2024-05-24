@@ -7,6 +7,7 @@ import (
 	"os"
 
 	v1 "github.com/led0nk/ark-clusterinfo/api/v1"
+	"github.com/led0nk/ark-clusterinfo/cmd/utilities"
 	"github.com/led0nk/ark-clusterinfo/internal"
 	blist "github.com/led0nk/ark-clusterinfo/internal/blacklist"
 	"github.com/led0nk/ark-clusterinfo/internal/jsondb"
@@ -49,7 +50,7 @@ func main() {
 	logger.Info("server address", "addr", *addr)
 	//	logger.Info("otlp/grpc", "gprcaddr", *grpcaddr)
 
-	envmap, err := utils.LoadEnv(logger, *envStr)
+	envmap, err := utilities.LoadEnv(logger, *envStr)
 	if err != nil {
 		logger.Error("failed to load .env variables", "error", err)
 	}

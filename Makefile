@@ -59,7 +59,7 @@ tidy:
 	$(GOCMD) mod tidy -compat=$(GO_VERSION)
 
 .PHONY: vendor
-vendor: tidy
+vendor: 
 	$(GOCMD) mod vendor
 
 .PHONY: build
