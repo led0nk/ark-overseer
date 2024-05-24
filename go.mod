@@ -7,6 +7,7 @@ require (
 	github.com/a-h/templ v0.2.680
 	github.com/bwmarrin/discordgo v0.28.1
 	github.com/google/uuid v1.6.0
+	github.com/joho/godotenv v1.5.1
 	github.com/samber/slog-http v1.3.1
 )
 
