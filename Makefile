@@ -1,11 +1,14 @@
 GO_VERSION=1.22
 GOLINT_VERSION=v1.57.2
 TEMPL_VERSION=v0.2.680
-CLUSTERINFO_VERSION=0.1.0
+CLUSTERINFO_VERSION ?= 0.1.0
 PROJECT ?= ark-clusterinfo
+
+
 
 ROOT_DIR=$(shell git rev-parse --show-toplevel)
 TOOLS_DIR=$(ROOT_DIR)/.tools
+PROJECT_DIR=$(PROJECT)-$(CLUSTERINFO_VERSION)
 clusterinfo := $(ROOT_DIR)/bin/ark-clusterinfo
 
 ALL_GO_FILES=$(shell find $(ROOT_DIR) -type f -name "*.go")
@@ -77,17 +80,18 @@ run: generate
 .PHONY: archive
 archive: vendor
 	mkdir -p src/
-	mkdir -p _build/$(PROJECT)-$(CLUSTERINFO_VERSION)
+	mkdir -p _build/$(PROJECT_DIR)
+	cp go.mod go.sum _build/$(PROJECT_DIR)
 	GO_DIRS=$$(find . -type f -name '*.go' -exec dirname {} \; | awk -F'/' '{print $$2}' | sort -u) && \
 	for DIR in $$GO_DIRS; do \
 		echo "copying files from $$DIR to _build/$$DIR"; \
-		cp -r $$DIR _build/$(PROJECT)-$(CLUSTERINFO_VERSION); \
+		cp -r $$DIR _build/$(PROJECT_DIR); \
 	done  
 
 	@echo "create a tarball..." 
 	tar -cz \
-	--file ./src/$(PROJECT)-$(CLUSTERINFO_VERSION).tar.gz \
-	-C ./_build $(PROJECT)-$(CLUSTERINFO_VERSION)
+	--file ./src/$(PROJECT_DIR).tar.gz \
+	-C ./_build $(PROJECT_DIR)
 	@echo "output:" 
 	@find src/*.tar.gz 
 
@@ -98,3 +102,6 @@ clean:
 	rm -rf ark-clusterinfo-0.1.0*
 	rm -rf ./src
 	rm -rf ./_build
+
+dir:
+	echo $(PROJECT_DIR)
