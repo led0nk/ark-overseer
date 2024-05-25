@@ -87,7 +87,7 @@ archive: vendor
 	@echo "create a tarball..." 
 	tar -cz \
 	--file ./src/$(PROJECT)-$(CLUSTERINFO_VERSION).tar.gz \
-	-C ./_build . 
+	-C ./_build $(PROJECT)-$(CLUSTERINFO_VERSION)
 	@echo "output:" 
 	@find src/*.tar.gz 
 
