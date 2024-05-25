@@ -81,7 +81,7 @@ run: generate
 archive: vendor
 	mkdir -p src/
 	mkdir -p _build/$(PROJECT_DIR)
-	cp go.mod go.sum _build/$(PROJECT_DIR)
+	cp go.mod go.sum $(PROJECT).service _build/$(PROJECT_DIR)
 	GO_DIRS=$$(find . -type f -name '*.go' -exec dirname {} \; | awk -F'/' '{print $$2}' | sort -u) && \
 	for DIR in $$GO_DIRS; do \
 		echo "copying files from $$DIR to _build/$$DIR"; \
