@@ -22,7 +22,7 @@ ark-clusterinfo is a steam observation tool to track players
 
 
 %prep
-%setup -q -n %{name}-%{version}
+%autosetup
 
 %build
 go build -v -buildmode pie -mod vendor -o %{gobuilddir}/bin/%{name}/cmd/server/main.go

@@ -8,7 +8,6 @@ files_to_sync:
   - ark-clusterinfo.spec
   - .packit.yaml
   - Makefile
-  - _build
 
 # name in upstream package repository or registry (e.g. in PyPI)
 upstream_package_name: ark-clusterinfo
@@ -23,6 +22,7 @@ srpm_build_deps:
 actions:
   create-archive:
     - make archive
+    - sh -c "echo ark-clusterinfo-0.1.0.tar.gz"
 
 jobs:
   - job: copr_build
