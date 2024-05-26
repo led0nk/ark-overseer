@@ -11,7 +11,7 @@
 			"folder": "ark_survival_evolved",
 			"game": "ARK: Survival Evolved",
 			"id": 346110,
-			"players": 1,
+			"players": 4,
 			"maxplayers": 70,
 			"bots": 0,
 			"servertype": 1,
@@ -23,15 +23,30 @@
 			"steamid": 90198215992642580,
 			"sourcetvport": 0,
 			"sourcetvname": "",
-			"keywords": ",OWNINGID:90198215992642580,OWNINGNAME:90198215992642580,NUMOPENPUBCONN:69,P2PADDR:90198215992642580,P2PPORT:7783,LEGACY_i:0",
+			"keywords": ",OWNINGID:90198215992642580,OWNINGNAME:90198215992642580,NUMOPENPUBCONN:66,P2PADDR:90198215992642580,P2PPORT:7783,LEGACY_i:0",
 			"gameid": 346110
 		},
 		"playersinfo": {
 			"Players": [
 				{
-					"name": "#_Charlie[c0re]^",
+					"name": "GliftisMhteras",
 					"score": 0,
-					"duration": 396000000000
+					"duration": 16693000000000
+				},
+				{
+					"name": "JinkyUK",
+					"score": 0,
+					"duration": 7850000000000
+				},
+				{
+					"name": "Jupp",
+					"score": 0,
+					"duration": 7281000000000
+				},
+				{
+					"name": "smitty werben ja...",
+					"score": 0,
+					"duration": 96000000000
 				}
 			]
 		}
@@ -48,7 +63,7 @@
 			"folder": "ark_survival_evolved",
 			"game": "ARK: Survival Evolved",
 			"id": 346110,
-			"players": 0,
+			"players": 4,
 			"maxplayers": 70,
 			"bots": 0,
 			"servertype": 1,
@@ -60,11 +75,32 @@
 			"steamid": 90198177739760660,
 			"sourcetvport": 0,
 			"sourcetvname": "",
-			"keywords": ",OWNINGID:90198177739760660,OWNINGNAME:90198177739760660,NUMOPENPUBCONN:70,P2PADDR:90198177739760660,P2PPORT:7785,LEGACY_i:0",
+			"keywords": ",OWNINGID:90198177739760660,OWNINGNAME:90198177739760660,NUMOPENPUBCONN:66,P2PADDR:90198177739760660,P2PPORT:7785,LEGACY_i:0",
 			"gameid": 346110
 		},
 		"playersinfo": {
-			"Players": null
+			"Players": [
+				{
+					"name": "ast",
+					"score": 0,
+					"duration": 6464000000000
+				},
+				{
+					"name": "Dracolingua",
+					"score": 0,
+					"duration": 4166000000000
+				},
+				{
+					"name": "flame",
+					"score": 0,
+					"duration": 4104000000000
+				},
+				{
+					"name": "Darkman",
+					"score": 0,
+					"duration": 1337000000000
+				}
+			]
 		}
 	},
 	"a49875fd-75ba-4df6-a4e9-4d0daa0dc97e": {
@@ -79,7 +115,7 @@
 			"folder": "ark_survival_evolved",
 			"game": "ARK: Survival Evolved",
 			"id": 346110,
-			"players": 2,
+			"players": 1,
 			"maxplayers": 70,
 			"bots": 0,
 			"servertype": 1,
@@ -91,20 +127,15 @@
 			"steamid": 90198177740007444,
 			"sourcetvport": 0,
 			"sourcetvname": "",
-			"keywords": ",OWNINGID:90198177740007444,OWNINGNAME:90198177740007444,NUMOPENPUBCONN:68,P2PADDR:90198177740007444,P2PPORT:7781,LEGACY_i:0",
+			"keywords": ",OWNINGID:90198177740007444,OWNINGNAME:90198177740007444,NUMOPENPUBCONN:69,P2PADDR:90198177740007444,P2PPORT:7781,LEGACY_i:0",
 			"gameid": 346110
 		},
 		"playersinfo": {
 			"Players": [
 				{
-					"name": "SchmidtneySpears",
+					"name": "123",
 					"score": 0,
-					"duration": 1359000000000
-				},
-				{
-					"name": "Haylo",
-					"score": 0,
-					"duration": 1230000000000
+					"duration": 694000000000
 				}
 			]
 		}
@@ -121,7 +152,7 @@
 			"folder": "ark_survival_evolved",
 			"game": "ARK: Survival Evolved",
 			"id": 346110,
-			"players": 1,
+			"players": 10,
 			"maxplayers": 70,
 			"bots": 0,
 			"servertype": 1,
@@ -133,15 +164,60 @@
 			"steamid": 90198177738170388,
 			"sourcetvport": 0,
 			"sourcetvname": "",
-			"keywords": ",OWNINGID:90198177738170388,OWNINGNAME:90198177738170388,NUMOPENPUBCONN:69,P2PADDR:90198177738170388,P2PPORT:7777,LEGACY_i:0",
+			"keywords": ",OWNINGID:90198177738170388,OWNINGNAME:90198177738170388,NUMOPENPUBCONN:60,P2PADDR:90198177738170388,P2PPORT:7777,LEGACY_i:0",
 			"gameid": 346110
 		},
 		"playersinfo": {
 			"Players": [
 				{
-					"name": "Fadem",
+					"name": "Andrucha",
 					"score": 0,
-					"duration": 1922000000000
+					"duration": 37516000000000
+				},
+				{
+					"name": "Valyro",
+					"score": 0,
+					"duration": 9832000000000
+				},
+				{
+					"name": "Lr0x",
+					"score": 0,
+					"duration": 7808000000000
+				},
+				{
+					"name": "Nexus8203YT",
+					"score": 0,
+					"duration": 6946000000000
+				},
+				{
+					"name": "Jule",
+					"score": 0,
+					"duration": 6863000000000
+				},
+				{
+					"name": "Xenos",
+					"score": 0,
+					"duration": 5562000000000
+				},
+				{
+					"name": "Recudo",
+					"score": 0,
+					"duration": 4036000000000
+				},
+				{
+					"name": "Hermes Headquart...",
+					"score": 0,
+					"duration": 3442000000000
+				},
+				{
+					"name": "hrist6935",
+					"score": 0,
+					"duration": 211000000000
+				},
+				{
+					"name": "EzLoot",
+					"score": 0,
+					"duration": 163000000000
 				}
 			]
 		}

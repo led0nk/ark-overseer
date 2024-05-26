@@ -47,7 +47,6 @@ func NewOverseer(
 	err := messaging.Connect(ctx)
 	if err != nil {
 		overseer.logger.ErrorContext(ctx, "failed to connect messaging service", "error", err)
-		return nil, err
 	}
 	return overseer, nil
 }
