@@ -19,6 +19,10 @@ srpm_build_deps:
   - golang
   - git
 
+actions:
+  create-archive:
+    - make archive
+
 jobs:
   - job: copr_build
     trigger: pull_request

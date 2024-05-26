@@ -13,28 +13,31 @@ Summary:  steam observation tool
 License:  BSD
 Source0: %{name}-%{version}.tar.gz
 
+BuildRequires: systemd-rpm-macros
+BuildRequires: go-rpm-macros
 BuildRequires: golang
-BuildRequires: make
 BuildRequires: git
+BuildRequires: make
 
 %description
 ark-clusterinfo is a steam observation tool to track players
 
 
 %prep
+%goprep
+%autosetup 
 
-%setup -q -n %{version}-%{name}
+#%generate_buildrequires
+#%go_generate_buildrequires
 
 %build
-make vendor
 go build -v -buildmode pie -mod vendor -o %{gobuilddir}/bin/%{name} cmd/server/main.go
 
 %install
-mkdir -p %{buildroot}%{_bindir}
-mkdir -p %{buildroot}%{_unitdir}
-
-install -Dpm 0755 %{gobuilddir}/bin/* %{buildroot}%{_bindir}/%{name}
-install -Dpm 0644 %{name}.service %{buildroot}%{_unitdir}/%{name}.service
+install -m 0755 -vd                     %{buildroot}%{_bindir}
+install -m 0755 -vd                     %{buildroot}%{_unitdir}
+install -m 0755 -vp %{gobuilddir}/bin/* %{buildroot}%{_bindir}/
+install -m 0644 -vp %{name}.service %{buildroot}%{_unitdir}/
 
 %check
 %gocheck

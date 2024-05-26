@@ -7,6 +7,7 @@ import (
 	"os"
 
 	v1 "github.com/led0nk/ark-clusterinfo/api/v1"
+	"github.com/led0nk/ark-clusterinfo/cmd/utilities"
 	"github.com/led0nk/ark-clusterinfo/internal"
 	blist "github.com/led0nk/ark-clusterinfo/internal/blacklist"
 	"github.com/led0nk/ark-clusterinfo/internal/jsondb"
@@ -23,6 +24,7 @@ func main() {
 		db     = flag.String("db", "testdata", "path to the database")
 		blpath = flag.String("blacklist", "testdata", "path to the blacklist")
 		//grpcaddr    = flag.String("grpcaddr", "", "grpc address, e.g. localhost:4317")
+		envStr      = flag.String("env", "testdata/.env", "path to .env file")
 		domain      = flag.String("domain", "127.0.0.1", "given domain for cookies/mail")
 		logLevelStr = flag.String("loglevel", "INFO", "define the level for logs")
 		sStore      internal.ServerStore
@@ -48,6 +50,11 @@ func main() {
 	logger.Info("server address", "addr", *addr)
 	//	logger.Info("otlp/grpc", "gprcaddr", *grpcaddr)
 
+	envmap, err := utilities.LoadEnv(logger, *envStr)
+	if err != nil {
+		logger.Error("failed to load .env variables", "error", err)
+	}
+
 	sStore, err = jsondb.NewServerStorage(*db + "/cluster.json")
 	if err != nil {
 		logger.ErrorContext(ctx, "failed to create new cluster", "error", err)
@@ -71,7 +78,7 @@ func main() {
 
 	//initBlacklist(ctx, blacklist, logger)
 
-	messaging, err = discord.NewDiscordNotifier("Bot MTIwNDkzNTM5NTI3MjU1NjYxNA.GLZqH7.pgsr5s3I8Wg1pK_g6mABwmjjrbViT5yj8LAKDg")
+	messaging, err = discord.NewDiscordNotifier(envmap["DCTOKEN"])
 	if err != nil {
 		logger.ErrorContext(ctx, "failed to create notification service", "error", err)
 		os.Exit(1)
