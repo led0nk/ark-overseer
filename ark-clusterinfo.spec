@@ -28,6 +28,7 @@ ark-clusterinfo is a steam observation tool to track players
 %autosetup 
 
 #%generate_buildrequires
+
 #%go_generate_buildrequires
 
 %build
