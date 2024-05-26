@@ -13,17 +13,15 @@ Summary:  steam observation tool
 License:  BSD
 Source0: %{name}-%{version}.tar.gz
 
-BuildRequires: golang
-BuildRequires: make
-BuildRequires: git
-
 %description
 ark-clusterinfo is a steam observation tool to track players
-
 
 %prep
 %goprep
 %autosetup
+
+%generate_buildrequires
+%go_generate_buildrequires
 
 %build
 go build -v -buildmode pie -mod vendor -o %{gobuilddir}/bin/%{name} cmd/server/main.go

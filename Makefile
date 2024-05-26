@@ -103,5 +103,3 @@ clean:
 	rm -rf ./src
 	rm -rf ./_build
 
-dir:
-	echo $(PROJECT_DIR)
