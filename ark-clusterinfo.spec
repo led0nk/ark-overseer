@@ -7,13 +7,14 @@ Version: 0.1.0
 %gometa
 
 Name: ark-clusterinfo
-Release:  1.20240526114126691364.env%{?dist}
+Release:  1%{?dist}
 Summary:  steam observation tool
 
 License:  BSD
-Source0: ark-clusterinfo-0.1.0.tar.gz
+Source0: %{name}-%{version}.tar.gz
 
 BuildRequires: systemd-rpm-macros
+BuildRequires: go-rpm-macros
 BuildRequires: golang
 BuildRequires: git
 BuildRequires: make
@@ -24,7 +25,7 @@ ark-clusterinfo is a steam observation tool to track players
 
 %prep
 %goprep
-%autosetup -n ark-clusterinfo-0.1.0
+%autosetup 
 
 #%generate_buildrequires
 #%go_generate_buildrequires
