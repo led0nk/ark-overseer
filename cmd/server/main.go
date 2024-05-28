@@ -62,7 +62,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	notify := notifier.NewNotifier(sStore)
+	em := events.NewEventManager()
+
+	notify := notifier.NewNotifier(sStore, em)
 	sStore = notify
 
 	obs, err = observer.NewObserver(sStore)
@@ -79,19 +81,13 @@ func main() {
 
 	//initBlacklist(ctx, blacklist, logger)
 
-	messaging, err = discord.NewDiscordNotifier(envmap["DCTOKEN"], "1204937103750725634")
+	messaging, err = discord.NewDiscordNotifier(ctx, envmap["DCTOKEN"], "1204937103750725634")
 	if err != nil {
 		logger.ErrorContext(ctx, "failed to create notification service", "error", err)
 		os.Exit(1)
 	}
 
-	err = messaging.Connect(ctx)
-	if err != nil {
-		logger.ErrorContext(ctx, "failed to connect messaging service", "error", err)
-	}
-
-	em := events.NewEventManager()
-	messaging.StartListening(ctx, em)
+	em.StartListening(ctx, messaging, "discord")
 
 	ovs, err = overseer.NewOverseer(ctx, sStore, blacklist, messaging)
 	if err != nil {

@@ -17,11 +17,16 @@ type DiscordNotifier struct {
 	channelID string
 }
 
-func NewDiscordNotifier(token string, channelID string) (*DiscordNotifier, error) {
+func NewDiscordNotifier(ctx context.Context, token string, channelID string) (*DiscordNotifier, error) {
 	discord := &DiscordNotifier{
 		logger:    slog.Default().WithGroup("discord"),
 		token:     token,
 		channelID: channelID,
+	}
+	err := discord.Connect(ctx)
+	if err != nil {
+		discord.logger.ErrorContext(ctx, "failed to connect discord notification service", "error", err)
+		return nil, err
 	}
 	return discord, nil
 }
@@ -41,11 +46,12 @@ func (dn *DiscordNotifier) HandleEvent(ctx context.Context, event events.EventMe
 			dn.logger.ErrorContext(ctx, "failed to send message", "error", err)
 		}
 	default:
+		return
 	}
 }
 
 func (dn *DiscordNotifier) StartListening(ctx context.Context, em *events.EventManager) {
-	id, ch := em.Subscribe()
+	id, ch := em.Subscribe("discord")
 	if id == uuid.Nil {
 		return
 	}

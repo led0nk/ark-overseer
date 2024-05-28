@@ -11,7 +11,7 @@
 			"folder": "ark_survival_evolved",
 			"game": "ARK: Survival Evolved",
 			"id": 346110,
-			"players": 2,
+			"players": 3,
 			"maxplayers": 70,
 			"bots": 0,
 			"servertype": 1,
@@ -23,7 +23,7 @@
 			"steamid": 90198215992642580,
 			"sourcetvport": 0,
 			"sourcetvname": "",
-			"keywords": ",OWNINGID:90198215992642580,OWNINGNAME:90198215992642580,NUMOPENPUBCONN:68,P2PADDR:90198215992642580,P2PPORT:7783,LEGACY_i:0",
+			"keywords": ",OWNINGID:90198215992642580,OWNINGNAME:90198215992642580,NUMOPENPUBCONN:67,P2PADDR:90198215992642580,P2PPORT:7783,LEGACY_i:0",
 			"gameid": 346110
 		},
 		"playersinfo": {
@@ -31,12 +31,17 @@
 				{
 					"name": "Jupp",
 					"score": 0,
-					"duration": 7198000000000
+					"duration": 7656000000000
 				},
 				{
 					"name": "GliftisMhteras",
 					"score": 0,
-					"duration": 1666000000000
+					"duration": 2124000000000
+				},
+				{
+					"name": "xRaZ3x",
+					"score": 0,
+					"duration": 349000000000
 				}
 			]
 		}
@@ -53,7 +58,7 @@
 			"folder": "ark_survival_evolved",
 			"game": "ARK: Survival Evolved",
 			"id": 346110,
-			"players": 2,
+			"players": 1,
 			"maxplayers": 70,
 			"bots": 0,
 			"servertype": 1,
@@ -65,7 +70,7 @@
 			"steamid": 90198177739760660,
 			"sourcetvport": 0,
 			"sourcetvname": "",
-			"keywords": ",OWNINGID:90198177739760660,OWNINGNAME:90198177739760660,NUMOPENPUBCONN:68,P2PADDR:90198177739760660,P2PPORT:7785,LEGACY_i:0",
+			"keywords": ",OWNINGID:90198177739760660,OWNINGNAME:90198177739760660,NUMOPENPUBCONN:69,P2PADDR:90198177739760660,P2PPORT:7785,LEGACY_i:0",
 			"gameid": 346110
 		},
 		"playersinfo": {
@@ -73,12 +78,7 @@
 				{
 					"name": "ast",
 					"score": 0,
-					"duration": 8083000000000
-				},
-				{
-					"name": "xRaZ3x",
-					"score": 0,
-					"duration": 535000000000
+					"duration": 8541000000000
 				}
 			]
 		}
@@ -146,12 +146,12 @@
 				{
 					"name": "MrBlingbling",
 					"score": 0,
-					"duration": 6674000000000
+					"duration": 7132000000000
 				},
 				{
 					"name": "Valyro",
 					"score": 0,
-					"duration": 2563000000000
+					"duration": 3021000000000
 				}
 			]
 		}

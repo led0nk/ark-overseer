@@ -12,6 +12,7 @@ import (
 	"github.com/FlowingSPDG/go-steam"
 	"github.com/google/uuid"
 	"github.com/led0nk/ark-clusterinfo/internal"
+	"github.com/led0nk/ark-clusterinfo/internal/events"
 	"github.com/led0nk/ark-clusterinfo/internal/model"
 )
 
@@ -177,6 +178,50 @@ func (o *Observer) KillScraper(targetID uuid.UUID) error {
 	}
 	return errors.New("Scraper with ID not found")
 }
+
+func (o *Observer) HandleEvent(ctx context.Context, event events.EventMessage) {
+	switch event.Type {
+	case "addedServer":
+		server, ok := event.Payload.(*model.Server)
+		if !ok {
+			o.logger.ErrorContext(ctx, "invalid payload type for addedServer event", "error", errors.New("Payload not of type *model.Server"))
+			return
+		}
+		err := o.AddScraper(ctx, server)
+		if err != nil {
+			o.logger.ErrorContext(ctx, "failed to add scraper", "error", err)
+			return
+		}
+	case "deletedServer":
+		id, ok := event.Payload.(uuid.UUID)
+		if !ok {
+			o.logger.ErrorContext(ctx, "invalid payload type for deletedServer event", "error", errors.New("Payload not of type uuid.UUID"))
+			return
+		}
+		err := o.KillScraper(id)
+		if err != nil {
+			o.logger.ErrorContext(ctx, "failed to add scraper", "error", err)
+			return
+		}
+	default:
+		return
+	}
+}
+
+func (o *Observer) StartListening(ctx context.Context, em *events.EventManager) {
+	id, ch := em.Subscribe("observer")
+	if id == uuid.Nil {
+		return
+	}
+
+	go func() {
+		for event := range ch {
+			o.HandleEvent(ctx, event)
+		}
+	}()
+}
+
+//NOTE: help-funcs for data-transfer
 
 func ReplaceNullCharsInStruct(s any) {
 	v := reflect.ValueOf(s)
