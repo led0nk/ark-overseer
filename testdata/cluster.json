@@ -11,7 +11,7 @@
 			"folder": "ark_survival_evolved",
 			"game": "ARK: Survival Evolved",
 			"id": 346110,
-			"players": 4,
+			"players": 2,
 			"maxplayers": 70,
 			"bots": 0,
 			"servertype": 1,
@@ -23,30 +23,20 @@
 			"steamid": 90198215992642580,
 			"sourcetvport": 0,
 			"sourcetvname": "",
-			"keywords": ",OWNINGID:90198215992642580,OWNINGNAME:90198215992642580,NUMOPENPUBCONN:66,P2PADDR:90198215992642580,P2PPORT:7783,LEGACY_i:0",
+			"keywords": ",OWNINGID:90198215992642580,OWNINGNAME:90198215992642580,NUMOPENPUBCONN:68,P2PADDR:90198215992642580,P2PPORT:7783,LEGACY_i:0",
 			"gameid": 346110
 		},
 		"playersinfo": {
 			"Players": [
 				{
-					"name": "Nexus8203YT",
+					"name": "Jupp",
 					"score": 0,
-					"duration": 5292000000000
-				},
-				{
-					"name": "Lr0x",
-					"score": 0,
-					"duration": 5201000000000
+					"duration": 7198000000000
 				},
 				{
 					"name": "GliftisMhteras",
 					"score": 0,
-					"duration": 3663000000000
-				},
-				{
-					"name": "Jupp",
-					"score": 0,
-					"duration": 2131000000000
+					"duration": 1666000000000
 				}
 			]
 		}
@@ -63,7 +53,7 @@
 			"folder": "ark_survival_evolved",
 			"game": "ARK: Survival Evolved",
 			"id": 346110,
-			"players": 1,
+			"players": 2,
 			"maxplayers": 70,
 			"bots": 0,
 			"servertype": 1,
@@ -75,15 +65,20 @@
 			"steamid": 90198177739760660,
 			"sourcetvport": 0,
 			"sourcetvname": "",
-			"keywords": ",OWNINGID:90198177739760660,OWNINGNAME:90198177739760660,NUMOPENPUBCONN:69,P2PADDR:90198177739760660,P2PPORT:7785,LEGACY_i:0",
+			"keywords": ",OWNINGID:90198177739760660,OWNINGNAME:90198177739760660,NUMOPENPUBCONN:68,P2PADDR:90198177739760660,P2PPORT:7785,LEGACY_i:0",
 			"gameid": 346110
 		},
 		"playersinfo": {
 			"Players": [
 				{
-					"name": "Lucky Luke",
+					"name": "ast",
 					"score": 0,
-					"duration": 157000000000
+					"duration": 8083000000000
+				},
+				{
+					"name": "xRaZ3x",
+					"score": 0,
+					"duration": 535000000000
 				}
 			]
 		}
@@ -100,7 +95,7 @@
 			"folder": "ark_survival_evolved",
 			"game": "ARK: Survival Evolved",
 			"id": 346110,
-			"players": 1,
+			"players": 0,
 			"maxplayers": 70,
 			"bots": 0,
 			"servertype": 1,
@@ -112,17 +107,11 @@
 			"steamid": 90198177740007444,
 			"sourcetvport": 0,
 			"sourcetvname": "",
-			"keywords": ",OWNINGID:90198177740007444,OWNINGNAME:90198177740007444,NUMOPENPUBCONN:69,P2PADDR:90198177740007444,P2PPORT:7781,LEGACY_i:0",
+			"keywords": ",OWNINGID:90198177740007444,OWNINGNAME:90198177740007444,NUMOPENPUBCONN:70,P2PADDR:90198177740007444,P2PPORT:7781,LEGACY_i:0",
 			"gameid": 346110
 		},
 		"playersinfo": {
-			"Players": [
-				{
-					"name": "SchmidtneySpears",
-					"score": 0,
-					"duration": 987000000000
-				}
-			]
+			"Players": null
 		}
 	},
 	"ab41367a-e2c6-40e2-b93f-516702abbccc": {
@@ -137,7 +126,7 @@
 			"folder": "ark_survival_evolved",
 			"game": "ARK: Survival Evolved",
 			"id": 346110,
-			"players": 6,
+			"players": 2,
 			"maxplayers": 70,
 			"bots": 0,
 			"servertype": 1,
@@ -149,40 +138,20 @@
 			"steamid": 90198177738170388,
 			"sourcetvport": 0,
 			"sourcetvname": "",
-			"keywords": ",OWNINGID:90198177738170388,OWNINGNAME:90198177738170388,NUMOPENPUBCONN:64,P2PADDR:90198177738170388,P2PPORT:7777,LEGACY_i:0",
+			"keywords": ",OWNINGID:90198177738170388,OWNINGNAME:90198177738170388,NUMOPENPUBCONN:68,P2PADDR:90198177738170388,P2PPORT:7777,LEGACY_i:0",
 			"gameid": 346110
 		},
 		"playersinfo": {
 			"Players": [
 				{
-					"name": "Xenos",
+					"name": "MrBlingbling",
 					"score": 0,
-					"duration": 21005000000000
+					"duration": 6674000000000
 				},
 				{
 					"name": "Valyro",
 					"score": 0,
-					"duration": 7465000000000
-				},
-				{
-					"name": "Dracolingua",
-					"score": 0,
-					"duration": 6800000000000
-				},
-				{
-					"name": "Jule",
-					"score": 0,
-					"duration": 3131000000000
-				},
-				{
-					"name": "Kuschelbärchen",
-					"score": 0,
-					"duration": 1721000000000
-				},
-				{
-					"name": "Hermes Headquart...",
-					"score": 0,
-					"duration": 194000000000
+					"duration": 2563000000000
 				}
 			]
 		}

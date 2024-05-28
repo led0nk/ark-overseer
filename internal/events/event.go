@@ -7,24 +7,25 @@ import (
 	"github.com/google/uuid"
 )
 
-type eventManager struct {
+type EventManager struct {
 	logger     *slog.Logger
-	subscriber map[uuid.UUID]chan string
+	subscriber map[uuid.UUID]chan EventMessage
 	mu         sync.RWMutex
 }
 
-type eventMessage struct {
-	eventType string
+type EventMessage struct {
+	Type    string
+	Payload interface{}
 }
 
-func NewEventManager() *eventManager {
-	return &eventManager{
+func NewEventManager() *EventManager {
+	return &EventManager{
 		logger:     slog.Default().WithGroup("event"),
-		subscriber: make(map[uuid.UUID]chan string),
+		subscriber: make(map[uuid.UUID]chan EventMessage),
 	}
 }
 
-func (e *eventManager) Subscribe() (uuid.UUID, <-chan string) {
+func (e *EventManager) Subscribe() (uuid.UUID, <-chan EventMessage) {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 
@@ -33,14 +34,14 @@ func (e *eventManager) Subscribe() (uuid.UUID, <-chan string) {
 		return uuid.Nil, nil
 	}
 
-	ch := make(chan string)
+	ch := make(chan EventMessage)
 	e.subscriber[id] = ch
 
 	e.logger.Info("service subscribed", "service id", id)
 	return id, ch
 }
 
-func (e *eventManager) Unsubscribe(id uuid.UUID) {
+func (e *EventManager) Unsubscribe(id uuid.UUID) {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 
@@ -48,4 +49,12 @@ func (e *eventManager) Unsubscribe(id uuid.UUID) {
 	close(ch)
 	delete(e.subscriber, id)
 	e.logger.Info("service unsubscribed", "service id", id)
+}
+
+func (e *EventManager) Publish(emsg EventMessage) {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	for _, ch := range e.subscriber {
+		ch <- emsg
+	}
 }

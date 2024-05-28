@@ -166,11 +166,11 @@ func (o *Overseer) Scan(ctx context.Context, blacklist []*model.Players, server 
 		if blacklistMap[player.Name] {
 			if !status.joinedNotified {
 				//TODO: call function for notification services, context
-				err := o.messaging.Send(ctx, "1204937103750725634", player.Name+" joined the server "+server.Name)
-				if err != nil {
-					o.logger.Error("failed to send message", "error", err)
-					continue
-				}
+				//err := o.messaging.Send(ctx, "1204937103750725634", player.Name+" joined the server "+server.Name)
+				//if err != nil {
+				//	o.logger.Error("failed to send message", "error", err)
+				//	continue
+				//}
 				fmt.Println(player.Name + " joined the server " + server.Name)
 				status.joinedNotified = true
 				status.leftNotified = false
@@ -181,11 +181,11 @@ func (o *Overseer) Scan(ctx context.Context, blacklist []*model.Players, server 
 	for playerName, status := range previousPlayers {
 		if blacklistMap[playerName] && !status.isActive && !status.leftNotified {
 			//TODO: call function for notification services, context
-			err := o.messaging.Send(ctx, "1204937103750725634", playerName+" left the server "+server.Name)
-			if err != nil {
-				o.logger.Error("failed to send message", "error", err)
-				continue
-			}
+			//err := o.messaging.Send(ctx, "1204937103750725634", playerName+" left the server "+server.Name)
+			//if err != nil {
+			//	o.logger.Error("failed to send message", "error", err)
+			//	continue
+			//}
 			fmt.Println(playerName + " left the server " + server.Name)
 			status.leftNotified = true
 			status.joinedNotified = false

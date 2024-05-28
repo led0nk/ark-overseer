@@ -9,6 +9,7 @@ import (
 	v1 "github.com/led0nk/ark-clusterinfo/api/v1"
 	"github.com/led0nk/ark-clusterinfo/internal"
 	blist "github.com/led0nk/ark-clusterinfo/internal/blacklist"
+	"github.com/led0nk/ark-clusterinfo/internal/events"
 	"github.com/led0nk/ark-clusterinfo/internal/jsondb"
 	"github.com/led0nk/ark-clusterinfo/internal/notifier"
 	"github.com/led0nk/ark-clusterinfo/internal/notifier/services/discord"
@@ -78,11 +79,19 @@ func main() {
 
 	//initBlacklist(ctx, blacklist, logger)
 
-	messaging, err = discord.NewDiscordNotifier(envmap["DCTOKEN"])
+	messaging, err = discord.NewDiscordNotifier(envmap["DCTOKEN"], "1204937103750725634")
 	if err != nil {
 		logger.ErrorContext(ctx, "failed to create notification service", "error", err)
 		os.Exit(1)
 	}
+
+	err = messaging.Connect(ctx)
+	if err != nil {
+		logger.ErrorContext(ctx, "failed to connect messaging service", "error", err)
+	}
+
+	em := events.NewEventManager()
+	messaging.StartListening(ctx, em)
 
 	ovs, err = overseer.NewOverseer(ctx, sStore, blacklist, messaging)
 	if err != nil {
@@ -93,6 +102,8 @@ func main() {
 	go notify.Run(obs.ManageScraper, ovs.ManageScanner, ctx)
 	go obs.ManageScraper(ctx)
 	go ovs.ManageScanner(ctx)
+
+	em.Publish(events.EventMessage{Type: "playerJoined", Payload: "Fadem"})
 
 	server := v1.NewServer(*addr, *domain, logger, sStore)
 	server.ServeHTTP()

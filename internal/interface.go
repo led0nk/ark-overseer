@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/google/uuid"
+	"github.com/led0nk/ark-clusterinfo/internal/events"
 	"github.com/led0nk/ark-clusterinfo/internal/model"
 )
 
@@ -40,5 +41,10 @@ type Overseer interface {
 
 type Notification interface {
 	Connect(context.Context) error
-	Send(context.Context, string, string) error
+	Send(context.Context, string) error
+	StartListening(context.Context, *events.EventManager)
+}
+
+type EventHandler interface {
+	HandleEvent(ctx context.Context, event events.EventMessage)
 }
