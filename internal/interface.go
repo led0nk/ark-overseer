@@ -23,6 +23,7 @@ type Observer interface {
 	ManageScraper(context.Context)
 	AddScraper(context.Context, *model.Server) error
 	KillScraper(uuid.UUID) error
+	HandleEvent(context.Context, events.EventMessage)
 }
 
 type Blacklist interface {
@@ -42,9 +43,5 @@ type Overseer interface {
 type Notification interface {
 	Connect(context.Context) error
 	Send(context.Context, string) error
-	StartListening(context.Context, *events.EventManager)
-}
-
-type EventHandler interface {
-	HandleEvent(ctx context.Context, event events.EventMessage)
+	HandleEvent(context.Context, events.EventMessage)
 }

@@ -208,19 +208,6 @@ func (o *Observer) HandleEvent(ctx context.Context, event events.EventMessage) {
 	}
 }
 
-func (o *Observer) StartListening(ctx context.Context, em *events.EventManager) {
-	id, ch := em.Subscribe("observer")
-	if id == uuid.Nil {
-		return
-	}
-
-	go func() {
-		for event := range ch {
-			o.HandleEvent(ctx, event)
-		}
-	}()
-}
-
 //NOTE: help-funcs for data-transfer
 
 func ReplaceNullCharsInStruct(s any) {

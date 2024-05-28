@@ -6,7 +6,6 @@ import (
 	"log/slog"
 
 	"github.com/bwmarrin/discordgo"
-	"github.com/google/uuid"
 	"github.com/led0nk/ark-clusterinfo/internal/events"
 )
 
@@ -48,19 +47,6 @@ func (dn *DiscordNotifier) HandleEvent(ctx context.Context, event events.EventMe
 	default:
 		return
 	}
-}
-
-func (dn *DiscordNotifier) StartListening(ctx context.Context, em *events.EventManager) {
-	id, ch := em.Subscribe("discord")
-	if id == uuid.Nil {
-		return
-	}
-
-	go func() {
-		for event := range ch {
-			dn.HandleEvent(ctx, event)
-		}
-	}()
 }
 
 func (dn *DiscordNotifier) Connect(ctx context.Context) error {

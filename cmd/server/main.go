@@ -87,14 +87,14 @@ func main() {
 		os.Exit(1)
 	}
 
-	em.StartListening(ctx, messaging, "discord")
-
-	ovs, err = overseer.NewOverseer(ctx, sStore, blacklist, messaging)
+	ovs, err = overseer.NewOverseer(ctx, sStore, blacklist, em)
 	if err != nil {
 		logger.ErrorContext(ctx, "failed to create overseer", "error", err)
 		os.Exit(1)
 	}
 
+	em.StartListening(ctx, messaging, "discord")
+	em.StartListening(ctx, obs, "observer")
 	go notify.Run(obs.ManageScraper, ovs.ManageScanner, ctx)
 	go obs.ManageScraper(ctx)
 	go ovs.ManageScanner(ctx)

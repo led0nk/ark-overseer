@@ -11,7 +11,7 @@
 			"folder": "ark_survival_evolved",
 			"game": "ARK: Survival Evolved",
 			"id": 346110,
-			"players": 3,
+			"players": 4,
 			"maxplayers": 70,
 			"bots": 0,
 			"servertype": 1,
@@ -23,25 +23,30 @@
 			"steamid": 90198215992642580,
 			"sourcetvport": 0,
 			"sourcetvname": "",
-			"keywords": ",OWNINGID:90198215992642580,OWNINGNAME:90198215992642580,NUMOPENPUBCONN:67,P2PADDR:90198215992642580,P2PPORT:7783,LEGACY_i:0",
+			"keywords": ",OWNINGID:90198215992642580,OWNINGNAME:90198215992642580,NUMOPENPUBCONN:66,P2PADDR:90198215992642580,P2PPORT:7783,LEGACY_i:0",
 			"gameid": 346110
 		},
 		"playersinfo": {
 			"Players": [
 				{
-					"name": "Jupp",
-					"score": 0,
-					"duration": 7656000000000
-				},
-				{
 					"name": "GliftisMhteras",
 					"score": 0,
-					"duration": 2124000000000
+					"duration": 5737000000000
 				},
 				{
-					"name": "xRaZ3x",
+					"name": "Lr0x",
 					"score": 0,
-					"duration": 349000000000
+					"duration": 3431000000000
+				},
+				{
+					"name": "altair",
+					"score": 0,
+					"duration": 1004000000000
+				},
+				{
+					"name": "FisherSpider",
+					"score": 0,
+					"duration": 75000000000
 				}
 			]
 		}
@@ -78,7 +83,7 @@
 				{
 					"name": "ast",
 					"score": 0,
-					"duration": 8541000000000
+					"duration": 1885000000000
 				}
 			]
 		}
@@ -126,7 +131,7 @@
 			"folder": "ark_survival_evolved",
 			"game": "ARK: Survival Evolved",
 			"id": 346110,
-			"players": 2,
+			"players": 4,
 			"maxplayers": 70,
 			"bots": 0,
 			"servertype": 1,
@@ -138,20 +143,30 @@
 			"steamid": 90198177738170388,
 			"sourcetvport": 0,
 			"sourcetvname": "",
-			"keywords": ",OWNINGID:90198177738170388,OWNINGNAME:90198177738170388,NUMOPENPUBCONN:68,P2PADDR:90198177738170388,P2PPORT:7777,LEGACY_i:0",
+			"keywords": ",OWNINGID:90198177738170388,OWNINGNAME:90198177738170388,NUMOPENPUBCONN:66,P2PADDR:90198177738170388,P2PPORT:7777,LEGACY_i:0",
 			"gameid": 346110
 		},
 		"playersinfo": {
 			"Players": [
 				{
-					"name": "MrBlingbling",
-					"score": 0,
-					"duration": 7132000000000
-				},
-				{
 					"name": "Valyro",
 					"score": 0,
-					"duration": 3021000000000
+					"duration": 6635000000000
+				},
+				{
+					"name": "Andrucha",
+					"score": 0,
+					"duration": 1141000000000
+				},
+				{
+					"name": "xRaZ3x",
+					"score": 0,
+					"duration": 268000000000
+				},
+				{
+					"name": "MrBlingbling",
+					"score": 0,
+					"duration": 88000000000
 				}
 			]
 		}

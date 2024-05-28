@@ -6,8 +6,11 @@ import (
 	"sync"
 
 	"github.com/google/uuid"
-	"github.com/led0nk/ark-clusterinfo/internal"
 )
+
+type EventHandler interface {
+	HandleEvent(context.Context, EventMessage)
+}
 
 type EventManager struct {
 	logger     *slog.Logger
@@ -39,7 +42,7 @@ func (e *EventManager) Subscribe(name string) (uuid.UUID, <-chan EventMessage) {
 	ch := make(chan EventMessage)
 	e.subscriber[id] = ch
 
-	e.logger.Info("service subscribed", "service id", id, "service name", name)
+	e.logger.Info("service subscribed to eventManager", "service id", id, "service name", name)
 	return id, ch
 }
 
@@ -50,7 +53,7 @@ func (e *EventManager) Unsubscribe(id uuid.UUID) {
 	ch := e.subscriber[id]
 	close(ch)
 	delete(e.subscriber, id)
-	e.logger.Info("service unsubscribed", "service id", id)
+	e.logger.Info("service unsubscribed to eventManager", "service id", id)
 }
 
 func (e *EventManager) Publish(emsg EventMessage) {
@@ -61,11 +64,12 @@ func (e *EventManager) Publish(emsg EventMessage) {
 	}
 }
 
-func (e *EventManager) StartListening(ctx context.Context, handler internal.EventHandler, serviceName string) {
+func (e *EventManager) StartListening(ctx context.Context, handler EventHandler, serviceName string) {
 	id, ch := e.Subscribe(serviceName)
 	if id == uuid.Nil {
 		return
 	}
+	defer e.Unsubscribe(id)
 
 	go func() {
 		for event := range ch {
