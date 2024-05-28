@@ -10,6 +10,7 @@ import (
 type DiscordNotifier struct {
 	logger  *slog.Logger
 	session *discordgo.Session
+	channel *string
 }
 
 func NewDiscordNotifier(token string) (*DiscordNotifier, error) {
@@ -40,4 +41,8 @@ func (d *DiscordNotifier) Send(ctx context.Context, channelID string, message st
 		return err
 	}
 	return nil
+}
+
+func (d *DiscordNotifier) Setup(channelID string) {
+
 }
