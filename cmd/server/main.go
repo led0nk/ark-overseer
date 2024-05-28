@@ -93,15 +93,13 @@ func main() {
 		os.Exit(1)
 	}
 
-	em.StartListening(ctx, messaging, "discord")
-	em.StartListening(ctx, obs, "observer")
-	go notify.Run(obs.ManageScraper, ovs.ManageScanner, ctx)
-	go obs.ManageScraper(ctx)
-	go ovs.ManageScanner(ctx)
+	go em.StartListening(ctx, messaging, "discord")
+	go em.StartListening(ctx, obs, "observer")
+	go em.StartListening(ctx, ovs, "overseer")
+	go obs.SpawnScraper(ctx)
+	go ovs.SpawnScanner(ctx)
 
-	em.Publish(events.EventMessage{Type: "playerJoined", Payload: "Fadem"})
-
-	server := v1.NewServer(*addr, *domain, logger, sStore)
+	server := v1.NewServer(*addr, *domain, logger, sStore, blacklist)
 	server.ServeHTTP()
 }
 

@@ -20,24 +20,25 @@ type ServerStore interface {
 type Observer interface {
 	ReadEndpoint(*model.Server) error
 	DataScraper(context.Context, *model.Server)
-	ManageScraper(context.Context)
+	SpawnScraper(context.Context)
 	AddScraper(context.Context, *model.Server) error
 	KillScraper(uuid.UUID) error
 	HandleEvent(context.Context, events.EventMessage)
 }
 
 type Blacklist interface {
-	Create(context.Context, *model.Players) (*model.Players, error)
-	List(context.Context) []*model.Players
+	Create(context.Context, *model.BlacklistPlayers) (*model.BlacklistPlayers, error)
+	List(context.Context) []*model.BlacklistPlayers
 	Delete(context.Context, uuid.UUID) error
 }
 
 type Overseer interface {
 	ReadEndpoint(*model.Server) error
 	Scanner(context.Context, *model.Server)
-	ManageScanner(context.Context)
+	SpawnScanner(context.Context)
 	AddScanner(context.Context, *model.Server) error
 	KillScanner(uuid.UUID) error
+	HandleEvent(context.Context, events.EventMessage)
 }
 
 type Notification interface {

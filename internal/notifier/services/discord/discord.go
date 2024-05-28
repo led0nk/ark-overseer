@@ -2,7 +2,7 @@ package discord
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"log/slog"
 
 	"github.com/bwmarrin/discordgo"
@@ -33,14 +33,22 @@ func NewDiscordNotifier(ctx context.Context, token string, channelID string) (*D
 func (dn *DiscordNotifier) HandleEvent(ctx context.Context, event events.EventMessage) {
 	switch event.Type {
 	case "playerJoined":
-		fmt.Println(event.Payload, "joined the server")
-		err := dn.Send(ctx, " joined the server ")
+		msg, ok := event.Payload.(string)
+		if !ok {
+			dn.logger.ErrorContext(ctx, "invalid payload type for playerJoined event", "error", errors.New("payload not of type string"))
+			return
+		}
+		err := dn.Send(ctx, msg)
 		if err != nil {
 			dn.logger.ErrorContext(ctx, "failed to send message", "error", err)
 		}
 	case "playerLeft":
-		fmt.Println(event.Payload, "left the server")
-		err := dn.Send(ctx, " left the server ")
+		msg, ok := event.Payload.(string)
+		if !ok {
+			dn.logger.ErrorContext(ctx, "invalid payload type for playerLeft event", "error", errors.New("payload not of type string"))
+			return
+		}
+		err := dn.Send(ctx, msg)
 		if err != nil {
 			dn.logger.ErrorContext(ctx, "failed to send message", "error", err)
 		}
@@ -70,6 +78,17 @@ func (dn *DiscordNotifier) Send(ctx context.Context, message string) error {
 	_, err := dn.session.ChannelMessageSend(dn.channelID, message)
 	if err != nil {
 		dn.logger.ErrorContext(ctx, "failed to send discord message", "error", err)
+		return err
+	}
+	return nil
+}
+
+func (dn *DiscordNotifier) Setup(ctx context.Context, newDN *DiscordNotifier) error {
+	dn = newDN
+
+	err := dn.Connect(ctx)
+	if err != nil {
+		dn.logger.ErrorContext(ctx, "failed to setup discord service", "error", err)
 		return err
 	}
 	return nil

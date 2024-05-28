@@ -11,9 +11,9 @@ templ Base() {
 		<head>
 			<meta charset="UTF-8"/>
 			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-			<script src="https://unpkg.com/htmx.org@1.9.10"></script>
+			<script src="https://unpkg.com/htmx.org@1.9.12"></script>
 			<script src="https://cdn.tailwindcss.com"></script>
-			<script src="https://unpkg.com/htmx.org/dist/ext/sse.js"></script>
+			<script src="https://unpkg.com/htmx.org@1.9.12/dist/ext/sse.js"></script>
 			<link
 				rel="stylesheet"
 				href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
@@ -22,7 +22,7 @@ templ Base() {
 				referrerpolicy="no-referrer"
 			/>
 		</head>
-		<body>
+		<body class="dark:bg-[#0D1117]">
 			{ children... }
 		</body>
 	</html>
@@ -38,9 +38,22 @@ templ Main(serverlist []*model.Server) {
 	@Table(serverlist)
 }
 
+templ Blacklist(blacklist []*model.BlacklistPlayers){
+  @Base()
+  @NavBar()
+  @BlacklistTable(blacklist)
+  @BlacklistInput()
+}
+
+templ Setup(){
+  @Base()
+  @NavBar()
+  @SetupCard()
+}
+
 templ NavBar() {
 	<nav
-		class="bg-gray-800/60 bg-gradient-to-r/60 from-[#1f2937] from-1% via-[#371f2f] via-50% to-[#1f2937] to-99% w-full backdrop-blur-sm"
+		class="bg-gray-800/60 dark:bg-neutral-950 dark:border-gray-700 dark:border-b bg-gradient-to-r/60 from-[#1f2937] from-1% via-[#371f2f] via-50% to-[#1f2937] to-99% w-full backdrop-blur-sm"
 	>
 		<div class="mx-auto w-full px-4 sm:px-6 lg:px-8 relative">
 			<div class="flex h-16 items-center justify-between">
@@ -48,8 +61,8 @@ templ NavBar() {
 					<div>
 						<div class="flex items-baseline space-x-4">
 							@NavItem("Home", "/")
-							@NavItem("Nav2", "/")
-							@NavItem("Nav3", "/")
+							@NavItem("Blacklist", "/blacklist")
+							@NavItem("Setup", "/setup")
 						</div>
 					</div>
 					<div class="flex items-baseline space-x-4 absolute right-10">
@@ -65,25 +78,25 @@ templ NavBar() {
 	</nav>
 }
 
+
+templ SetupCard(){
+  @ButtonPost("set", "/setup", "", "")
+}
+
 templ Table(serverlist []*model.Server) {
-	<div class="grid grid-cols-1 pl-4 pr-4 justify-start items-start gap-4 mt-6">
-		<div
-			class="w-full space-y-4 relative bg-white rounded-xl px-6 py-3 ring-1 ring-slate-900/5 shadow-xl hover:shadow-2xl"
-			id="results"
-		>
-			<div class="overflow-hidden rounded-lg border border-gray-200 shadow-md m-5">
-				<table class="w-full border-collapse bg-white text-left text-gray-500 ">
-					<thead class="bg-gray-50">
-						<th class="px-6 py-4 font-medium text-gray-900">Servername:</th>
-						<th class="px-6 py-4 font-medium text-gray-900">Status:</th>
-						<th class="px-6 py-4 font-medium text-gray-900">Players:</th>
-						<th class="px-6 py-4 font-medium text-gray-900"></th>
+			<div class="overflow-hidden rounded-lg border border-gray-200 dark:border-[#30363d] shadow-md m-5">
+				<table class="w-full border-collapse bg-white dark:bg-[#0D1117] text-left text-gray-500 ">
+					<thead class="bg-gray-50 dark:bg-[#21262d]/50">
+						<th class="px-6 py-4 font-semibold dark:text-gray-300 text-gray-900">Servername:</th>
+						<th class="px-6 py-4 font-semibold dark:text-gray-300 text-gray-900">Status:</th>
+						<th class="px-6 py-4 font-semibold dark:text-gray-300 text-gray-900">Players:</th>
+						<th class="px-6 py-4 font-semibold dark:text-gray-300 text-gray-900"></th>
 					</thead>
-					<tbody class="divide-y divide-gray-100 border-t border-gray-100">
+					<tbody class="divide-y divide-gray-100 dark:divide-[#30363d] dark:border-[#30363d] border-t border-gray-100">
 						for _, server := range serverlist {
 							@TableRow(server)
 						}
-						<tr class="bg-gray-50 hover:bg-white" id="new_server-container">
+						<tr class="bg-gray-50 hover:bg-white dark:hover:bg-[#0D1117] dark:bg-[#21262d]/50" id="new_server-container">
 							<td colspan="4" class="px-6 py-4" hx-post="/" hx-swap="outerHTML" hx-target="#new_server-container">
 								<div class="relative flex flex-1 md:flex-none flex-col items-center justify-center rounded-lg">
 									<svg
@@ -107,20 +120,18 @@ templ Table(serverlist []*model.Server) {
 				</table>
 			</div>
 			<div id="player"></div>
-		</div>
-	</div>
 }
 
 templ TableRow(server *model.Server) {
-	<tr class="hover:bg-gray-50" id={ "server-" + server.ID.String() }>
+	<tr class="hover:bg-gray-50 dark:hover:bg-[#21262d]/50" id={ "server-" + server.ID.String() }>
 		<td class="px-6 py-4">
-			<div class="font-medium text-gray-700">
+			<div class="font-medium text-gray-700 dark:text-gray-200">
 				{ server.ServerInfo.Name }
 			</div>
-			<div class="text-gray-500">
+			<div class="text-gray-500 dark:text-gray-300">
 				{ server.ServerInfo.Map }
 			</div>
-			<div class="text-gray-400 text-xs">
+			<div class="text-gray-400 dark:text-gray-400 text-xs">
 				{ server.Addr }
 			</div>
 		</td>
@@ -129,7 +140,7 @@ templ TableRow(server *model.Server) {
 		</td>
 		<td class="px-6 py-4">
 			<div
-				class="font-medium text-gray-700"
+				class="font-medium text-gray-700 dark:text-gray-200"
 				hx-ext="sse"
 				sse-connect={ "/serverdata/" + server.ID.String() }
 				sse-swap="message"
@@ -155,12 +166,12 @@ templ PlayerTable(server *model.Server) {
 					<th class="px-6 py-4 font-medium text-gray-900">Playername:</th>
 					<th class="px-6 py-4 font-medium text-gray-900">Duration:</th>
 				</thead>
-				<tbody class="divide-y divide-gray-100 border-t border-gray-100">
-					<div
+				<tbody class="divide-y divide-gray-100 border-t border-gray-100" hx-ext="sse" sse-connect={ "/serverdata/" + server.ID.String() + "/players " } sse-swap="message" hx-swap="innerHTML">
+					<!--<div
 						class="font-medium text-gray-700"
 						hx-ext="sse"
 						sse-connect={ "/serverdata/" + server.ID.String() + "/players" }
-						sse-swap="innerHTML"
+						sse-swap="message"
 						id="playerinfo"
 					>
 						for _, player := range server.PlayersInfo.Players {
@@ -177,12 +188,63 @@ templ PlayerTable(server *model.Server) {
 								</td>
 							</tr>
 						}
+					</div> !-->
+				</tbody>
+			</table>
+		</div>
+	</div>
+}
+
+templ BlacklistTable(blacklist []*model.BlacklistPlayers) {
+	<div id="player">
+		<div class="overflow-hidden rounded-lg border border-gray-200 shadow-md m-5">
+			<table class="w-full border-collapse bg-white text-left text-gray-500 ">
+				<thead class="bg-gray-50">
+					<th class="px-6 py-4 font-medium text-gray-900">Playername:</th>
+          <th>
+          </th>
+				</thead>
+				<tbody class="divide-y divide-gray-100 border-t border-gray-100">
+					<div
+						class="font-medium text-gray-700"
+						id="playerinfo"
+					>
+						for _, blacklistPlayer := range blacklist {
+              @BlacklistTableRow(blacklistPlayer)
+						}
 					</div>
 				</tbody>
 			</table>
 		</div>
 	</div>
 }
+
+templ BlacklistTableRow(player *model.BlacklistPlayers) {
+	<tr class="hover:bg-gray-50" id={ "blacklist-" + player.ID.String() }>
+		<td class="px-6 py-4">
+			<div class="font-medium text-gray-700">
+				{ player.Name }
+			</div>
+		</td>
+		<td class="px-6 py-4">
+			<div class="flex justify-end gap-4">
+				@ButtonDelete("Delete", "/blacklist/"+player.ID.String(), "#blacklist-"+player.ID.String(), "delete")
+			</div>
+		</td>
+	</tr>
+}
+
+templ BlacklistInput(){
+  <form method="post" hx-post="/blacklist" hx-swap="outerHTML" hx-target="#player" class="overflow-hidden rounded-lg border border-gray-200 shadow-md m-5">
+  <div class="m-5">
+  @Input("Name", "text", "Name...","blacklistPlayer", "blacklistPlayer")
+  </div>
+  <div class="m-5">
+  @ButtonSubmit("Add")
+  </div>
+  </form>
+}
+
 
 templ NewServerInput() {
 	<tr id="new_server-container" class="hover:bg-gray-50">

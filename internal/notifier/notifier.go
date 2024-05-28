@@ -36,8 +36,8 @@ func (n *Notifier) Create(ctx context.Context, srv *model.Server) (*model.Server
 }
 
 func (n *Notifier) Delete(ctx context.Context, id uuid.UUID) error {
-	err := n.sStore.Delete(ctx, id)
 	n.em.Publish(events.EventMessage{Type: "deletedServer", Payload: id})
+	err := n.sStore.Delete(ctx, id)
 	n.notify("delete")
 	return err
 }
@@ -97,14 +97,11 @@ func (n *Notifier) Unsubscribe(id uuid.UUID) {
 	n.logger.Info("notifier unsubscribed", "notifier id", id)
 }
 
-func (n *Notifier) Run(scraper func(context.Context), scanner func(context.Context), ctx context.Context) {
+func (n *Notifier) Run(ctx context.Context) {
 	id, signal := n.Subscribe()
 	defer n.Unsubscribe(id)
 	for {
 		notification := <-signal
 		n.logger.InfoContext(ctx, "targets were updated", "type", notification)
-		//go obs.ManageScraper(ctx)
-		go scraper(ctx)
-		go scanner(ctx)
 	}
 }

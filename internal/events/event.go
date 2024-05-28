@@ -46,14 +46,14 @@ func (e *EventManager) Subscribe(name string) (uuid.UUID, <-chan EventMessage) {
 	return id, ch
 }
 
-func (e *EventManager) Unsubscribe(id uuid.UUID) {
+func (e *EventManager) Unsubscribe(id uuid.UUID, name string) {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 
 	ch := e.subscriber[id]
 	close(ch)
 	delete(e.subscriber, id)
-	e.logger.Info("service unsubscribed to eventManager", "service id", id)
+	e.logger.Info("service unsubscribed to eventManager", "service id", id, "service name", name)
 }
 
 func (e *EventManager) Publish(emsg EventMessage) {
@@ -69,11 +69,14 @@ func (e *EventManager) StartListening(ctx context.Context, handler EventHandler,
 	if id == uuid.Nil {
 		return
 	}
-	defer e.Unsubscribe(id)
+	defer e.Unsubscribe(id, serviceName)
 
-	go func() {
-		for event := range ch {
+	for event := range ch {
+		select {
+		case <-ctx.Done():
+			return
+		default:
 			handler.HandleEvent(ctx, event)
 		}
-	}()
+	}
 }

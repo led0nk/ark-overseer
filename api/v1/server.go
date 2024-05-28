@@ -10,10 +10,11 @@ import (
 )
 
 type Server struct {
-	addr   string
-	domain string
-	logger *slog.Logger
-	sStore internal.ServerStore
+	addr      string
+	domain    string
+	logger    *slog.Logger
+	sStore    internal.ServerStore
+	blacklist internal.Blacklist
 }
 
 func NewServer(
@@ -21,12 +22,14 @@ func NewServer(
 	domain string,
 	logger *slog.Logger,
 	sStore internal.ServerStore,
+	blacklist internal.Blacklist,
 ) *Server {
 	return &Server{
-		addr:   address,
-		domain: domain,
-		logger: slog.Default().WithGroup("http"),
-		sStore: sStore,
+		addr:      address,
+		domain:    domain,
+		logger:    slog.Default().WithGroup("http"),
+		sStore:    sStore,
+		blacklist: blacklist,
 	}
 }
 
@@ -49,6 +52,10 @@ func (s *Server) ServeHTTP() {
 	r.Handle("DELETE /{ID}", http.HandlerFunc(s.deleteServer))
 	r.Handle("GET /serverdata/{ID}", http.HandlerFunc(s.updatePlayerCounter))
 	r.Handle("GET /serverdata/{ID}/players", http.HandlerFunc(s.updatePlayerInfo))
+	r.Handle("GET /setup", http.HandlerFunc(s.setupPage))
+	r.Handle("GET /blacklist", http.HandlerFunc(s.blacklistPage))
+	r.Handle("POST /blacklist", http.HandlerFunc(s.blacklistAdd))
+	r.Handle("DELETE /blacklist/{ID}", http.HandlerFunc(s.blacklistDelete))
 
 	s.logger.Info("listen and serve", "addr", s.addr)
 

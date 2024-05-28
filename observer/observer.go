@@ -99,7 +99,7 @@ func (o *Observer) DataScraper(ctx context.Context, s *model.Server) {
 	}
 }
 
-func (o *Observer) ManageScraper(ctx context.Context) {
+func (o *Observer) SpawnScraper(ctx context.Context) {
 	select {
 	case <-ctx.Done():
 		return
@@ -109,34 +109,11 @@ func (o *Observer) ManageScraper(ctx context.Context) {
 			o.logger.ErrorContext(ctx, "failed to list targets", "error", err)
 		}
 
-		newServers := make(map[uuid.UUID]*model.Server)
-
 		for _, server := range serverList {
-			newServers[server.ID] = server
-		}
-
-		for id := range o.endpoints {
-			if _, exists := newServers[id]; !exists {
-				err := o.KillScraper(id)
-				if err != nil {
-					o.logger.ErrorContext(ctx, "failed to kill scraper", "error", err)
-					continue
-				}
-				time.Sleep(200 * time.Millisecond)
-				err = o.serverStore.Delete(ctx, id)
-				if err != nil {
-					o.logger.ErrorContext(ctx, "failed to delete server from db", "error", err)
-				}
-			}
-		}
-
-		for id, server := range newServers {
-			if _, exists := o.endpoints[id]; !exists {
-				err := o.AddScraper(ctx, server)
-				if err != nil {
-					o.logger.ErrorContext(ctx, "failed to read endpoints", "error", err)
-					return
-				}
+			err := o.AddScraper(ctx, server)
+			if err != nil {
+				o.logger.ErrorContext(ctx, "failed to spawn scraper", "error", err)
+				return
 			}
 		}
 	}
@@ -184,7 +161,7 @@ func (o *Observer) HandleEvent(ctx context.Context, event events.EventMessage) {
 	case "addedServer":
 		server, ok := event.Payload.(*model.Server)
 		if !ok {
-			o.logger.ErrorContext(ctx, "invalid payload type for addedServer event", "error", errors.New("Payload not of type *model.Server"))
+			o.logger.ErrorContext(ctx, "invalid payload type for addedServer event", "error", errors.New("payload not of type *model.Server"))
 			return
 		}
 		err := o.AddScraper(ctx, server)
