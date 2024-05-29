@@ -3,12 +3,12 @@ package overseer
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log/slog"
 	"sync"
 
 	"github.com/google/uuid"
 	"github.com/led0nk/ark-clusterinfo/internal"
+	"github.com/led0nk/ark-clusterinfo/internal/events"
 	"github.com/led0nk/ark-clusterinfo/internal/model"
 )
 
@@ -17,7 +17,7 @@ type Overseer struct {
 	cancelFuncs map[uuid.UUID]context.CancelFunc
 	blacklist   internal.Blacklist
 	serverStore internal.ServerStore
-	messaging   internal.Notification
+	em          *events.EventManager
 	logger      *slog.Logger
 	mu          sync.Mutex
 	resultCh    chan map[string]*NotificationStatus
@@ -33,21 +33,16 @@ func NewOverseer(
 	ctx context.Context,
 	sStore internal.ServerStore,
 	blacklist internal.Blacklist,
-	messaging internal.Notification,
+	eventManager *events.EventManager,
 ) (*Overseer, error) {
 	overseer := &Overseer{
 		endpoints:   make(map[uuid.UUID]*model.Server),
 		cancelFuncs: make(map[uuid.UUID]context.CancelFunc),
 		blacklist:   blacklist,
 		serverStore: sStore,
-		messaging:   messaging,
+		em:          eventManager,
 		logger:      slog.Default().WithGroup("overseer"),
 		resultCh:    make(chan map[string]*NotificationStatus),
-	}
-	err := messaging.Connect(ctx)
-	if err != nil {
-		overseer.logger.ErrorContext(ctx, "failed to connect messaging service", "error", err)
-		return nil, err
 	}
 	return overseer, nil
 }
@@ -63,7 +58,7 @@ func (o *Overseer) ReadEndpoint(target *model.Server) error {
 	return nil
 }
 
-func (o *Overseer) ManageScanner(ctx context.Context) {
+func (o *Overseer) SpawnScanner(ctx context.Context) {
 	select {
 	case <-ctx.Done():
 		return
@@ -73,29 +68,11 @@ func (o *Overseer) ManageScanner(ctx context.Context) {
 			o.logger.ErrorContext(ctx, "failed to list targets", "error", err)
 		}
 
-		newServers := make(map[uuid.UUID]*model.Server)
-
 		for _, server := range serverList {
-			newServers[server.ID] = server
-		}
-
-		for id := range o.endpoints {
-			if _, exists := newServers[id]; !exists {
-				err := o.KillScanner(id)
-				if err != nil {
-					o.logger.ErrorContext(ctx, "failed to kill scraper", "error", err)
-					continue
-				}
-			}
-		}
-
-		for id, server := range newServers {
-			if _, exists := o.endpoints[id]; !exists {
-				err := o.AddScanner(ctx, server)
-				if err != nil {
-					o.logger.ErrorContext(ctx, "failed to read endpoints", "error", err)
-					return
-				}
+			err := o.AddScanner(ctx, server)
+			if err != nil {
+				o.logger.ErrorContext(ctx, "failed to add scanner", "error", err)
+				return
 			}
 		}
 	}
@@ -113,6 +90,10 @@ func (o *Overseer) Scanner(ctx context.Context, target *model.Server) {
 			server, err := o.serverStore.GetByID(ctx, target.ID)
 			if err != nil {
 				o.logger.ErrorContext(ctx, "failed to get server", "error", err)
+				continue
+			}
+
+			if server.PlayersInfo == nil {
 				continue
 			}
 
@@ -145,7 +126,7 @@ func (o *Overseer) KillScanner(targetID uuid.UUID) error {
 	return errors.New("Scraper with ID not found")
 }
 
-func (o *Overseer) Scan(ctx context.Context, blacklist []*model.Players, server *model.Server, previousPlayers map[string]*NotificationStatus) map[string]*NotificationStatus {
+func (o *Overseer) Scan(ctx context.Context, blacklist []*model.BlacklistPlayers, server *model.Server, previousPlayers map[string]*NotificationStatus) map[string]*NotificationStatus {
 
 	blacklistMap := make(map[string]bool)
 	for _, blacklistedPlayer := range blacklist {
@@ -166,13 +147,7 @@ func (o *Overseer) Scan(ctx context.Context, blacklist []*model.Players, server 
 
 		if blacklistMap[player.Name] {
 			if !status.joinedNotified {
-				//TODO: call function for notification services, context
-				err := o.messaging.Send(ctx, "1204937103750725634", player.Name+" joined the server "+server.Name)
-				if err != nil {
-					o.logger.Error("failed to send message", "error", err)
-					continue
-				}
-				fmt.Println(player.Name + " joined the server " + server.Name)
+				o.em.Publish(events.EventMessage{Type: "playerJoined", Payload: player.Name + " joined the server " + server.Name})
 				status.joinedNotified = true
 				status.leftNotified = false
 			}
@@ -181,13 +156,7 @@ func (o *Overseer) Scan(ctx context.Context, blacklist []*model.Players, server 
 
 	for playerName, status := range previousPlayers {
 		if blacklistMap[playerName] && !status.isActive && !status.leftNotified {
-			//TODO: call function for notification services, context
-			err := o.messaging.Send(ctx, "1204937103750725634", playerName+" left the server "+server.Name)
-			if err != nil {
-				o.logger.Error("failed to send message", "error", err)
-				continue
-			}
-			fmt.Println(playerName + " left the server " + server.Name)
+			o.em.Publish(events.EventMessage{Type: "playerLeft", Payload: playerName + " left the server " + server.Name})
 			status.leftNotified = true
 			status.joinedNotified = false
 		}
@@ -196,4 +165,31 @@ func (o *Overseer) Scan(ctx context.Context, blacklist []*model.Players, server 
 	return previousPlayers
 }
 
-//TODO: figure out a processor func to process the messaging
+func (o *Overseer) HandleEvent(ctx context.Context, event events.EventMessage) {
+	switch event.Type {
+	case "addedServer":
+		server, ok := event.Payload.(*model.Server)
+		if !ok {
+			o.logger.ErrorContext(ctx, "invalid payload type for addedServer event", "error", errors.New("Payload not of type *model.Server"))
+			return
+		}
+		err := o.AddScanner(ctx, server)
+		if err != nil {
+			o.logger.ErrorContext(ctx, "failed to add scraper", "error", err)
+			return
+		}
+	case "deletedServer":
+		id, ok := event.Payload.(uuid.UUID)
+		if !ok {
+			o.logger.ErrorContext(ctx, "invalid payload type for deletedServer event", "error", errors.New("Payload not of type uuid.UUID"))
+			return
+		}
+		err := o.KillScanner(id)
+		if err != nil {
+			o.logger.ErrorContext(ctx, "failed to add scraper", "error", err)
+			return
+		}
+	default:
+		return
+	}
+}

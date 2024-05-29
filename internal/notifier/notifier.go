@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/led0nk/ark-clusterinfo/internal"
+	"github.com/led0nk/ark-clusterinfo/internal/events"
 	"github.com/led0nk/ark-clusterinfo/internal/model"
 )
 
@@ -15,24 +16,30 @@ type Notifier struct {
 	mu         sync.RWMutex
 	logger     *slog.Logger
 	subscriber map[uuid.UUID]chan string
+	em         *events.EventManager
 }
 
-func NewNotifier(s internal.ServerStore) *Notifier {
+func NewNotifier(s internal.ServerStore, eventManager *events.EventManager) *Notifier {
 	return &Notifier{
 		sStore:     s,
 		logger:     slog.Default().WithGroup("notifier"),
 		subscriber: make(map[uuid.UUID]chan string),
+		em:         eventManager,
 	}
 }
 
 func (n *Notifier) Create(ctx context.Context, srv *model.Server) (*model.Server, error) {
+	newServer, err := n.sStore.Create(ctx, srv)
+	n.em.Publish(events.EventMessage{Type: "addedServer", Payload: newServer})
 	n.notify("create")
-	return n.sStore.Create(ctx, srv)
+	return newServer, err
 }
 
 func (n *Notifier) Delete(ctx context.Context, id uuid.UUID) error {
+	n.em.Publish(events.EventMessage{Type: "deletedServer", Payload: id})
+	err := n.sStore.Delete(ctx, id)
 	n.notify("delete")
-	return n.sStore.Delete(ctx, id)
+	return err
 }
 
 func (n *Notifier) GetByID(ctx context.Context, id uuid.UUID) (*model.Server, error) {
@@ -90,14 +97,11 @@ func (n *Notifier) Unsubscribe(id uuid.UUID) {
 	n.logger.Info("notifier unsubscribed", "notifier id", id)
 }
 
-func (n *Notifier) Run(scraper func(context.Context), scanner func(context.Context), ctx context.Context) {
+func (n *Notifier) Run(ctx context.Context) {
 	id, signal := n.Subscribe()
 	defer n.Unsubscribe(id)
 	for {
 		notification := <-signal
 		n.logger.InfoContext(ctx, "targets were updated", "type", notification)
-		//go obs.ManageScraper(ctx)
-		go scraper(ctx)
-		go scanner(ctx)
 	}
 }

@@ -7,13 +7,14 @@ import (
 	"os"
 
 	v1 "github.com/led0nk/ark-clusterinfo/api/v1"
-	"github.com/led0nk/ark-clusterinfo/cmd/utilities"
 	"github.com/led0nk/ark-clusterinfo/internal"
 	blist "github.com/led0nk/ark-clusterinfo/internal/blacklist"
+	"github.com/led0nk/ark-clusterinfo/internal/events"
 	"github.com/led0nk/ark-clusterinfo/internal/jsondb"
 	"github.com/led0nk/ark-clusterinfo/internal/notifier"
 	"github.com/led0nk/ark-clusterinfo/internal/notifier/services/discord"
 	"github.com/led0nk/ark-clusterinfo/internal/overseer"
+	"github.com/led0nk/ark-clusterinfo/internal/utilities"
 	"github.com/led0nk/ark-clusterinfo/observer"
 )
 
@@ -61,7 +62,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	notify := notifier.NewNotifier(sStore)
+	em := events.NewEventManager()
+
+	notify := notifier.NewNotifier(sStore, em)
 	sStore = notify
 
 	obs, err = observer.NewObserver(sStore)
@@ -78,23 +81,25 @@ func main() {
 
 	//initBlacklist(ctx, blacklist, logger)
 
-	messaging, err = discord.NewDiscordNotifier(envmap["DCTOKEN"])
+	messaging, err = discord.NewDiscordNotifier(ctx, envmap["DCTOKEN"], "1204937103750725634")
 	if err != nil {
 		logger.ErrorContext(ctx, "failed to create notification service", "error", err)
 		os.Exit(1)
 	}
 
-	ovs, err = overseer.NewOverseer(ctx, sStore, blacklist, messaging)
+	ovs, err = overseer.NewOverseer(ctx, sStore, blacklist, em)
 	if err != nil {
 		logger.ErrorContext(ctx, "failed to create overseer", "error", err)
 		os.Exit(1)
 	}
 
-	go notify.Run(obs.ManageScraper, ovs.ManageScanner, ctx)
-	go obs.ManageScraper(ctx)
-	go ovs.ManageScanner(ctx)
+	go em.StartListening(ctx, messaging, "discord")
+	go em.StartListening(ctx, obs, "observer")
+	go em.StartListening(ctx, ovs, "overseer")
+	go obs.SpawnScraper(ctx)
+	go ovs.SpawnScanner(ctx)
 
-	server := v1.NewServer(*addr, *domain, logger, sStore)
+	server := v1.NewServer(*addr, *domain, logger, sStore, blacklist)
 	server.ServeHTTP()
 }
 

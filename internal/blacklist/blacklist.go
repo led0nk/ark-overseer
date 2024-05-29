@@ -12,14 +12,14 @@ import (
 
 type Blacklist struct {
 	filename  string
-	blacklist map[uuid.UUID]*model.Players
+	blacklist map[uuid.UUID]*model.BlacklistPlayers
 	mu        sync.Mutex
 }
 
 func NewBlacklist(filename string) (*Blacklist, error) {
 	blacklist := &Blacklist{
 		filename:  filename,
-		blacklist: make(map[uuid.UUID]*model.Players),
+		blacklist: make(map[uuid.UUID]*model.BlacklistPlayers),
 	}
 	if err := blacklist.readJSON(); err != nil {
 		return nil, err
@@ -54,13 +54,15 @@ func (b *Blacklist) readJSON() error {
 	return json.Unmarshal(data, &b.blacklist)
 }
 
-func (b *Blacklist) Create(ctx context.Context, player *model.Players) (*model.Players, error) {
+func (b *Blacklist) Create(ctx context.Context, player *model.BlacklistPlayers) (*model.BlacklistPlayers, error) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
-	id := uuid.New()
+	if player.ID == uuid.Nil {
+		player.ID = uuid.New()
+	}
 
-	b.blacklist[id] = player
+	b.blacklist[player.ID] = player
 	if err := b.writeJSON(); err != nil {
 		return nil, err
 	}
@@ -78,11 +80,11 @@ func (b *Blacklist) Delete(ctx context.Context, id uuid.UUID) error {
 	return nil
 }
 
-func (b *Blacklist) List(ctx context.Context) []*model.Players {
+func (b *Blacklist) List(ctx context.Context) []*model.BlacklistPlayers {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
-	blacklist := make([]*model.Players, 0, len(b.blacklist))
+	blacklist := make([]*model.BlacklistPlayers, 0, len(b.blacklist))
 
 	for _, player := range b.blacklist {
 		blacklist = append(blacklist, player)

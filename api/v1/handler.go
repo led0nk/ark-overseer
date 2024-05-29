@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"html"
@@ -56,38 +57,57 @@ func (s *Server) showPlayers(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (s *Server) updatePlayerCounter(w http.ResponseWriter, r *http.Request) {
+func (s *Server) sseServerUpdate(w http.ResponseWriter, r *http.Request) {
+	type event struct {
+		Type string
+		Data any
+	}
 	w.Header().Set("Content-Type", "text/event-stream")
 	w.Header().Set("Cache-Control", "no-cache")
 	w.Header().Set("Connection", "keep-alive")
 	ctx := r.Context()
-	dataCh := make(chan any)
+	dataCh := make(chan event)
 
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
 	go func(ctx context.Context) {
-		defer close(dataCh)
-		for data := range dataCh {
+		for {
 			select {
 			case <-ctx.Done():
 				return
-			default:
-				fmt.Fprintf(w, "data: %s\n\n", data)
+			case event := <-dataCh:
+				fmt.Fprintf(w, "event: %s\n", event.Type)
+				fmt.Fprintf(w, "data: %s\n\n", event.Data)
 				w.(http.Flusher).Flush()
 			}
 		}
 	}(ctx)
 
-	for {
-		srv, err := s.sStore.GetByID(ctx, uuid.MustParse(r.PathValue("ID")))
-		if err != nil {
-			s.logger.ErrorContext(ctx, "failed to get server", "error", err)
+	go func() {
+		defer close(dataCh)
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			default:
+				srv, err := s.sStore.GetByID(ctx, uuid.MustParse(r.PathValue("ID")))
+				if err != nil {
+					s.logger.ErrorContext(ctx, "failed to get server", "error", err)
+				}
+				status := `<span class="inline-flex items-center gap-1 rounded-full dark:bg-[#0D1117] bg-green-50 px-2 py-1 text-xs font-semibold text-green-600"><span class="h-1.5 w-1.5 rounded-full bg-green-600"></span>online</span>`
+				if !srv.Status {
+					srv.ServerInfo.Players = 0
+					status = `<span class="inline-flex items-center gap-1 rounded-full dark:bg-[#0D1117] bg-red-50 px-2 py-1 text-xs font-semibold text-red-600"><span class="h-1.5 w-1.5 rounded-full bg-red-600"></span>offline</span>`
+				}
+				playerInfo := strconv.Itoa(srv.ServerInfo.Players) + "/" + strconv.Itoa(srv.ServerInfo.MaxPlayers)
+				dataCh <- event{Type: "PlayerCounter", Data: playerInfo}
+				dataCh <- event{Type: "ServerStatus", Data: status}
+				time.Sleep(5 * time.Second)
+			}
 		}
-		playerInfo := strconv.Itoa(srv.ServerInfo.Players) + "/" + strconv.Itoa(srv.ServerInfo.MaxPlayers)
-		dataCh <- playerInfo
-		time.Sleep(5 * time.Second)
-	}
+	}()
+	<-ctx.Done()
 }
 
 func (s *Server) updatePlayerInfo(w http.ResponseWriter, r *http.Request) {
@@ -117,15 +137,23 @@ func (s *Server) updatePlayerInfo(w http.ResponseWriter, r *http.Request) {
 		}
 	}(ctx)
 
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		case data := <-dataCh:
-			fmt.Fprintf(w, "data: %v\n\n", data)
-			w.(http.Flusher).Flush()
+	go func() {
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case data := <-dataCh:
+				var buffer bytes.Buffer
+				for _, player := range data.PlayersInfo.Players {
+					playerRow := fmt.Sprintf(`<tr class="hover:bg-gray-50 dark:hover:bg-[#21262d]/50"><td class="px-6 py-4"><div class="font-medium text-gray-700 dark:text-gray-200">%s</div></td><td class="px-6 py-4"><div class="font-medium text-gray-700 dark:text-gray-200">%s</div></td></tr>`, player.Name, player.Duration)
+					buffer.WriteString(playerRow)
+				}
+				fmt.Fprintf(w, "data: %s\n\n", buffer.String())
+				w.(http.Flusher).Flush()
+			}
 		}
-	}
+	}()
+	<-ctx.Done()
 }
 
 func (s *Server) deleteServer(w http.ResponseWriter, r *http.Request) {
@@ -174,11 +202,67 @@ func (s *Server) addServer(w http.ResponseWriter, r *http.Request) {
 
 	time.Sleep(1 * time.Second)
 
-	server, err := s.sStore.GetByID(ctx, newServer.ID)
+	_, err = s.sStore.GetByID(ctx, newServer.ID)
 	if err != nil {
 		s.logger.ErrorContext(ctx, "failed to get server", "error", err)
 		return
 	}
-	fmt.Println(server)
+}
 
+func (s *Server) blacklistPage(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	blacklist := s.blacklist.List(ctx)
+	err := layout.Render(ctx, w, layout.Blacklist(blacklist))
+	if err != nil {
+		s.logger.ErrorContext(ctx, "failed to render templ", "error", err)
+		return
+	}
+}
+
+func (s *Server) setupPage(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	err := layout.Render(ctx, w, layout.Setup())
+	if err != nil {
+		s.logger.ErrorContext(ctx, "failed to render templ", "error", err)
+		return
+	}
+}
+
+func (s *Server) blacklistAdd(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	err := r.ParseForm()
+	if err != nil {
+		s.logger.ErrorContext(ctx, "failed to parse form", "error", err)
+		return
+	}
+	_, err = s.blacklist.Create(ctx, &model.BlacklistPlayers{
+		Name: r.FormValue("blacklistPlayer"),
+	})
+
+	if err != nil {
+		s.logger.ErrorContext(ctx, "failed to add player to blacklist", "error", err)
+		return
+	}
+
+	http.Redirect(w, r, "/blacklist", http.StatusFound)
+}
+
+func (s *Server) blacklistDelete(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	fmt.Println(r.PathValue("ID"))
+
+	id, err := uuid.Parse(r.PathValue("ID"))
+	if err != nil {
+		s.logger.ErrorContext(ctx, "failed to parse uuid", "error", err)
+		return
+	}
+	err = s.blacklist.Delete(ctx, id)
+	if err != nil {
+		s.logger.ErrorContext(ctx, "failed to delete from blacklist", "error", err)
+		return
+	}
 }

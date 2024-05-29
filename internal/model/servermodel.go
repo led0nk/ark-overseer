@@ -48,3 +48,10 @@ type Players struct {
 	Score    int           `json:"score" form:"-"`
 	Duration time.Duration `json:"duration" form:"-"`
 }
+
+type BlacklistPlayers struct {
+	ID       uuid.UUID     `json:"id" form:"-"`
+	Name     string        `json:"name" form:"-"`
+	Score    int           `json:"score" form:"-"`
+	Duration time.Duration `json:"duration" form:"-"`
+}
