@@ -57,12 +57,16 @@ func (s *Server) showPlayers(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (s *Server) updatePlayerCounter(w http.ResponseWriter, r *http.Request) {
+func (s *Server) sseServerUpdate(w http.ResponseWriter, r *http.Request) {
+	type event struct {
+		Type string
+		Data any
+	}
 	w.Header().Set("Content-Type", "text/event-stream")
 	w.Header().Set("Cache-Control", "no-cache")
 	w.Header().Set("Connection", "keep-alive")
 	ctx := r.Context()
-	dataCh := make(chan string)
+	dataCh := make(chan event)
 
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
@@ -72,8 +76,9 @@ func (s *Server) updatePlayerCounter(w http.ResponseWriter, r *http.Request) {
 			select {
 			case <-ctx.Done():
 				return
-			case data := <-dataCh:
-				fmt.Fprintf(w, "data: %s\n\n", data)
+			case event := <-dataCh:
+				fmt.Fprintf(w, "event: %s\n", event.Type)
+				fmt.Fprintf(w, "data: %s\n\n", event.Data)
 				w.(http.Flusher).Flush()
 			}
 		}
@@ -90,8 +95,14 @@ func (s *Server) updatePlayerCounter(w http.ResponseWriter, r *http.Request) {
 				if err != nil {
 					s.logger.ErrorContext(ctx, "failed to get server", "error", err)
 				}
+				status := `<span class="inline-flex items-center gap-1 rounded-full dark:bg-[#0D1117] bg-green-50 px-2 py-1 text-xs font-semibold text-green-600"><span class="h-1.5 w-1.5 rounded-full bg-green-600"></span>online</span>`
+				if !srv.Status {
+					srv.ServerInfo.Players = 0
+					status = `<span class="inline-flex items-center gap-1 rounded-full dark:bg-[#0D1117] bg-red-50 px-2 py-1 text-xs font-semibold text-red-600"><span class="h-1.5 w-1.5 rounded-full bg-red-600"></span>offline</span>`
+				}
 				playerInfo := strconv.Itoa(srv.ServerInfo.Players) + "/" + strconv.Itoa(srv.ServerInfo.MaxPlayers)
-				dataCh <- playerInfo
+				dataCh <- event{Type: "PlayerCounter", Data: playerInfo}
+				dataCh <- event{Type: "ServerStatus", Data: status}
 				time.Sleep(5 * time.Second)
 			}
 		}
@@ -134,7 +145,7 @@ func (s *Server) updatePlayerInfo(w http.ResponseWriter, r *http.Request) {
 			case data := <-dataCh:
 				var buffer bytes.Buffer
 				for _, player := range data.PlayersInfo.Players {
-					playerRow := fmt.Sprintf(`<tr class="hover:bg-gray-50"><td class="px-6 py-4"><div class="font-medium text-gray-700">%s</div></td><td class="px-6 py-4"><div class="font-medium text-gray-700">%s</div></td></tr>`, player.Name, player.Duration)
+					playerRow := fmt.Sprintf(`<tr class="hover:bg-gray-50 dark:hover:bg-[#21262d]/50"><td class="px-6 py-4"><div class="font-medium text-gray-700 dark:text-gray-200">%s</div></td><td class="px-6 py-4"><div class="font-medium text-gray-700 dark:text-gray-200">%s</div></td></tr>`, player.Name, player.Duration)
 					buffer.WriteString(playerRow)
 				}
 				fmt.Fprintf(w, "data: %s\n\n", buffer.String())
