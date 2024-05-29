@@ -14,8 +14,8 @@ import (
 	"github.com/led0nk/ark-clusterinfo/internal/notifier"
 	"github.com/led0nk/ark-clusterinfo/internal/notifier/services/discord"
 	"github.com/led0nk/ark-clusterinfo/internal/overseer"
-	"github.com/led0nk/ark-clusterinfo/internal/utilities"
 	"github.com/led0nk/ark-clusterinfo/observer"
+	"github.com/led0nk/ark-clusterinfo/pkg/config"
 )
 
 func main() {
@@ -25,7 +25,6 @@ func main() {
 		db     = flag.String("db", "testdata", "path to the database")
 		blpath = flag.String("blacklist", "testdata", "path to the blacklist")
 		//grpcaddr    = flag.String("grpcaddr", "", "grpc address, e.g. localhost:4317")
-		envStr      = flag.String("env", "testdata/.env", "path to .env file")
 		domain      = flag.String("domain", "127.0.0.1", "given domain for cookies/mail")
 		logLevelStr = flag.String("loglevel", "INFO", "define the level for logs")
 		sStore      internal.ServerStore
@@ -49,11 +48,38 @@ func main() {
 	slog.SetDefault(logger)
 
 	logger.Info("server address", "addr", *addr)
-	//	logger.Info("otlp/grpc", "gprcaddr", *grpcaddr)
 
-	envmap, err := utilities.LoadEnv(logger, *envStr)
+	cfg := config.NewConfiguration("testdata/config.yaml")
+	nService, err := cfg.GetSection("notification-service")
 	if err != nil {
-		logger.Error("failed to load .env variables", "error", err)
+		logger.Error("failed to get section from config", "error", err)
+	}
+	for key, value := range nService {
+		switch key {
+		case "discord":
+			discordConfig, ok := value.(map[interface{}]interface{})
+			if !ok {
+				logger.Error("discord section has wrong type", "error", "discord")
+			}
+
+			token, ok := discordConfig["token"].(string)
+			if !ok {
+				logger.Error("token was not found or has wrong type", "error", "discord")
+			}
+
+			channelID, ok := discordConfig["channelID"].(string)
+			if !ok {
+				logger.Error("channelID was not found or has wrong type", "error", "discord")
+			}
+
+			messaging, err = discord.NewDiscordNotifier(ctx, token, channelID)
+			if err != nil {
+				logger.ErrorContext(ctx, "failed to create notification service", "error", err)
+				os.Exit(1)
+			}
+		default:
+			logger.Info("no expected notification service found", "config", "none")
+		}
 	}
 
 	sStore, err = jsondb.NewServerStorage(*db + "/cluster.json")
@@ -76,14 +102,6 @@ func main() {
 	blacklist, err = blist.NewBlacklist(*blpath + "/blacklist.json")
 	if err != nil {
 		logger.ErrorContext(ctx, "failed to create blacklist", "error", err)
-		os.Exit(1)
-	}
-
-	//initBlacklist(ctx, blacklist, logger)
-
-	messaging, err = discord.NewDiscordNotifier(ctx, envmap["DCTOKEN"], "1204937103750725634")
-	if err != nil {
-		logger.ErrorContext(ctx, "failed to create notification service", "error", err)
 		os.Exit(1)
 	}
 

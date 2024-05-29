@@ -46,3 +46,9 @@ type Notification interface {
 	Send(context.Context, string) error
 	HandleEvent(context.Context, events.EventMessage)
 }
+
+type Configuration interface {
+	Read() error
+	Write() error
+	Update(string, string, interface{}) error
+}
