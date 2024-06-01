@@ -5,6 +5,7 @@ import (
 	"os"
 	"sync"
 
+	"github.com/led0nk/ark-clusterinfo/internal/events"
 	"gopkg.in/yaml.v2"
 )
 
@@ -12,20 +13,20 @@ type Configuration struct {
 	filename string
 	mu       sync.Mutex
 	config   map[string]interface{}
+	em       *events.EventManager
 }
 
-func NewConfiguration(filename string) *Configuration {
+func NewConfiguration(filename string) (*Configuration, error) {
 	cfg := &Configuration{
 		filename: filename,
 	}
 
 	err := cfg.Read()
 	if err != nil {
-		//TODO: logger implementation
-		fmt.Println("error reading config:", err)
+		return nil, err
 	}
 
-	return cfg
+	return cfg, nil
 }
 
 func (c *Configuration) Read() error {
@@ -76,7 +77,14 @@ func (c *Configuration) Update(section string, key string, value interface{}) er
 	}
 	sectionMap[key] = value
 
-	return c.Write()
+	err := c.Write()
+	if err != nil {
+		return err
+	}
+
+	c.em.Publish(events.EventMessage{Type: "configChanged", Payload: sectionMap})
+
+	return nil
 }
 
 func (c *Configuration) GetSection(section string) (map[interface{}]interface{}, error) {

@@ -33,6 +33,7 @@ func main() {
 		blacklist   internal.Blacklist
 		messaging   internal.Notification
 		logLevel    slog.Level
+		notSvcName  string
 	)
 	flag.Parse()
 
@@ -49,7 +50,10 @@ func main() {
 
 	logger.Info("server address", "addr", *addr)
 
-	cfg := config.NewConfiguration("testdata/config.yaml")
+	cfg, err := config.NewConfiguration("testdata/config.yaml")
+	if err != nil {
+		logger.Error("failed to create new config", "error", err)
+	}
 	nService, err := cfg.GetSection("notification-service")
 	if err != nil {
 		logger.Error("failed to get section from config", "error", err)
@@ -77,8 +81,10 @@ func main() {
 				logger.ErrorContext(ctx, "failed to create notification service", "error", err)
 				os.Exit(1)
 			}
+			notSvcName = "discord"
 		default:
-			logger.Info("no expected notification service found", "config", "none")
+			notSvcName = "none"
+			logger.Info("no expected notification service found", "config", notSvcName)
 		}
 	}
 
@@ -111,7 +117,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	go em.StartListening(ctx, messaging, "discord")
+	go em.StartListening(ctx, messaging, notSvcName)
 	go em.StartListening(ctx, obs, "observer")
 	go em.StartListening(ctx, ovs, "overseer")
 	go obs.SpawnScraper(ctx)
