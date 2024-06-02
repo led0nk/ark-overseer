@@ -32,7 +32,7 @@ func NewDiscordNotifier(ctx context.Context, token string, channelID string) (*D
 
 func (dn *DiscordNotifier) HandleEvent(ctx context.Context, event events.EventMessage) {
 	switch event.Type {
-	case "playerJoined":
+	case "player.joined":
 		msg, ok := event.Payload.(string)
 		if !ok {
 			dn.logger.ErrorContext(ctx, "invalid payload type for playerJoined event", "error", errors.New("payload not of type string"))
@@ -42,7 +42,7 @@ func (dn *DiscordNotifier) HandleEvent(ctx context.Context, event events.EventMe
 		if err != nil {
 			dn.logger.ErrorContext(ctx, "failed to send message", "error", err)
 		}
-	case "playerLeft":
+	case "player.left":
 		msg, ok := event.Payload.(string)
 		if !ok {
 			dn.logger.ErrorContext(ctx, "invalid payload type for playerLeft event", "error", errors.New("payload not of type string"))
@@ -52,41 +52,6 @@ func (dn *DiscordNotifier) HandleEvent(ctx context.Context, event events.EventMe
 		if err != nil {
 			dn.logger.ErrorContext(ctx, "failed to send message", "error", err)
 		}
-	case "configChanged":
-		sectionMap, ok := event.Payload.(map[interface{}]interface{})
-		if !ok {
-			dn.logger.ErrorContext(ctx, "invalid payload type for configChanged event", "error", errors.New("payload not of type *DiscordNotifier"))
-			return
-		}
-
-		for k, v := range sectionMap {
-			switch k {
-			case "discord":
-				newConfig, ok := v.(map[interface{}]interface{})
-				if !ok {
-					dn.logger.ErrorContext(ctx, "discord section has wrong type", "error", "discord")
-				}
-				token, ok := newConfig["token"].(string)
-				if !ok {
-					dn.logger.Error("token was not found or has wrong type", "error", "discord")
-				}
-
-				channelID, ok := newConfig["channelID"].(string)
-				if !ok {
-					dn.logger.Error("channelID was not found or has wrong type", "error", "discord")
-				}
-				err := dn.Setup(ctx, &DiscordNotifier{
-					token:     token,
-					channelID: channelID,
-				})
-				if err != nil {
-					dn.logger.ErrorContext(ctx, "failed to setup dicord notifier", "error", err)
-				}
-			default:
-				dn.logger.ErrorContext(ctx, "discordservice not provided")
-			}
-		}
-
 	default:
 		return
 	}
@@ -127,4 +92,12 @@ func (dn *DiscordNotifier) Setup(ctx context.Context, newDN *DiscordNotifier) er
 		return err
 	}
 	return nil
+}
+
+func (dn *DiscordNotifier) Disconnect() error {
+
+	dn.channelID = ""
+	dn.token = ""
+
+	return dn.session.Close()
 }

@@ -82,7 +82,7 @@ func (c *Configuration) Update(section string, key string, value interface{}) er
 		return err
 	}
 
-	c.em.Publish(events.EventMessage{Type: "configChanged", Payload: sectionMap})
+	c.em.Publish(events.EventMessage{Type: "config.changed", Payload: sectionMap})
 
 	return nil
 }

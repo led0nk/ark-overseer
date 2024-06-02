@@ -45,6 +45,7 @@ type Notification interface {
 	Connect(context.Context) error
 	Send(context.Context, string) error
 	HandleEvent(context.Context, events.EventMessage)
+	Disconnect() error
 }
 
 type Configuration interface {

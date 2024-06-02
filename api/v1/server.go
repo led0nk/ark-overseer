@@ -1,9 +1,9 @@
 package v1
 
 import (
+	"context"
 	"log/slog"
 	"net/http"
-	"os"
 
 	"github.com/led0nk/ark-clusterinfo/internal"
 	sloghttp "github.com/samber/slog-http"
@@ -33,7 +33,7 @@ func NewServer(
 	}
 }
 
-func (s *Server) ServeHTTP() {
+func (s *Server) ServeHTTP(ctx context.Context) error {
 	r := http.NewServeMux()
 
 	slogmw := sloghttp.NewWithConfig(
@@ -64,9 +64,14 @@ func (s *Server) ServeHTTP() {
 		Handler: slogmw(r),
 	}
 
-	err := srv.ListenAndServe()
-	if err != nil {
-		s.logger.Error("error during listen and serve", "error", err)
-		os.Exit(1)
-	}
+	go func() {
+		err := srv.ListenAndServe()
+		if err != nil {
+			s.logger.Error("error during listen and serve", "error", err)
+		}
+	}()
+
+	<-ctx.Done()
+	s.logger.InfoContext(ctx, "shutting down http server", "info", "shutdown")
+	return srv.Shutdown(context.Background())
 }

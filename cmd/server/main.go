@@ -3,8 +3,12 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
 	"log/slog"
 	"os"
+	"os/signal"
+	"sync"
+	"syscall"
 
 	v1 "github.com/led0nk/ark-clusterinfo/api/v1"
 	"github.com/led0nk/ark-clusterinfo/internal"
@@ -12,8 +16,8 @@ import (
 	"github.com/led0nk/ark-clusterinfo/internal/events"
 	"github.com/led0nk/ark-clusterinfo/internal/jsondb"
 	"github.com/led0nk/ark-clusterinfo/internal/notifier"
-	"github.com/led0nk/ark-clusterinfo/internal/notifier/services/discord"
 	"github.com/led0nk/ark-clusterinfo/internal/overseer"
+	"github.com/led0nk/ark-clusterinfo/internal/services"
 	"github.com/led0nk/ark-clusterinfo/observer"
 	"github.com/led0nk/ark-clusterinfo/pkg/config"
 )
@@ -31,9 +35,9 @@ func main() {
 		obs         internal.Observer
 		ovs         internal.Overseer
 		blacklist   internal.Blacklist
-		messaging   internal.Notification
 		logLevel    slog.Level
-		notSvcName  string
+		wg          sync.WaitGroup
+		initWg      sync.WaitGroup
 	)
 	flag.Parse()
 
@@ -54,52 +58,20 @@ func main() {
 	if err != nil {
 		logger.Error("failed to create new config", "error", err)
 	}
-	nService, err := cfg.GetSection("notification-service")
-	if err != nil {
-		logger.Error("failed to get section from config", "error", err)
-	}
-	for key, value := range nService {
-		switch key {
-		case "discord":
-			discordConfig, ok := value.(map[interface{}]interface{})
-			if !ok {
-				logger.Error("discord section has wrong type", "error", "discord")
-			}
 
-			token, ok := discordConfig["token"].(string)
-			if !ok {
-				logger.Error("token was not found or has wrong type", "error", "discord")
-			}
-
-			channelID, ok := discordConfig["channelID"].(string)
-			if !ok {
-				logger.Error("channelID was not found or has wrong type", "error", "discord")
-			}
-
-			messaging, err = discord.NewDiscordNotifier(ctx, token, channelID)
-			if err != nil {
-				logger.ErrorContext(ctx, "failed to create notification service", "error", err)
-				os.Exit(1)
-			}
-			notSvcName = "discord"
-		default:
-			notSvcName = "none"
-			logger.Info("no expected notification service found", "config", notSvcName)
-		}
-	}
-
-	sStore, err = jsondb.NewServerStorage(*db + "/cluster.json")
+	sStore, err = jsondb.NewServerStorage(ctx, *db+"/cluster.json")
 	if err != nil {
 		logger.ErrorContext(ctx, "failed to create new cluster", "error", err)
 		os.Exit(1)
 	}
 
 	em := events.NewEventManager()
+	sm := services.NewServiceManager(em)
 
 	notify := notifier.NewNotifier(sStore, em)
 	sStore = notify
 
-	obs, err = observer.NewObserver(sStore)
+	obs, err = observer.NewObserver(ctx, sStore)
 	if err != nil {
 		logger.ErrorContext(ctx, "failed to create endpoint storage", "error", err)
 		os.Exit(1)
@@ -117,61 +89,56 @@ func main() {
 		os.Exit(1)
 	}
 
-	go em.StartListening(ctx, messaging, notSvcName)
-	go em.StartListening(ctx, obs, "observer")
-	go em.StartListening(ctx, ovs, "overseer")
-	go obs.SpawnScraper(ctx)
-	go ovs.SpawnScanner(ctx)
+	sigCh := make(chan os.Signal, 1)
+	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
+
+	go func() {
+		sig := <-sigCh
+		logger.InfoContext(ctx, "received signal", "signal", sig)
+		cancel()
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		em.StartListening(ctx, sm, "serviceManager")
+	}()
+
+	//TODO: Wait group for initialization
+	initWg.Add(1)
+	go func() {
+		defer initWg.Done()
+		defer fmt.Println("initWG done")
+		em.Publish(events.EventMessage{Type: "init.services", Payload: cfg})
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		em.StartListening(ctx, obs, "observer")
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		em.StartListening(ctx, ovs, "overseer")
+	}()
+
+	initWg.Wait()
+	go em.Publish(events.EventMessage{Type: "init"})
 
 	server := v1.NewServer(*addr, *domain, logger, sStore, blacklist)
-	server.ServeHTTP()
-}
 
-// NOTE: just to initialize first Targets
-//func initTargets(ctx context.Context, sStore internal.ServerStore, logger *slog.Logger) error {
-//	sStore.Create(ctx, &model.Server{
-//		Name: "Ragnarok",
-//		Addr: "51.195.60.114:27019",
-//	})
-//
-//	sStore.Create(ctx, &model.Server{
-//		Name: "LostIsland",
-//		Addr: "51.195.60.114:27020",
-//	})
-//
-//	sStore.Create(ctx, &model.Server{
-//		Name: "Aberration",
-//		Addr: "51.195.60.114:27018",
-//	})
-//
-//	sStore.Create(ctx, &model.Server{
-//		Name: "TheIsland",
-//		Addr: "51.195.60.114:27016",
-//	})
-//	return nil
-//}
-//
-//func initBlacklist(ctx context.Context, blacklist internal.Blacklist, logger *slog.Logger) error {
-//	_, err := blacklist.Create(ctx, &model.Players{
-//		Name: "Fadem",
-//	})
-//	if err != nil {
-//		logger.ErrorContext(ctx, "failed to create blacklist entry", "error", err)
-//		return err
-//	}
-//	_, err = blacklist.Create(ctx, &model.Players{
-//		Name: "FisherSpider",
-//	})
-//	if err != nil {
-//		logger.ErrorContext(ctx, "failed to create blacklist entry", "error", err)
-//		return err
-//	}
-//	_, err = blacklist.Create(ctx, &model.Players{
-//		Name: "Hermes Headquart...",
-//	})
-//	if err != nil {
-//		logger.ErrorContext(ctx, "failed to create blacklist entry", "error", err)
-//		return err
-//	}
-//	return nil
-//}
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		err := server.ServeHTTP(ctx)
+		if err != nil {
+			logger.ErrorContext(ctx, "failed to server http server", "error", err)
+			return
+		}
+	}()
+
+	wg.Wait()
+	logger.InfoContext(ctx, "application stopped gracefully", "info", "shutdown")
+}
