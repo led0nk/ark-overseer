@@ -51,7 +51,7 @@ func (s *ServerStorage) writeJSON(ctx context.Context) error {
 // read JSON data from file = filename
 func (s *ServerStorage) readJSON(ctx context.Context) error {
 	if _, err := os.Stat(s.filename); os.IsNotExist(err) {
-		err = os.MkdirAll(filepath.Dir(s.filename), 0644)
+		err = os.MkdirAll(filepath.Dir(s.filename), 0777)
 		if err != nil {
 			return err
 		}

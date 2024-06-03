@@ -91,9 +91,20 @@ func (s *Server) sseServerUpdate(w http.ResponseWriter, r *http.Request) {
 			case <-ctx.Done():
 				return
 			default:
-				srv, err := s.sStore.GetByID(ctx, uuid.MustParse(r.PathValue("ID")))
+				id, err := uuid.Parse(r.PathValue("ID"))
+				if err != nil {
+					s.logger.ErrorContext(ctx, "failed to parse uuid", "error", err)
+					continue
+				}
+				srv, err := s.sStore.GetByID(ctx, id)
 				if err != nil {
 					s.logger.ErrorContext(ctx, "failed to get server", "error", err)
+					continue
+				}
+				if srv.ServerInfo == nil {
+					s.logger.ErrorContext(ctx, "server not found", "error", err)
+					time.Sleep(time.Second)
+					continue
 				}
 				status := `<span class="inline-flex items-center gap-1 rounded-full dark:bg-[#0D1117] bg-green-50 px-2 py-1 text-xs font-semibold text-green-600"><span class="h-1.5 w-1.5 rounded-full bg-green-600"></span>online</span>`
 				if !srv.Status {
@@ -265,19 +276,22 @@ func (s *Server) blacklistAdd(w http.ResponseWriter, r *http.Request) {
 	_, err = s.blacklist.Create(ctx, &model.BlacklistPlayers{
 		Name: r.FormValue("blacklistPlayer"),
 	})
-
 	if err != nil {
 		s.logger.ErrorContext(ctx, "failed to add player to blacklist", "error", err)
 		return
 	}
 
-	http.Redirect(w, r, "/blacklist", http.StatusFound)
+	newBlacklist := s.blacklist.List(ctx)
+
+	err = web.Render(ctx, w, web.BlacklistTable(newBlacklist))
+	if err != nil {
+		s.logger.ErrorContext(ctx, "failed to render templ", "error", err)
+		return
+	}
 }
 
 func (s *Server) blacklistDelete(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-
-	fmt.Println(r.PathValue("ID"))
 
 	id, err := uuid.Parse(r.PathValue("ID"))
 	if err != nil {

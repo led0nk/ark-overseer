@@ -5,15 +5,15 @@ package web
 
 //lint:file-ignore SA4006 This context is only used if a nested component is present.
 
+import "github.com/a-h/templ"
+import "context"
+import "io"
+import "bytes"
+
 import (
-	"bytes"
-	"context"
-	"io"
+	"github.com/led0nk/ark-overseer/internal/model"
 	"net/http"
 	"strconv"
-
-	"github.com/a-h/templ"
-	"github.com/led0nk/ark-overseer/internal/model"
 )
 
 func Base() templ.Component {
@@ -293,7 +293,7 @@ func SetupCard() templ.Component {
 			templ_7745c5c3_Var9 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"overflow-hidden rounded-lg border border-gray-200 dark:border-[#30363d] shadow-md m-5\"><div class=\"w-full border-collapse dark:bg-[#21262d]/50 text-left\"><div class=\"px-6 py-4 font-semibold dark:text-gray-300\">Notifications:</div></div><form hx-post=\"settings\"><div class=\"px-6 py-4 font-semibold dark:text-gray-300\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"overflow-hidden rounded-lg border border-gray-200 dark:border-[#30363d] shadow-md m-5\"><div class=\"w-full border-collapse dark:bg-[#21262d]/50 text-left\"><div class=\"px-6 py-4 font-semibold dark:text-gray-300\">Notifications:</div></div><form hx-post=\"/settings\"><div class=\"px-6 py-4 font-semibold dark:text-gray-300\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -639,7 +639,7 @@ func BlacklistInput() templ.Component {
 			templ_7745c5c3_Var25 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<form method=\"post\" hx-post=\"/blacklist\" hx-swap=\"outerHTML\" hx-target=\"#player\" class=\"overflow-hidden rounded-lg border border-gray-200 dark:border-[#30363d] shadow-md m-5\"><div class=\"m-5\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<form hx-post=\"/blacklist\" hx-target=\"#player\" class=\"overflow-hidden rounded-lg border border-gray-200 dark:border-[#30363d] shadow-md m-5\"><div class=\"m-5\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

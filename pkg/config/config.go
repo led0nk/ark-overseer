@@ -26,7 +26,10 @@ type Config struct {
 func NewConfiguration(filename string) (*Config, error) {
 	cfg := &Config{
 		filename: filename,
+		config:   make(map[string]interface{}),
 	}
+
+	cfg.config["notification-service"] = nil
 
 	err := cfg.Read()
 	if err != nil {
@@ -38,7 +41,7 @@ func NewConfiguration(filename string) (*Config, error) {
 
 func (c *Config) Read() error {
 	if _, err := os.Stat(c.filename); os.IsNotExist(err) {
-		err = os.MkdirAll(filepath.Dir(c.filename), 0644)
+		err = os.MkdirAll(filepath.Dir(c.filename), 0777)
 		if err != nil {
 			return err
 		}
@@ -68,6 +71,7 @@ func (c *Config) Write() error {
 	if err != nil {
 		return err
 	}
+	fmt.Println(data)
 
 	err = os.WriteFile(c.filename, data, 0644)
 	if err != nil {

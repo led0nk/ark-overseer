@@ -102,7 +102,7 @@ templ SetupCard(){
     Notifications:
     </div>
   </div>
-  <form hx-post="settings">
+  <form hx-post="/settings">
   <div class="px-6 py-4 font-semibold dark:text-gray-300">
     @Input("Token", "text", "Discord token...", "token", "token")
   </div>
@@ -269,7 +269,7 @@ templ BlacklistTableRow(player *model.BlacklistPlayers) {
 }
 
 templ BlacklistInput(){
-  <form method="post" hx-post="/blacklist" hx-swap="outerHTML" hx-target="#player" class="overflow-hidden rounded-lg border border-gray-200 dark:border-[#30363d] shadow-md m-5">
+  <form hx-post="/blacklist" hx-target="#player" class="overflow-hidden rounded-lg border border-gray-200 dark:border-[#30363d] shadow-md m-5">
   <div class="m-5">
   @Input("Name", "text", "Name...","blacklistPlayer", "blacklistPlayer")
   </div>
