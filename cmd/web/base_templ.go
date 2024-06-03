@@ -5,15 +5,15 @@ package web
 
 //lint:file-ignore SA4006 This context is only used if a nested component is present.
 
-import "github.com/a-h/templ"
-import "context"
-import "io"
-import "bytes"
-
 import (
-	"github.com/led0nk/ark-clusterinfo/internal/model"
+	"bytes"
+	"context"
+	"io"
 	"net/http"
 	"strconv"
+
+	"github.com/a-h/templ"
+	"github.com/led0nk/ark-overseer/internal/model"
 )
 
 func Base() templ.Component {

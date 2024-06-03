@@ -1,4 +1,4 @@
-module github.com/led0nk/ark-clusterinfo
+module github.com/led0nk/ark-overseer
 
 go 1.22
 

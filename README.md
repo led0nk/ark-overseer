@@ -1,5 +1,5 @@
 <center>
-# ark-clusterinfo - observation tool
+# Ark-Overseer - observation tool
 
 [Installation](#-installation)
 •
@@ -30,19 +30,19 @@ The Ark-Overseer is also available as an rpm-package, which makes it easy to ins
 ##### 1.) First you have to enable the repository:
 
 ```sh 
-dnf copr enable led0nk/ark-clusterinfo
+dnf copr enable led0nk/ark-overseer
 ```
 
 ##### 2.) Then you're able to simply install it via the dnf-pkg-manager:
 
 ```sh 
-dnf install ark-clusterinfo
+dnf install ark-overseer
 ```
 
 ##### 3.) After finishing the installation you can simply run it via cli-command:
 
 ```sh 
-ark-clusterinfo
+ark-overseer
 ```
 
 ### via Docker
@@ -53,7 +53,7 @@ E.g. with a container-service like Docker:
 ```sh 
 docker run -it \\
     -p 8080:8080 \\
-    --rm ghcr.io/led0nk/ark-clusterinfo:latest
+    --rm ghcr.io/led0nk/ark-overseer:latest
 ```
 
 ## Messaging 

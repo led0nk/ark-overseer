@@ -1,18 +1,18 @@
 # See the documentation for more information:
 # https://packit.dev/docs/configuration/
 
-specfile_path: ark-clusterinfo.spec
+specfile_path: ark-overseer.spec
 
 # add or remove files that should be synced
 files_to_sync:
-  - ark-clusterinfo.spec
+  - ark-overseer.spec
   - .packit.yaml
   - Makefile
 
 # name in upstream package repository or registry (e.g. in PyPI)
-upstream_package_name: ark-clusterinfo
+upstream_package_name: ark-overseer
 # downstream (Fedora) RPM package name
-downstream_package_name: ark-clusterinfo
+downstream_package_name: ark-overseer
 
 srpm_build_deps:
   - make
