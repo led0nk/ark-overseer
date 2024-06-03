@@ -9,16 +9,16 @@ import (
 	"sync"
 	"syscall"
 
-	"github.com/led0nk/ark-clusterinfo/internal"
-	blist "github.com/led0nk/ark-clusterinfo/internal/blacklist"
-	"github.com/led0nk/ark-clusterinfo/internal/jsondb"
-	"github.com/led0nk/ark-clusterinfo/internal/notifier"
-	"github.com/led0nk/ark-clusterinfo/internal/overseer"
-	v1 "github.com/led0nk/ark-clusterinfo/internal/server"
-	"github.com/led0nk/ark-clusterinfo/internal/services"
-	"github.com/led0nk/ark-clusterinfo/observer"
-	"github.com/led0nk/ark-clusterinfo/pkg/config"
-	"github.com/led0nk/ark-clusterinfo/pkg/events"
+	"github.com/led0nk/ark-overseer/internal"
+	blist "github.com/led0nk/ark-overseer/internal/blacklist"
+	"github.com/led0nk/ark-overseer/internal/jsondb"
+	"github.com/led0nk/ark-overseer/internal/notifier"
+	"github.com/led0nk/ark-overseer/internal/overseer"
+	v1 "github.com/led0nk/ark-overseer/internal/server"
+	"github.com/led0nk/ark-overseer/internal/services"
+	"github.com/led0nk/ark-overseer/observer"
+	"github.com/led0nk/ark-overseer/pkg/config"
+	"github.com/led0nk/ark-overseer/pkg/events"
 )
 
 func main() {

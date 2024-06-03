@@ -1,4 +1,4 @@
-%global goipath github.com/led0nk/ark-clusterinfo
+%global goipath github.com/led0nk/ark-overseer
 
 %define debug_package %{nil}
 
@@ -6,7 +6,7 @@ Version: 0.1.0
 
 %gometa
 
-Name: ark-clusterinfo
+Name: ark-overseer
 Release:  1%{?dist}
 Summary:  steam observation tool
 
@@ -20,7 +20,7 @@ BuildRequires: git
 BuildRequires: make
 
 %description
-ark-clusterinfo is a steam observation tool to track players
+ark-overseer is a steam observation tool to track players
 
 
 %prep

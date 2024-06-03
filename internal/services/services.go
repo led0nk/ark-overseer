@@ -5,10 +5,10 @@ import (
 	"log/slog"
 	"sync"
 
-	"github.com/led0nk/ark-clusterinfo/internal"
-	"github.com/led0nk/ark-clusterinfo/internal/services/discord"
-	"github.com/led0nk/ark-clusterinfo/pkg/config"
-	"github.com/led0nk/ark-clusterinfo/pkg/events"
+	"github.com/led0nk/ark-overseer/internal"
+	"github.com/led0nk/ark-overseer/internal/services/discord"
+	"github.com/led0nk/ark-overseer/pkg/config"
+	"github.com/led0nk/ark-overseer/pkg/events"
 )
 
 type ServiceManager struct {

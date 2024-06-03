@@ -5,7 +5,7 @@ import (
 	"os"
 	"sync"
 
-	"github.com/led0nk/ark-clusterinfo/pkg/events"
+	"github.com/led0nk/ark-overseer/pkg/events"
 	"gopkg.in/yaml.v2"
 )
 

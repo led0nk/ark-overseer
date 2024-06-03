@@ -1,15 +1,15 @@
 GO_VERSION=1.22
 GOLINT_VERSION=v1.57.2
 TEMPL_VERSION=v0.2.680
-CLUSTERINFO_VERSION ?= 0.1.0
-PROJECT ?= ark-clusterinfo
+OVERSEER_VERSION ?= 0.1.0
+PROJECT ?= ark-overseer
 
 
 
 ROOT_DIR=$(shell git rev-parse --show-toplevel)
 TOOLS_DIR=$(ROOT_DIR)/.tools
-PROJECT_DIR=$(PROJECT)-$(CLUSTERINFO_VERSION)
-clusterinfo := $(ROOT_DIR)/bin/ark-clusterinfo
+PROJECT_DIR=$(PROJECT)-$(OVERSEER_VERSION)
+overseer := $(ROOT_DIR)/bin/ark-overseer
 
 ALL_GO_FILES=$(shell find $(ROOT_DIR) -type f -name "*.go")
 
@@ -67,11 +67,11 @@ vendor:
 
 .PHONY: build
 build: tools generate
-	$(GOCMD) build -o bin/clusterinfo cmd/api/main.go
+	$(GOCMD) build -o bin/overseer cmd/api/main.go
 
 .PHONY: exec
 exec: gofmt build 
-	./bin/clusterinfo 
+	./bin/overseer 
 
 .PHONY: run
 run: generate
@@ -99,7 +99,7 @@ archive: vendor
 clean:
 	rm -rf *.tar.gz *.rpm
 	rm -rf ./SRPMS
-	rm -rf ark-clusterinfo-0.1.0*
+	rm -rf ark-overseer-0.1.0*
 	rm -rf ./src
 	rm -rf ./_build
 

@@ -5,8 +5,8 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/led0nk/ark-clusterinfo/internal"
-	"github.com/led0nk/ark-clusterinfo/pkg/config"
+	"github.com/led0nk/ark-overseer/internal"
+	"github.com/led0nk/ark-overseer/pkg/config"
 	sloghttp "github.com/samber/slog-http"
 )
 

@@ -1,9 +1,0 @@
-[Unit]
-Description=ark-clusterinfo
-
-[Service]
-Type=simple
-ExecStart=/usr/bin/ark-clusterinfo -db /etc/ark-clusterinfo/ -blist /etc/ark-clusterinfo/
-
-[Install]
-WantedBy=multi-user.target
