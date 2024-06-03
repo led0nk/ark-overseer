@@ -6,7 +6,7 @@ import (
 	"log/slog"
 
 	"github.com/bwmarrin/discordgo"
-	"github.com/led0nk/ark-clusterinfo/internal/events"
+	"github.com/led0nk/ark-clusterinfo/pkg/events"
 )
 
 type DiscordNotifier struct {
@@ -32,7 +32,7 @@ func NewDiscordNotifier(ctx context.Context, token string, channelID string) (*D
 
 func (dn *DiscordNotifier) HandleEvent(ctx context.Context, event events.EventMessage) {
 	switch event.Type {
-	case "playerJoined":
+	case "player.joined":
 		msg, ok := event.Payload.(string)
 		if !ok {
 			dn.logger.ErrorContext(ctx, "invalid payload type for playerJoined event", "error", errors.New("payload not of type string"))
@@ -42,7 +42,7 @@ func (dn *DiscordNotifier) HandleEvent(ctx context.Context, event events.EventMe
 		if err != nil {
 			dn.logger.ErrorContext(ctx, "failed to send message", "error", err)
 		}
-	case "playerLeft":
+	case "player.left":
 		msg, ok := event.Payload.(string)
 		if !ok {
 			dn.logger.ErrorContext(ctx, "invalid payload type for playerLeft event", "error", errors.New("payload not of type string"))
@@ -92,4 +92,12 @@ func (dn *DiscordNotifier) Setup(ctx context.Context, newDN *DiscordNotifier) er
 		return err
 	}
 	return nil
+}
+
+func (dn *DiscordNotifier) Disconnect() error {
+
+	dn.channelID = ""
+	dn.token = ""
+
+	return dn.session.Close()
 }

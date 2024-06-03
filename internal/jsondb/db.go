@@ -18,34 +18,39 @@ type ServerStorage struct {
 	mu       sync.Mutex
 }
 
-func NewServerStorage(filename string) (*ServerStorage, error) {
+func NewServerStorage(ctx context.Context, filename string) (*ServerStorage, error) {
 	cluster := &ServerStorage{
 		filename: filename,
 		server:   make(map[uuid.UUID]*model.Server),
 	}
-	if err := cluster.readJSON(); err != nil {
+	if err := cluster.readJSON(ctx); err != nil {
 		return nil, err
 	}
 	return cluster, nil
 }
 
-func (s *ServerStorage) writeJSON() error {
-	as_json, err := json.MarshalIndent(s.server, "", "\t")
-	if err != nil {
-		return err
-	}
+func (s *ServerStorage) writeJSON(ctx context.Context) error {
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	default:
+		as_json, err := json.MarshalIndent(s.server, "", "\t")
+		if err != nil {
+			return err
+		}
 
-	err = os.WriteFile(s.filename, as_json, 0644)
-	if err != nil {
-		return err
+		err = os.WriteFile(s.filename, as_json, 0644)
+		if err != nil {
+			return err
+		}
+		return nil
 	}
-	return nil
 }
 
 // read JSON data from file = filename
-func (s *ServerStorage) readJSON() error {
+func (s *ServerStorage) readJSON(ctx context.Context) error {
 	if _, err := os.Stat(s.filename); os.IsNotExist(err) {
-		err = s.writeJSON()
+		err = s.writeJSON(ctx)
 		if err != nil {
 			return err
 		}
@@ -66,7 +71,7 @@ func (s *ServerStorage) Create(ctx context.Context, server *model.Server) (*mode
 	}
 
 	s.server[server.ID] = server
-	if err := s.writeJSON(); err != nil {
+	if err := s.writeJSON(ctx); err != nil {
 		return nil, err
 	}
 
@@ -77,12 +82,13 @@ func (s *ServerStorage) Update(ctx context.Context, server *model.Server) error 
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	s.server[server.ID] = server
-	if err := s.writeJSON(); err != nil {
-		return err
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	default:
+		s.server[server.ID] = server
+		return s.writeJSON(ctx)
 	}
-
-	return nil
 }
 
 func (s *ServerStorage) GetByName(ctx context.Context, name string) (*model.Server, error) {
@@ -133,7 +139,7 @@ func (s *ServerStorage) Delete(ctx context.Context, ID uuid.UUID) error {
 
 	delete(s.server, ID)
 
-	if err := s.writeJSON(); err != nil {
+	if err := s.writeJSON(ctx); err != nil {
 		return err
 	}
 	return nil

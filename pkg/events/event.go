@@ -2,6 +2,7 @@ package events
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"sync"
 
@@ -59,7 +60,8 @@ func (e *EventManager) Unsubscribe(id uuid.UUID, name string) {
 func (e *EventManager) Publish(emsg EventMessage) {
 	e.mu.Lock()
 	defer e.mu.Unlock()
-	for _, ch := range e.subscriber {
+	for subscriber, ch := range e.subscriber {
+		e.logger.Debug("publish eventMessage", "debug", "publish", subscriber.String(), fmt.Sprintf("%s", emsg))
 		ch <- emsg
 	}
 }
@@ -71,11 +73,11 @@ func (e *EventManager) StartListening(ctx context.Context, handler EventHandler,
 	}
 	defer e.Unsubscribe(id, serviceName)
 
-	for event := range ch {
+	for {
 		select {
 		case <-ctx.Done():
 			return
-		default:
+		case event := <-ch:
 			handler.HandleEvent(ctx, event)
 		}
 	}

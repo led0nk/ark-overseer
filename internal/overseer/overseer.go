@@ -8,8 +8,8 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/led0nk/ark-clusterinfo/internal"
-	"github.com/led0nk/ark-clusterinfo/internal/events"
 	"github.com/led0nk/ark-clusterinfo/internal/model"
+	"github.com/led0nk/ark-clusterinfo/pkg/events"
 )
 
 type Overseer struct {
@@ -147,7 +147,7 @@ func (o *Overseer) Scan(ctx context.Context, blacklist []*model.BlacklistPlayers
 
 		if blacklistMap[player.Name] {
 			if !status.joinedNotified {
-				o.em.Publish(events.EventMessage{Type: "playerJoined", Payload: player.Name + " joined the server " + server.Name})
+				o.em.Publish(events.EventMessage{Type: "player.joined", Payload: player.Name + " joined the server " + server.Name})
 				status.joinedNotified = true
 				status.leftNotified = false
 			}
@@ -156,7 +156,7 @@ func (o *Overseer) Scan(ctx context.Context, blacklist []*model.BlacklistPlayers
 
 	for playerName, status := range previousPlayers {
 		if blacklistMap[playerName] && !status.isActive && !status.leftNotified {
-			o.em.Publish(events.EventMessage{Type: "playerLeft", Payload: playerName + " left the server " + server.Name})
+			o.em.Publish(events.EventMessage{Type: "player.left", Payload: playerName + " left the server " + server.Name})
 			status.leftNotified = true
 			status.joinedNotified = false
 		}
@@ -167,7 +167,9 @@ func (o *Overseer) Scan(ctx context.Context, blacklist []*model.BlacklistPlayers
 
 func (o *Overseer) HandleEvent(ctx context.Context, event events.EventMessage) {
 	switch event.Type {
-	case "addedServer":
+	case "init":
+		o.SpawnScanner(ctx)
+	case "server.added":
 		server, ok := event.Payload.(*model.Server)
 		if !ok {
 			o.logger.ErrorContext(ctx, "invalid payload type for addedServer event", "error", errors.New("Payload not of type *model.Server"))
@@ -178,7 +180,7 @@ func (o *Overseer) HandleEvent(ctx context.Context, event events.EventMessage) {
 			o.logger.ErrorContext(ctx, "failed to add scraper", "error", err)
 			return
 		}
-	case "deletedServer":
+	case "server.deleted":
 		id, ok := event.Payload.(uuid.UUID)
 		if !ok {
 			o.logger.ErrorContext(ctx, "invalid payload type for deletedServer event", "error", errors.New("Payload not of type uuid.UUID"))

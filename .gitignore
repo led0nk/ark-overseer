@@ -6,4 +6,5 @@ SRPMS
 *json
 *.tar.gz
 vendor
+testdata
 x86_64

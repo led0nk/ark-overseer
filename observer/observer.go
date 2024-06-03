@@ -12,8 +12,8 @@ import (
 	"github.com/FlowingSPDG/go-steam"
 	"github.com/google/uuid"
 	"github.com/led0nk/ark-clusterinfo/internal"
-	"github.com/led0nk/ark-clusterinfo/internal/events"
 	"github.com/led0nk/ark-clusterinfo/internal/model"
+	"github.com/led0nk/ark-clusterinfo/pkg/events"
 )
 
 type Observer struct {
@@ -25,7 +25,7 @@ type Observer struct {
 	resultCh    chan *model.Server
 }
 
-func NewObserver(sStore internal.ServerStore) (*Observer, error) {
+func NewObserver(ctx context.Context, sStore internal.ServerStore) (*Observer, error) {
 	observer := &Observer{
 		endpoints:   make(map[uuid.UUID]*model.Server),
 		cancelFuncs: make(map[uuid.UUID]context.CancelFunc),
@@ -33,7 +33,7 @@ func NewObserver(sStore internal.ServerStore) (*Observer, error) {
 		logger:      slog.Default().WithGroup("observer"),
 		resultCh:    make(chan *model.Server),
 	}
-	go observer.processResults()
+	go observer.processResults(ctx)
 	return observer, nil
 }
 
@@ -119,14 +119,18 @@ func (o *Observer) SpawnScraper(ctx context.Context) {
 	}
 }
 
-func (o *Observer) processResults() {
-	for result := range o.resultCh {
-		if result == nil {
-			continue
-		}
-		err := o.serverStore.Update(context.Background(), result)
-		if err != nil {
-			o.logger.Error("failed to update server info", "error", err)
+func (o *Observer) processResults(ctx context.Context) {
+	for {
+		select {
+		case <-ctx.Done():
+		case result := <-o.resultCh:
+			if result == nil {
+				continue
+			}
+			err := o.serverStore.Update(ctx, result)
+			if err != nil {
+				o.logger.Error("failed to update server info", "error", err)
+			}
 		}
 	}
 }
@@ -158,10 +162,12 @@ func (o *Observer) KillScraper(targetID uuid.UUID) error {
 
 func (o *Observer) HandleEvent(ctx context.Context, event events.EventMessage) {
 	switch event.Type {
-	case "addedServer":
+	case "init":
+		o.SpawnScraper(ctx)
+	case "server.added":
 		server, ok := event.Payload.(*model.Server)
 		if !ok {
-			o.logger.ErrorContext(ctx, "invalid payload type for addedServer event", "error", errors.New("payload not of type *model.Server"))
+			o.logger.ErrorContext(ctx, "invalid payload type", "error", event.Type)
 			return
 		}
 		err := o.AddScraper(ctx, server)
@@ -169,10 +175,10 @@ func (o *Observer) HandleEvent(ctx context.Context, event events.EventMessage) {
 			o.logger.ErrorContext(ctx, "failed to add scraper", "error", err)
 			return
 		}
-	case "deletedServer":
+	case "server.deleted":
 		id, ok := event.Payload.(uuid.UUID)
 		if !ok {
-			o.logger.ErrorContext(ctx, "invalid payload type for deletedServer event", "error", errors.New("Payload not of type uuid.UUID"))
+			o.logger.ErrorContext(ctx, "invalid payload type", "error", event.Type)
 			return
 		}
 		err := o.KillScraper(id)

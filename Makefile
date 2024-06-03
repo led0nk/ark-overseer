@@ -67,7 +67,7 @@ vendor:
 
 .PHONY: build
 build: tools generate
-	$(GOCMD) build -o bin/clusterinfo cmd/server/main.go
+	$(GOCMD) build -o bin/clusterinfo cmd/api/main.go
 
 .PHONY: exec
 exec: gofmt build 
@@ -75,7 +75,7 @@ exec: gofmt build
 
 .PHONY: run
 run: generate
-	$(GOCMD) run cmd/server/main.go
+	$(GOCMD) run cmd/api/main.go
 
 .PHONY: archive
 archive: vendor

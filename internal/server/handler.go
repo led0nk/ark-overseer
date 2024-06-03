@@ -11,8 +11,8 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/google/uuid"
+	"github.com/led0nk/ark-clusterinfo/cmd/web"
 	"github.com/led0nk/ark-clusterinfo/internal/model"
-	"github.com/led0nk/ark-clusterinfo/internal/model/templates/layout"
 )
 
 func (s *Server) mainPage(w http.ResponseWriter, r *http.Request) {
@@ -28,9 +28,9 @@ func (s *Server) mainPage(w http.ResponseWriter, r *http.Request) {
 		s.logger.ErrorContext(ctx, "failed to get server info", "error", err)
 	}
 
-	templ.Handler(layout.Table(serverList))
+	templ.Handler(web.Table(serverList))
 
-	err = layout.Render(ctx, w, layout.Main(serverList))
+	err = web.Render(ctx, w, web.Main(serverList))
 	if err != nil {
 		s.logger.ErrorContext(ctx, "failed to render templ", "error", err)
 		return
@@ -50,7 +50,7 @@ func (s *Server) showPlayers(w http.ResponseWriter, r *http.Request) {
 		s.logger.ErrorContext(ctx, "failed to get server", "error", err)
 		return
 	}
-	err = layout.Render(ctx, w, layout.PlayerTable(server))
+	err = web.Render(ctx, w, web.PlayerTable(server))
 	if err != nil {
 		s.logger.ErrorContext(ctx, "failed to render templ", "error", err)
 		return
@@ -175,7 +175,7 @@ func (s *Server) deleteServer(w http.ResponseWriter, r *http.Request) {
 func (s *Server) showServerInput(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	err := layout.Render(ctx, w, layout.NewServerInput())
+	err := web.Render(ctx, w, web.NewServerInput())
 	if err != nil {
 		s.logger.ErrorContext(ctx, "failed to render templ", "error", err)
 		return
@@ -213,7 +213,7 @@ func (s *Server) blacklistPage(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	blacklist := s.blacklist.List(ctx)
-	err := layout.Render(ctx, w, layout.Blacklist(blacklist))
+	err := web.Render(ctx, w, web.Blacklist(blacklist))
 	if err != nil {
 		s.logger.ErrorContext(ctx, "failed to render templ", "error", err)
 		return
@@ -223,11 +223,35 @@ func (s *Server) blacklistPage(w http.ResponseWriter, r *http.Request) {
 func (s *Server) setupPage(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	err := layout.Render(ctx, w, layout.Setup())
+	err := web.Render(ctx, w, web.Setup())
 	if err != nil {
 		s.logger.ErrorContext(ctx, "failed to render templ", "error", err)
 		return
 	}
+}
+
+// NOTE: possible implementation of other services
+func (s *Server) saveChanges(w http.ResponseWriter, r *http.Request) {
+
+	ctx := r.Context()
+
+	err := r.ParseForm()
+	if err != nil {
+		s.logger.ErrorContext(ctx, "failed to parse form", "error", err)
+		return
+	}
+
+	sectionMap := make(map[interface{}]interface{})
+	sectionMap["token"] = r.FormValue("token")
+	sectionMap["channelID"] = r.FormValue("channelID")
+
+	err = s.config.Update("notification-service", "discord", sectionMap)
+	if err != nil {
+		s.logger.ErrorContext(ctx, "failed to update config", "error", err)
+		return
+	}
+
+	http.Redirect(w, r, "/settings", http.StatusFound)
 }
 
 func (s *Server) blacklistAdd(w http.ResponseWriter, r *http.Request) {
