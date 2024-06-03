@@ -5,19 +5,25 @@ import (
 	"os"
 	"sync"
 
-	"github.com/led0nk/ark-clusterinfo/internal/events"
+	"github.com/led0nk/ark-clusterinfo/pkg/events"
 	"gopkg.in/yaml.v2"
 )
 
-type Configuration struct {
+type Configuration interface {
+	Read() error
+	Write() error
+	Update(string, string, interface{}) error
+}
+
+type Config struct {
 	filename string
 	mu       sync.Mutex
 	config   map[string]interface{}
 	em       *events.EventManager
 }
 
-func NewConfiguration(filename string) (*Configuration, error) {
-	cfg := &Configuration{
+func NewConfiguration(filename string) (*Config, error) {
+	cfg := &Config{
 		filename: filename,
 	}
 
@@ -29,7 +35,7 @@ func NewConfiguration(filename string) (*Configuration, error) {
 	return cfg, nil
 }
 
-func (c *Configuration) Read() error {
+func (c *Config) Read() error {
 	if _, err := os.Stat(c.filename); os.IsNotExist(err) {
 		err = c.Write()
 		if err != nil {
@@ -52,7 +58,7 @@ func (c *Configuration) Read() error {
 	return nil
 }
 
-func (c *Configuration) Write() error {
+func (c *Config) Write() error {
 	data, err := yaml.Marshal(c.config)
 	if err != nil {
 		return err
@@ -66,7 +72,7 @@ func (c *Configuration) Write() error {
 	return nil
 }
 
-func (c *Configuration) Update(section string, key string, value interface{}) error {
+func (c *Config) Update(section string, key string, value interface{}) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
@@ -87,7 +93,7 @@ func (c *Configuration) Update(section string, key string, value interface{}) er
 	return nil
 }
 
-func (c *Configuration) GetSection(section string) (map[interface{}]interface{}, error) {
+func (c *Config) GetSection(section string) (map[interface{}]interface{}, error) {
 	sectionMap, ok := c.config[section].(map[interface{}]interface{})
 	if !ok {
 		return nil, fmt.Errorf("section %s not found", section)

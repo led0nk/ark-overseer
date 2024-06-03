@@ -11,7 +11,7 @@
 			"folder": "ark_survival_evolved",
 			"game": "ARK: Survival Evolved",
 			"id": 346110,
-			"players": 0,
+			"players": 5,
 			"maxplayers": 70,
 			"bots": 0,
 			"servertype": 1,
@@ -23,11 +23,37 @@
 			"steamid": 90198215992642580,
 			"sourcetvport": 0,
 			"sourcetvname": "",
-			"keywords": ",OWNINGID:90198215992642580,OWNINGNAME:90198215992642580,NUMOPENPUBCONN:70,P2PADDR:90198215992642580,P2PPORT:7783,LEGACY_i:0",
+			"keywords": ",OWNINGID:90198215992642580,OWNINGNAME:90198215992642580,NUMOPENPUBCONN:65,P2PADDR:90198215992642580,P2PPORT:7783,LEGACY_i:0",
 			"gameid": 346110
 		},
 		"playersinfo": {
-			"Players": null
+			"Players": [
+				{
+					"name": "MrBlingbling",
+					"score": 0,
+					"duration": 4212000000000
+				},
+				{
+					"name": "youri.laarman",
+					"score": 0,
+					"duration": 2933000000000
+				},
+				{
+					"name": "GliftisMhteras",
+					"score": 0,
+					"duration": 2074000000000
+				},
+				{
+					"name": "sulaimanascended",
+					"score": 0,
+					"duration": 793000000000
+				},
+				{
+					"name": "xRaZ3x",
+					"score": 0,
+					"duration": 754000000000
+				}
+			]
 		}
 	},
 	"375eb717-52ea-4ef8-99ee-b901c9980ba2": {
@@ -42,7 +68,7 @@
 			"folder": "ark_survival_evolved",
 			"game": "ARK: Survival Evolved",
 			"id": 346110,
-			"players": 1,
+			"players": 4,
 			"maxplayers": 70,
 			"bots": 0,
 			"servertype": 1,
@@ -54,7 +80,7 @@
 			"steamid": 90198177739760660,
 			"sourcetvport": 0,
 			"sourcetvname": "",
-			"keywords": ",OWNINGID:90198177739760660,OWNINGNAME:90198177739760660,NUMOPENPUBCONN:69,P2PADDR:90198177739760660,P2PPORT:7785,LEGACY_i:0",
+			"keywords": ",OWNINGID:90198177739760660,OWNINGNAME:90198177739760660,NUMOPENPUBCONN:66,P2PADDR:90198177739760660,P2PPORT:7785,LEGACY_i:0",
 			"gameid": 346110
 		},
 		"playersinfo": {
@@ -62,7 +88,22 @@
 				{
 					"name": "Haarry :)",
 					"score": 0,
-					"duration": 10557000000000
+					"duration": 3583000000000
+				},
+				{
+					"name": "Cat_Protector",
+					"score": 0,
+					"duration": 3501000000000
+				},
+				{
+					"name": "ast",
+					"score": 0,
+					"duration": 2597000000000
+				},
+				{
+					"name": "Lucky Luke",
+					"score": 0,
+					"duration": 318000000000
 				}
 			]
 		}
@@ -79,7 +120,7 @@
 			"folder": "ark_survival_evolved",
 			"game": "ARK: Survival Evolved",
 			"id": 346110,
-			"players": 1,
+			"players": 0,
 			"maxplayers": 70,
 			"bots": 0,
 			"servertype": 1,
@@ -91,17 +132,11 @@
 			"steamid": 90198177740007444,
 			"sourcetvport": 0,
 			"sourcetvname": "",
-			"keywords": ",OWNINGID:90198177740007444,OWNINGNAME:90198177740007444,NUMOPENPUBCONN:69,P2PADDR:90198177740007444,P2PPORT:7781,LEGACY_i:0",
+			"keywords": ",OWNINGID:90198177740007444,OWNINGNAME:90198177740007444,NUMOPENPUBCONN:70,P2PADDR:90198177740007444,P2PPORT:7781,LEGACY_i:0",
 			"gameid": 346110
 		},
 		"playersinfo": {
-			"Players": [
-				{
-					"name": "GuidoCram",
-					"score": 0,
-					"duration": 66000000000
-				}
-			]
+			"Players": null
 		}
 	},
 	"ab41367a-e2c6-40e2-b93f-516702abbccc": {
@@ -116,7 +151,7 @@
 			"folder": "ark_survival_evolved",
 			"game": "ARK: Survival Evolved",
 			"id": 346110,
-			"players": 1,
+			"players": 3,
 			"maxplayers": 70,
 			"bots": 0,
 			"servertype": 1,
@@ -128,15 +163,25 @@
 			"steamid": 90198177738170388,
 			"sourcetvport": 0,
 			"sourcetvname": "",
-			"keywords": ",OWNINGID:90198177738170388,OWNINGNAME:90198177738170388,NUMOPENPUBCONN:69,P2PADDR:90198177738170388,P2PPORT:7777,LEGACY_i:0",
+			"keywords": ",OWNINGID:90198177738170388,OWNINGNAME:90198177738170388,NUMOPENPUBCONN:67,P2PADDR:90198177738170388,P2PPORT:7777,LEGACY_i:0",
 			"gameid": 346110
 		},
 		"playersinfo": {
 			"Players": [
 				{
-					"name": "Andrucha",
+					"name": "Fadem",
 					"score": 0,
-					"duration": 63282000000000
+					"duration": 15118000000000
+				},
+				{
+					"name": "Omega",
+					"score": 0,
+					"duration": 8010000000000
+				},
+				{
+					"name": "Cr0wny",
+					"score": 0,
+					"duration": 7095000000000
 				}
 			]
 		}

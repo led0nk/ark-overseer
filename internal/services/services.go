@@ -6,9 +6,9 @@ import (
 	"sync"
 
 	"github.com/led0nk/ark-clusterinfo/internal"
-	"github.com/led0nk/ark-clusterinfo/internal/events"
 	"github.com/led0nk/ark-clusterinfo/internal/services/discord"
 	"github.com/led0nk/ark-clusterinfo/pkg/config"
+	"github.com/led0nk/ark-clusterinfo/pkg/events"
 )
 
 type ServiceManager struct {
@@ -34,7 +34,7 @@ func (sm *ServiceManager) HandleEvent(ctx context.Context, event events.EventMes
 
 	switch event.Type {
 	case "init.services":
-		cfg, ok := event.Payload.(*config.Configuration)
+		cfg, ok := event.Payload.(*config.Config)
 		if !ok {
 			sm.logger.ErrorContext(ctx, "invalid payload type", "error", event.Type)
 			return

@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/google/uuid"
-	"github.com/led0nk/ark-clusterinfo/internal/events"
 	"github.com/led0nk/ark-clusterinfo/internal/model"
+	"github.com/led0nk/ark-clusterinfo/pkg/events"
 )
 
 type ServerStore interface {
@@ -46,10 +46,4 @@ type Notification interface {
 	Send(context.Context, string) error
 	HandleEvent(context.Context, events.EventMessage)
 	Disconnect() error
-}
-
-type Configuration interface {
-	Read() error
-	Write() error
-	Update(string, string, interface{}) error
 }

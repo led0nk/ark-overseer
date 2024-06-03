@@ -6,7 +6,7 @@ import (
 	"log/slog"
 
 	"github.com/bwmarrin/discordgo"
-	"github.com/led0nk/ark-clusterinfo/internal/events"
+	"github.com/led0nk/ark-clusterinfo/pkg/events"
 )
 
 type DiscordNotifier struct {

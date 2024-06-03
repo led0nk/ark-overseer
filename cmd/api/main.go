@@ -3,23 +3,22 @@ package main
 import (
 	"context"
 	"flag"
-	"fmt"
 	"log/slog"
 	"os"
 	"os/signal"
 	"sync"
 	"syscall"
 
-	v1 "github.com/led0nk/ark-clusterinfo/api/v1"
 	"github.com/led0nk/ark-clusterinfo/internal"
 	blist "github.com/led0nk/ark-clusterinfo/internal/blacklist"
-	"github.com/led0nk/ark-clusterinfo/internal/events"
 	"github.com/led0nk/ark-clusterinfo/internal/jsondb"
 	"github.com/led0nk/ark-clusterinfo/internal/notifier"
 	"github.com/led0nk/ark-clusterinfo/internal/overseer"
+	v1 "github.com/led0nk/ark-clusterinfo/internal/server"
 	"github.com/led0nk/ark-clusterinfo/internal/services"
 	"github.com/led0nk/ark-clusterinfo/observer"
 	"github.com/led0nk/ark-clusterinfo/pkg/config"
+	"github.com/led0nk/ark-clusterinfo/pkg/events"
 )
 
 func main() {
@@ -31,6 +30,7 @@ func main() {
 		//grpcaddr    = flag.String("grpcaddr", "", "grpc address, e.g. localhost:4317")
 		domain      = flag.String("domain", "127.0.0.1", "given domain for cookies/mail")
 		logLevelStr = flag.String("loglevel", "INFO", "define the level for logs")
+		configPath  = flag.String("config", "config", "path to config-file")
 		sStore      internal.ServerStore
 		obs         internal.Observer
 		ovs         internal.Overseer
@@ -54,7 +54,7 @@ func main() {
 
 	logger.Info("server address", "addr", *addr)
 
-	cfg, err := config.NewConfiguration("testdata/config.yaml")
+	cfg, err := config.NewConfiguration(*configPath + "/config.yaml")
 	if err != nil {
 		logger.Error("failed to create new config", "error", err)
 	}
@@ -89,15 +89,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	sigCh := make(chan os.Signal, 1)
-	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
-
-	go func() {
-		sig := <-sigCh
-		logger.InfoContext(ctx, "received signal", "signal", sig)
-		cancel()
-	}()
-
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
@@ -108,7 +99,6 @@ func main() {
 	initWg.Add(1)
 	go func() {
 		defer initWg.Done()
-		defer fmt.Println("initWG done")
 		em.Publish(events.EventMessage{Type: "init.services", Payload: cfg})
 	}()
 
@@ -125,18 +115,32 @@ func main() {
 	}()
 
 	initWg.Wait()
-	go em.Publish(events.EventMessage{Type: "init"})
+	initWg.Add(1)
+	go func() {
+		defer initWg.Done()
+		em.Publish(events.EventMessage{Type: "init"})
+	}()
 
-	server := v1.NewServer(*addr, *domain, logger, sStore, blacklist)
+	server := v1.NewServer(*addr, *domain, logger, sStore, blacklist, cfg)
 
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
 		err := server.ServeHTTP(ctx)
 		if err != nil {
-			logger.ErrorContext(ctx, "failed to server http server", "error", err)
+			logger.ErrorContext(ctx, "failed to shutdown http server", "error", err)
 			return
 		}
+	}()
+
+	sigCh := make(chan os.Signal, 1)
+	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
+
+	go func() {
+		sig := <-sigCh
+		logger.InfoContext(ctx, "received signal", "signal", sig)
+		initWg.Wait()
+		cancel()
 	}()
 
 	wg.Wait()

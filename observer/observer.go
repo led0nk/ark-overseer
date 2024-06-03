@@ -12,8 +12,8 @@ import (
 	"github.com/FlowingSPDG/go-steam"
 	"github.com/google/uuid"
 	"github.com/led0nk/ark-clusterinfo/internal"
-	"github.com/led0nk/ark-clusterinfo/internal/events"
 	"github.com/led0nk/ark-clusterinfo/internal/model"
+	"github.com/led0nk/ark-clusterinfo/pkg/events"
 )
 
 type Observer struct {

@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/led0nk/ark-clusterinfo/internal"
+	"github.com/led0nk/ark-clusterinfo/pkg/config"
 	sloghttp "github.com/samber/slog-http"
 )
 
@@ -15,6 +16,7 @@ type Server struct {
 	logger    *slog.Logger
 	sStore    internal.ServerStore
 	blacklist internal.Blacklist
+	config    config.Configuration
 }
 
 func NewServer(
@@ -23,6 +25,7 @@ func NewServer(
 	logger *slog.Logger,
 	sStore internal.ServerStore,
 	blacklist internal.Blacklist,
+	config config.Configuration,
 ) *Server {
 	return &Server{
 		addr:      address,
@@ -30,6 +33,7 @@ func NewServer(
 		logger:    slog.Default().WithGroup("http"),
 		sStore:    sStore,
 		blacklist: blacklist,
+		config:    config,
 	}
 }
 
@@ -53,6 +57,7 @@ func (s *Server) ServeHTTP(ctx context.Context) error {
 	r.Handle("GET /serverdata/{ID}", http.HandlerFunc(s.sseServerUpdate))
 	r.Handle("GET /serverdata/{ID}/players", http.HandlerFunc(s.updatePlayerInfo))
 	r.Handle("GET /settings", http.HandlerFunc(s.setupPage))
+	r.Handle("POST /settings", http.HandlerFunc(s.saveChanges))
 	r.Handle("GET /blacklist", http.HandlerFunc(s.blacklistPage))
 	r.Handle("POST /blacklist", http.HandlerFunc(s.blacklistAdd))
 	r.Handle("DELETE /blacklist/{ID}", http.HandlerFunc(s.blacklistDelete))
@@ -65,13 +70,24 @@ func (s *Server) ServeHTTP(ctx context.Context) error {
 	}
 
 	go func() {
-		err := srv.ListenAndServe()
-		if err != nil {
-			s.logger.Error("error during listen and serve", "error", err)
+		select {
+		case <-ctx.Done():
+			shutdownCtx, cancel := context.WithCancel(ctx)
+			defer cancel()
+			err := srv.Shutdown(shutdownCtx)
+			if err != nil {
+				s.logger.ErrorContext(ctx, "failed to shutdown http server", "error", err)
+				return
+			}
+		default:
+			err := srv.ListenAndServe()
+			if err != nil {
+				s.logger.Error("error during listen and serve", "error", err)
+			}
 		}
 	}()
 
 	<-ctx.Done()
-	s.logger.InfoContext(ctx, "shutting down http server", "info", "shutdown")
-	return srv.Shutdown(context.Background())
+	s.logger.InfoContext(ctx, "server shutdown completed", "info", "shutdown")
+	return nil
 }

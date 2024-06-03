@@ -1,4 +1,4 @@
-package layout
+package web
 
 import (
 	"net/http"
@@ -81,13 +81,13 @@ templ NavBar(navItems templ.Component) {
               @navItems 
 						</div>
 					</div>
-					<div class="flex items-baseline space-x-4 absolute right-10">
+					<!--<div class="flex items-baseline space-x-4 absolute right-10">
 						@NavItem("Login", "/login", false, nil)
 						<a
 							href="/register"
 							class="text-gray-300 bg-gray-700 text-white hover:bg-gray-800/60 bg-gradient-to-r/60 from-[#1f2937] from-1% via-[#371f2f] via-50% to-[#1f2937] to-99% w-full backdrop-blur-sm hover:text-white rounded-md px-3 py-2 text-sm font-medium"
 						>Register</a>
-					</div>
+					</div>-->
 				</div>
 			</div>
 		</div>
@@ -96,7 +96,24 @@ templ NavBar(navItems templ.Component) {
 
 
 templ SetupCard(){
-  @ButtonPost("set", "/setup", "", "")
+  <div class="overflow-hidden rounded-lg border border-gray-200 dark:border-[#30363d] shadow-md m-5">
+  <div class="w-full border-collapse dark:bg-[#21262d]/50 text-left">
+  <div class="px-6 py-4 font-semibold dark:text-gray-300">
+    Notifications:
+    </div>
+  </div>
+  <form hx-post="settings">
+  <div class="px-6 py-4 font-semibold dark:text-gray-300">
+    @Input("Token", "text", "Discord token...", "token", "token")
+  </div>
+  <div class="px-6 py-4 font-semibold dark:text-gray-300">
+    @Input("Channel-ID", "text", "Channel-ID...", "channelID", "channelID")
+  </div>
+  <div class="px-6 py-4">
+    @ButtonSubmit("Save changes")
+    </div>
+    </form>
+  </div>
 }
 
 templ Table(serverlist []*model.Server) {
