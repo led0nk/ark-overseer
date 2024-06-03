@@ -32,7 +32,7 @@ ark-clusterinfo is a steam observation tool to track players
 #%go_generate_buildrequires
 
 %build
-go build -v -buildmode pie -mod vendor -o %{gobuilddir}/bin/%{name} cmd/server/main.go
+go build -v -buildmode pie -mod vendor -o %{gobuilddir}/bin/%{name} cmd/api/main.go
 
 %install
 install -m 0755 -vd                     %{buildroot}%{_bindir}
