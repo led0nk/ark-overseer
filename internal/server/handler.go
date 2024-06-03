@@ -265,19 +265,22 @@ func (s *Server) blacklistAdd(w http.ResponseWriter, r *http.Request) {
 	_, err = s.blacklist.Create(ctx, &model.BlacklistPlayers{
 		Name: r.FormValue("blacklistPlayer"),
 	})
-
 	if err != nil {
 		s.logger.ErrorContext(ctx, "failed to add player to blacklist", "error", err)
 		return
 	}
 
-	http.Redirect(w, r, "/blacklist", http.StatusFound)
+	newBlacklist := s.blacklist.List(ctx)
+
+	err = web.Render(ctx, w, web.BlacklistTable(newBlacklist))
+	if err != nil {
+		s.logger.ErrorContext(ctx, "failed to render templ", "error", err)
+		return
+	}
 }
 
 func (s *Server) blacklistDelete(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-
-	fmt.Println(r.PathValue("ID"))
 
 	id, err := uuid.Parse(r.PathValue("ID"))
 	if err != nil {
