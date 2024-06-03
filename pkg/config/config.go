@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"sync"
 
 	"github.com/led0nk/ark-overseer/pkg/events"
@@ -37,6 +38,10 @@ func NewConfiguration(filename string) (*Config, error) {
 
 func (c *Config) Read() error {
 	if _, err := os.Stat(c.filename); os.IsNotExist(err) {
+		err = os.MkdirAll(filepath.Dir(c.filename), 0644)
+		if err != nil {
+			return err
+		}
 		err = c.Write()
 		if err != nil {
 			return err

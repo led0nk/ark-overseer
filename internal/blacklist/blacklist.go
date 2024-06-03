@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"os"
+	"path/filepath"
 	"sync"
 
 	"github.com/google/uuid"
@@ -42,6 +43,10 @@ func (b *Blacklist) writeJSON() error {
 
 func (b *Blacklist) readJSON() error {
 	if _, err := os.Stat(b.filename); os.IsNotExist(err) {
+		err = os.MkdirAll(filepath.Dir(b.filename), 0644)
+		if err != nil {
+			return err
+		}
 		err = b.writeJSON()
 		if err != nil {
 			return err
