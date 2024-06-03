@@ -56,8 +56,8 @@ The most simple way of installation is to just run the application in a containe
 E.g. with a container-service like Docker:
 
 ```sh 
-docker run -it \\
-    -p 8080:8080 \\
+docker run -it \
+    -p 8080:8080 \
     --rm ghcr.io/led0nk/ark-overseer:latest
 ```
 
