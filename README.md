@@ -30,7 +30,7 @@ The Ark-Overseer is also available as an rpm-package, which makes it easy to ins
 ##### 1.) First you have to enable the repository:
 
 ```sh 
-dnf copr enable led0nk/ark-overseer
+dnf copr enable led0nk/ark-clusterinfo
 ```
 
 ##### 2.) Then you're able to simply install it via the dnf-pkg-manager:
