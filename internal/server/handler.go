@@ -262,7 +262,7 @@ func (s *Server) saveChanges(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.Redirect(w, r, "/settings", http.StatusFound)
+	http.Redirect(w, r, "/", http.StatusFound)
 }
 
 func (s *Server) blacklistAdd(w http.ResponseWriter, r *http.Request) {

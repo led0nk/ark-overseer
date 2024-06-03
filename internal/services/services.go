@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"sync"
 
@@ -74,7 +75,7 @@ func (sm *ServiceManager) HandleEvent(ctx context.Context, event events.EventMes
 			}
 		}
 		for serviceName, service := range sm.services {
-			ctx, cancel := context.WithCancel(ctx)
+			ctx, cancel := context.WithCancel(context.Background())
 			sm.cancelFunc[serviceName] = cancel
 			go sm.em.StartListening(ctx, service, serviceName)
 		}
@@ -97,12 +98,14 @@ func (sm *ServiceManager) HandleEvent(ctx context.Context, event events.EventMes
 		for serviceName, cancel := range sm.cancelFunc {
 			cancel()
 			delete(sm.cancelFunc, serviceName)
+			delete(sm.services, serviceName)
 		}
 
 		//NOTE: range over sectionMap for notification services
 		for k, v := range sectionMap {
 			switch k {
 			case "discord":
+				fmt.Println("case discord")
 				newConfig, ok := v.(map[interface{}]interface{})
 				if !ok {
 					sm.logger.Error("invalid payload type", "error", event.Type)
@@ -131,7 +134,7 @@ func (sm *ServiceManager) HandleEvent(ctx context.Context, event events.EventMes
 			}
 		}
 		for serviceName, service := range sm.services {
-			ctx, cancel := context.WithCancel(ctx)
+			ctx, cancel := context.WithCancel(context.Background())
 			sm.cancelFunc[serviceName] = cancel
 			go sm.em.StartListening(ctx, service, serviceName)
 		}

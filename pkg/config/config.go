@@ -71,7 +71,6 @@ func (c *Config) Write() error {
 	if err != nil {
 		return err
 	}
-	fmt.Println(data)
 
 	err = os.WriteFile(c.filename, data, 0644)
 	if err != nil {
@@ -96,7 +95,6 @@ func (c *Config) Update(section string, key string, value interface{}) error {
 	if err != nil {
 		return err
 	}
-
 	c.em.Publish(events.EventMessage{Type: "config.changed", Payload: sectionMap})
 
 	return nil
