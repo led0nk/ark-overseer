@@ -1,12 +1,17 @@
-<center>
+<div align="center">
+
+  <img src="https://github.com/led0nk/ark-overseer/assets/10290002/3b420707-4385-4ff1-a4fb-cdc42e1e75a1" width=500>
+ 
+
 # Ark-Overseer - observation tool
 
-[Installation](#-installation)
+[Installation](#installation)
 •
-[Messaging](#-messaging)
+[Messaging](#messaging)
 •
-[Contribution](#-contribution)
-</center>
+[Contribution](#contribution)
+
+</div>
 
 
 
@@ -19,7 +24,7 @@ the `Steam-Name` `123` it might not be the best application for official servers
 You can simply add the servers you'd wish to track via the web-interface.
 
 The messaging feature can be configured through the `Settings`-Tab in the navigation-bar.
-See more -> [Messaging](#-messaging)
+See more -> [Messaging](#messaging)
 
 ## Installation
 
