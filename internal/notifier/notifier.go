@@ -34,21 +34,21 @@ func (n *Notifier) Delete(ctx context.Context, id uuid.UUID) error {
 }
 
 func (n *Notifier) GetByID(ctx context.Context, id uuid.UUID) (*model.Server, error) {
-	//n.notify("get by id")
 	return n.sStore.GetByID(ctx, id)
 }
 
 func (n *Notifier) GetByName(ctx context.Context, name string) (*model.Server, error) {
-	//n.notify("get by name")
 	return n.sStore.GetByName(ctx, name)
 }
 
 func (n *Notifier) List(ctx context.Context) ([]*model.Server, error) {
-	//n.notify("list")
 	return n.sStore.List(ctx)
 }
 
 func (n *Notifier) Update(ctx context.Context, srv *model.Server) error {
-	//(n.notify("update")
 	return n.sStore.Update(ctx, srv)
+}
+
+func (n *Notifier) Save() error {
+	return n.sStore.Save()
 }

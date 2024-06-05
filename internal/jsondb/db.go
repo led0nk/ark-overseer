@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"sort"
 	"sync"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/led0nk/ark-overseer/internal/model"
@@ -20,42 +21,58 @@ type ServerStorage struct {
 }
 
 func NewServerStorage(ctx context.Context, filename string) (*ServerStorage, error) {
-	cluster := &ServerStorage{
+	store := &ServerStorage{
 		filename: filename,
 		server:   make(map[uuid.UUID]*model.Server),
 	}
-	if err := cluster.readJSON(ctx); err != nil {
+	if err := store.load(); err != nil {
 		return nil, err
 	}
-	return cluster, nil
+
+	go store.autoSave(ctx)
+
+	return store, nil
 }
 
-func (s *ServerStorage) writeJSON(ctx context.Context) error {
-	select {
-	case <-ctx.Done():
-		return ctx.Err()
-	default:
-		as_json, err := json.MarshalIndent(s.server, "", "\t")
-		if err != nil {
-			return err
-		}
+func (s *ServerStorage) Save() error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	as_json, err := json.MarshalIndent(s.server, "", "\t")
+	if err != nil {
+		return err
+	}
 
-		err = os.WriteFile(s.filename, as_json, 0644)
-		if err != nil {
-			return err
+	err = os.WriteFile(s.filename, as_json, 0644)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *ServerStorage) autoSave(ctx context.Context) {
+	ticker := time.NewTicker(time.Minute)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+			err := s.Save()
+			if err != nil {
+				return
+			}
 		}
-		return nil
 	}
 }
 
-// read JSON data from file = filename
-func (s *ServerStorage) readJSON(ctx context.Context) error {
+func (s *ServerStorage) load() error {
 	if _, err := os.Stat(s.filename); os.IsNotExist(err) {
 		err = os.MkdirAll(filepath.Dir(s.filename), 0777)
 		if err != nil {
 			return err
 		}
-		err = s.writeJSON(ctx)
+		err = s.Save()
 		if err != nil {
 			return err
 		}
@@ -76,7 +93,7 @@ func (s *ServerStorage) Create(ctx context.Context, server *model.Server) (*mode
 	}
 
 	s.server[server.ID] = server
-	if err := s.writeJSON(ctx); err != nil {
+	if err := s.Save(); err != nil {
 		return nil, err
 	}
 
@@ -92,7 +109,7 @@ func (s *ServerStorage) Update(ctx context.Context, server *model.Server) error 
 		return ctx.Err()
 	default:
 		s.server[server.ID] = server
-		return s.writeJSON(ctx)
+		return nil
 	}
 }
 
@@ -144,9 +161,6 @@ func (s *ServerStorage) Delete(ctx context.Context, ID uuid.UUID) error {
 
 	delete(s.server, ID)
 
-	if err := s.writeJSON(ctx); err != nil {
-		return err
-	}
 	return nil
 }
 

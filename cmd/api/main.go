@@ -13,7 +13,6 @@ import (
 	blist "github.com/led0nk/ark-overseer/internal/blacklist"
 	"github.com/led0nk/ark-overseer/internal/jsondb"
 	"github.com/led0nk/ark-overseer/internal/notifier"
-	"github.com/led0nk/ark-overseer/internal/overseer"
 	v1 "github.com/led0nk/ark-overseer/internal/server"
 	"github.com/led0nk/ark-overseer/internal/services"
 	"github.com/led0nk/ark-overseer/observer"
@@ -33,10 +32,10 @@ func main() {
 		configPath  = flag.String("config", "config", "path to config-file")
 		sStore      internal.ServerStore
 		obs         internal.Observer
-		ovs         internal.Overseer
 		blacklist   internal.Blacklist
+		cfg         config.Configuration
 		logLevel    slog.Level
-		wg          sync.WaitGroup
+		shutdownWg  sync.WaitGroup
 		initWg      sync.WaitGroup
 	)
 	flag.Parse()
@@ -54,11 +53,6 @@ func main() {
 
 	logger.Info("server address", "addr", *addr)
 
-	cfg, err := config.NewConfiguration(*configPath + "/config.yaml")
-	if err != nil {
-		logger.Error("failed to create new config", "error", err)
-	}
-
 	sStore, err = jsondb.NewServerStorage(ctx, *db+"/cluster.json")
 	if err != nil {
 		logger.ErrorContext(ctx, "failed to create new cluster", "error", err)
@@ -66,15 +60,14 @@ func main() {
 	}
 
 	em := events.NewEventManager()
-	sm := services.NewServiceManager(em)
+	sm := services.NewServiceManager(em, &initWg)
 
 	notify := notifier.NewNotifier(sStore, em)
 	sStore = notify
 
-	obs, err = observer.NewObserver(ctx, sStore)
+	cfg, err = config.NewConfiguration(*configPath+"/config.yaml", em)
 	if err != nil {
-		logger.ErrorContext(ctx, "failed to create endpoint storage", "error", err)
-		os.Exit(1)
+		logger.Error("failed to create new config", "error", err)
 	}
 
 	blacklist, err = blist.NewBlacklist(*blpath + "/blacklist.json")
@@ -83,36 +76,30 @@ func main() {
 		os.Exit(1)
 	}
 
-	ovs, err = overseer.NewOverseer(ctx, sStore, blacklist, em)
+	obs, err = observer.NewObserver(ctx, sStore, blacklist, em)
 	if err != nil {
-		logger.ErrorContext(ctx, "failed to create overseer", "error", err)
+		logger.ErrorContext(ctx, "failed to create endpoint storage", "error", err)
 		os.Exit(1)
 	}
 
-	wg.Add(1)
+	shutdownWg.Add(1)
 	go func() {
-		defer wg.Done()
+		defer shutdownWg.Done()
 		em.StartListening(ctx, sm, "serviceManager")
 	}()
 
-	//TODO: Wait group for initialization
-	initWg.Add(1)
+	//NOTE: Wait group for initialization, 2 because the first 1 is the publish for init.services and the 2nd is the handled event
+	initWg.Add(2)
 	go func() {
 		defer initWg.Done()
 		em.Publish(events.EventMessage{Type: "init.services", Payload: cfg})
 	}()
 
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	shutdownWg.Add(1)
+	go func(cfg config.Configuration) {
+		defer shutdownWg.Done()
 		em.StartListening(ctx, obs, "observer")
-	}()
-
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		em.StartListening(ctx, ovs, "overseer")
-	}()
+	}(cfg)
 
 	initWg.Wait()
 	initWg.Add(1)
@@ -123,9 +110,9 @@ func main() {
 
 	server := v1.NewServer(*addr, *domain, logger, sStore, blacklist, cfg)
 
-	wg.Add(1)
+	shutdownWg.Add(1)
 	go func() {
-		defer wg.Done()
+		defer shutdownWg.Done()
 		err := server.ServeHTTP(ctx)
 		if err != nil {
 			logger.ErrorContext(ctx, "failed to shutdown http server", "error", err)
@@ -143,6 +130,14 @@ func main() {
 		cancel()
 	}()
 
-	wg.Wait()
+	shutdownWg.Wait()
+	shutdownWg.Add(1)
+
+	logger.InfoContext(ctx, "finally saving server storage", "info", "shutdown")
+	err = sStore.Save()
+	if err != nil {
+		logger.ErrorContext(ctx, "failed to save server storage", "error", err)
+	}
+
 	logger.InfoContext(ctx, "application stopped gracefully", "info", "shutdown")
 }
