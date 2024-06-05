@@ -16,16 +16,21 @@ type ServiceManager struct {
 	services   map[string]internal.Notification
 	cancelFunc map[string]context.CancelFunc
 	mu         sync.Mutex
+	initWg     *sync.WaitGroup
 	logger     *slog.Logger
 	em         *events.EventManager
 }
 
-func NewServiceManager(em *events.EventManager) *ServiceManager {
+func NewServiceManager(
+	em *events.EventManager,
+	initWg *sync.WaitGroup,
+) *ServiceManager {
 	return &ServiceManager{
 		services:   make(map[string]internal.Notification),
 		cancelFunc: make(map[string]context.CancelFunc),
 		logger:     slog.Default().WithGroup("serviceManager"),
 		em:         em,
+		initWg:     initWg,
 	}
 }
 
@@ -79,6 +84,7 @@ func (sm *ServiceManager) HandleEvent(ctx context.Context, event events.EventMes
 			sm.cancelFunc[serviceName] = cancel
 			go sm.em.StartListening(ctx, service, serviceName)
 		}
+		sm.initWg.Done()
 
 	case "config.changed":
 		sectionMap, ok := event.Payload.(map[interface{}]interface{})

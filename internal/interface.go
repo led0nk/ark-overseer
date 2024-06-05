@@ -19,7 +19,8 @@ type ServerStore interface {
 
 type Observer interface {
 	ReadEndpoint(*model.Server) error
-	DataScraper(context.Context, *model.Server)
+	DataScraper(context.Context, *model.Server) chan *model.Server
+	Scanner(context.Context, chan *model.Server) chan *model.Server
 	SpawnScraper(context.Context)
 	AddScraper(context.Context, *model.Server) error
 	KillScraper(uuid.UUID) error

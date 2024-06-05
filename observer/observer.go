@@ -20,18 +20,33 @@ type Observer struct {
 	endpoints   map[uuid.UUID]*model.Server
 	cancelFuncs map[uuid.UUID]context.CancelFunc
 	serverStore internal.ServerStore
+	blacklist   internal.Blacklist
+	em          *events.EventManager
 	logger      *slog.Logger
 	mu          sync.Mutex
-	resultCh    chan *model.Server
+	resultCh    map[uuid.UUID]chan *model.Server
 }
 
-func NewObserver(ctx context.Context, sStore internal.ServerStore) (*Observer, error) {
+type NotificationStatus struct {
+	isActive       bool
+	joinedNotified bool
+	leftNotified   bool
+}
+
+func NewObserver(
+	ctx context.Context,
+	sStore internal.ServerStore,
+	blacklist internal.Blacklist,
+	eventManager *events.EventManager,
+) (*Observer, error) {
 	observer := &Observer{
 		endpoints:   make(map[uuid.UUID]*model.Server),
 		cancelFuncs: make(map[uuid.UUID]context.CancelFunc),
 		serverStore: sStore,
+		blacklist:   blacklist,
+		em:          eventManager,
 		logger:      slog.Default().WithGroup("observer"),
-		resultCh:    make(chan *model.Server),
+		resultCh:    make(map[uuid.UUID]chan *model.Server),
 	}
 	go observer.processResults(ctx)
 	return observer, nil
@@ -49,54 +64,126 @@ func (o *Observer) ReadEndpoint(target *model.Server) error {
 	return nil
 }
 
-func (o *Observer) DataScraper(ctx context.Context, s *model.Server) {
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		default:
-			helpSrv, err := steam.Connect(s.Addr)
-			if err != nil {
-				o.logger.ErrorContext(ctx, "error connecting to endpoint", "error", err)
-				continue
-			}
+func (o *Observer) DataScraper(ctx context.Context, target *model.Server) chan *model.Server {
+	out := make(chan *model.Server)
+	go func() {
+		defer close(out)
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			default:
+				helpSrv, err := steam.Connect(target.Addr)
+				if err != nil {
+					o.logger.ErrorContext(ctx, "error connecting to endpoint", "error", err)
+					continue
+				}
 
-			infoResponse, err := helpSrv.Info()
-			if err != nil {
-				o.logger.ErrorContext(ctx, "error fetching ServerInfo", "error", err)
-				continue
-			}
+				infoResponse, err := helpSrv.Info()
+				if err != nil {
+					o.logger.ErrorContext(ctx, "error fetching ServerInfo", "error", err)
+					continue
+				}
 
-			playerResponse, err := helpSrv.PlayersInfo()
-			if err != nil {
-				o.logger.ErrorContext(ctx, "error fetching PlayersInfo", "error", err)
-				continue
-			}
+				playerResponse, err := helpSrv.PlayersInfo()
+				if err != nil {
+					o.logger.ErrorContext(ctx, "error fetching PlayersInfo", "error", err)
+					continue
+				}
 
-			ping, err := helpSrv.Ping()
-			if err != nil {
-				o.logger.ErrorContext(ctx, "failed to ping server", "error", err)
-				continue
-			}
+				ping, err := helpSrv.Ping()
+				if err != nil {
+					o.logger.ErrorContext(ctx, "failed to ping server", "error", err)
+					continue
+				}
 
-			var status bool
-			if ping < time.Duration(5*time.Second) {
-				status = true
-			}
+				var status bool
+				if ping < time.Duration(5*time.Second) {
+					status = true
+				}
 
-			server := &model.Server{
-				Name:        s.Name,
-				Addr:        s.Addr,
-				ID:          s.ID,
-				Status:      status,
-				ServerInfo:  model.ToServerInfo(infoResponse),
-				PlayersInfo: model.ToPlayerInfo(playerResponse),
+				server := &model.Server{
+					Name:        target.Name,
+					Addr:        target.Addr,
+					ID:          target.ID,
+					Status:      status,
+					ServerInfo:  model.ToServerInfo(infoResponse),
+					PlayersInfo: model.ToPlayerInfo(playerResponse),
+				}
+				ReplaceNullCharsInStruct(server)
+				server = correctPlayerNum(server)
+				out <- server
 			}
-			ReplaceNullCharsInStruct(server)
-			server = correctPlayerNum(server)
-			o.resultCh <- server
+		}
+	}()
+	return out
+}
+
+func (o *Observer) Scanner(ctx context.Context, in chan *model.Server) chan *model.Server {
+	out := make(chan *model.Server)
+	go func() {
+		defer close(out)
+		previousPlayers := make(map[string]*NotificationStatus)
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case server, ok := <-in:
+				if !ok {
+					return
+				}
+
+				blacklist := o.blacklist.List(ctx)
+
+				if server.PlayersInfo == nil {
+					continue
+				}
+
+				previousPlayers = o.Scan(ctx, blacklist, server, previousPlayers)
+				out <- server
+			}
+		}
+	}()
+	return out
+}
+
+func (o *Observer) Scan(ctx context.Context, blacklist []*model.BlacklistPlayers, server *model.Server, previousPlayers map[string]*NotificationStatus) map[string]*NotificationStatus {
+
+	blacklistMap := make(map[string]bool)
+	for _, blacklistedPlayer := range blacklist {
+		blacklistMap[blacklistedPlayer.Name] = true
+	}
+
+	for _, status := range previousPlayers {
+		status.isActive = false
+	}
+
+	for _, player := range server.PlayersInfo.Players {
+		status, exists := previousPlayers[player.Name]
+		if !exists {
+			status = &NotificationStatus{}
+			previousPlayers[player.Name] = status
+		}
+		status.isActive = true
+
+		if blacklistMap[player.Name] {
+			if !status.joinedNotified {
+				o.em.Publish(events.EventMessage{Type: "player.joined", Payload: player.Name + " joined the server " + server.Name})
+				status.joinedNotified = true
+				status.leftNotified = false
+			}
 		}
 	}
+
+	for playerName, status := range previousPlayers {
+		if blacklistMap[playerName] && !status.isActive && !status.leftNotified {
+			o.em.Publish(events.EventMessage{Type: "player.left", Payload: playerName + " left the server " + server.Name})
+			status.leftNotified = true
+			status.joinedNotified = false
+		}
+	}
+
+	return previousPlayers
 }
 
 func (o *Observer) SpawnScraper(ctx context.Context) {
@@ -123,14 +210,23 @@ func (o *Observer) processResults(ctx context.Context) {
 	for {
 		select {
 		case <-ctx.Done():
-		case result := <-o.resultCh:
-			if result == nil {
-				continue
+			return
+		default:
+			for _, ch := range o.resultCh {
+				select {
+				case <-ctx.Done():
+					return
+				case result := <-ch:
+					if result == nil {
+						continue
+					}
+					err := o.serverStore.Update(ctx, result)
+					if err != nil {
+						o.logger.Error("failed to update server info", "error", err)
+					}
+				}
 			}
-			err := o.serverStore.Update(ctx, result)
-			if err != nil {
-				o.logger.Error("failed to update server info", "error", err)
-			}
+
 		}
 	}
 }
@@ -143,7 +239,9 @@ func (o *Observer) AddScraper(ctx context.Context, target *model.Server) error {
 
 	ctx, cancel := context.WithCancel(ctx)
 	o.cancelFuncs[target.ID] = cancel
-	go o.DataScraper(ctx, target)
+	pipeCh := o.DataScraper(ctx, target)
+	processCh := o.Scanner(ctx, pipeCh)
+	o.resultCh[target.ID] = processCh
 	return nil
 }
 
@@ -155,6 +253,8 @@ func (o *Observer) KillScraper(targetID uuid.UUID) error {
 		cancel()
 		delete(o.cancelFuncs, targetID)
 		delete(o.endpoints, targetID)
+		close(o.resultCh[targetID])
+		delete(o.resultCh, targetID)
 		return nil
 	}
 	return errors.New("Scraper with ID not found")
