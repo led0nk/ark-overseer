@@ -40,6 +40,7 @@ func (sm *ServiceManager) HandleEvent(ctx context.Context, event events.EventMes
 
 	switch event.Type {
 	case "init.services":
+		defer sm.initWg.Done()
 		cfg, ok := event.Payload.(*config.Config)
 		if !ok {
 			sm.logger.ErrorContext(ctx, "invalid payload type", "error", event.Type)
@@ -72,11 +73,13 @@ func (sm *ServiceManager) HandleEvent(ctx context.Context, event events.EventMes
 					continue
 				}
 
-				sm.services["discord"], err = discord.NewDiscordNotifier(ctx, token, channelID)
+				newDiscord, err := discord.NewDiscordNotifier(ctx, token, channelID)
 				if err != nil {
 					sm.logger.ErrorContext(ctx, "failed to create notification service", "error", err)
+					delete(sm.services, "discord")
 					continue
 				}
+				sm.services["discord"] = newDiscord
 			}
 		}
 		for serviceName, service := range sm.services {
@@ -84,7 +87,6 @@ func (sm *ServiceManager) HandleEvent(ctx context.Context, event events.EventMes
 			sm.cancelFunc[serviceName] = cancel
 			go sm.em.StartListening(ctx, service, serviceName)
 		}
-		sm.initWg.Done()
 
 	case "config.changed":
 		sectionMap, ok := event.Payload.(map[interface{}]interface{})
@@ -94,6 +96,7 @@ func (sm *ServiceManager) HandleEvent(ctx context.Context, event events.EventMes
 		}
 
 		for serviceName, service := range sm.services {
+			fmt.Println("before disconnect")
 			err := service.Disconnect()
 			if err != nil {
 				sm.logger.ErrorContext(ctx, "failed to disconnect notification service", "error", serviceName)
@@ -111,7 +114,6 @@ func (sm *ServiceManager) HandleEvent(ctx context.Context, event events.EventMes
 		for k, v := range sectionMap {
 			switch k {
 			case "discord":
-				fmt.Println("case discord")
 				newConfig, ok := v.(map[interface{}]interface{})
 				if !ok {
 					sm.logger.Error("invalid payload type", "error", event.Type)
@@ -131,11 +133,12 @@ func (sm *ServiceManager) HandleEvent(ctx context.Context, event events.EventMes
 				}
 
 				var err error
-				sm.services["discord"], err = discord.NewDiscordNotifier(ctx, token, channelID)
+				newDiscord, err := discord.NewDiscordNotifier(ctx, token, channelID)
 				if err != nil {
 					sm.logger.ErrorContext(ctx, "failed to create discord notifier", "error ", err)
 					continue
 				}
+				sm.services["discord"] = newDiscord
 
 			}
 		}

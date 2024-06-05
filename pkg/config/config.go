@@ -23,10 +23,14 @@ type Config struct {
 	em       *events.EventManager
 }
 
-func NewConfiguration(filename string) (*Config, error) {
+func NewConfiguration(
+	filename string,
+	em *events.EventManager,
+) (*Config, error) {
 	cfg := &Config{
 		filename: filename,
 		config:   make(map[string]interface{}),
+		em:       em,
 	}
 
 	cfg.config["notification-service"] = nil

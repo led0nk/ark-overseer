@@ -33,8 +33,9 @@ func main() {
 		sStore      internal.ServerStore
 		obs         internal.Observer
 		blacklist   internal.Blacklist
+		cfg         config.Configuration
 		logLevel    slog.Level
-		wg          sync.WaitGroup
+		shutdownWg  sync.WaitGroup
 		initWg      sync.WaitGroup
 	)
 	flag.Parse()
@@ -52,11 +53,6 @@ func main() {
 
 	logger.Info("server address", "addr", *addr)
 
-	cfg, err := config.NewConfiguration(*configPath + "/config.yaml")
-	if err != nil {
-		logger.Error("failed to create new config", "error", err)
-	}
-
 	sStore, err = jsondb.NewServerStorage(ctx, *db+"/cluster.json")
 	if err != nil {
 		logger.ErrorContext(ctx, "failed to create new cluster", "error", err)
@@ -68,6 +64,11 @@ func main() {
 
 	notify := notifier.NewNotifier(sStore, em)
 	sStore = notify
+
+	cfg, err = config.NewConfiguration(*configPath+"/config.yaml", em)
+	if err != nil {
+		logger.Error("failed to create new config", "error", err)
+	}
 
 	blacklist, err = blist.NewBlacklist(*blpath + "/blacklist.json")
 	if err != nil {
@@ -81,9 +82,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	wg.Add(1)
+	shutdownWg.Add(1)
 	go func() {
-		defer wg.Done()
+		defer shutdownWg.Done()
 		em.StartListening(ctx, sm, "serviceManager")
 	}()
 
@@ -94,11 +95,11 @@ func main() {
 		em.Publish(events.EventMessage{Type: "init.services", Payload: cfg})
 	}()
 
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	shutdownWg.Add(1)
+	go func(cfg config.Configuration) {
+		defer shutdownWg.Done()
 		em.StartListening(ctx, obs, "observer")
-	}()
+	}(cfg)
 
 	initWg.Wait()
 	initWg.Add(1)
@@ -109,9 +110,9 @@ func main() {
 
 	server := v1.NewServer(*addr, *domain, logger, sStore, blacklist, cfg)
 
-	wg.Add(1)
+	shutdownWg.Add(1)
 	go func() {
-		defer wg.Done()
+		defer shutdownWg.Done()
 		err := server.ServeHTTP(ctx)
 		if err != nil {
 			logger.ErrorContext(ctx, "failed to shutdown http server", "error", err)
@@ -129,6 +130,14 @@ func main() {
 		cancel()
 	}()
 
-	wg.Wait()
+	shutdownWg.Wait()
+	shutdownWg.Add(1)
+
+	logger.InfoContext(ctx, "finally saving server storage", "info", "shutdown")
+	err = sStore.Save()
+	if err != nil {
+		logger.ErrorContext(ctx, "failed to save server storage", "error", err)
+	}
+
 	logger.InfoContext(ctx, "application stopped gracefully", "info", "shutdown")
 }
