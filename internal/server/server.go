@@ -1,11 +1,11 @@
-package v1
+package server
 
 import (
 	"context"
 	"log/slog"
 	"net/http"
 
-	"github.com/led0nk/ark-overseer/internal"
+	"github.com/led0nk/ark-overseer/internal/interfaces"
 	"github.com/led0nk/ark-overseer/pkg/config"
 	sloghttp "github.com/samber/slog-http"
 )
@@ -14,16 +14,16 @@ type Server struct {
 	addr      string
 	domain    string
 	logger    *slog.Logger
-	sStore    internal.Database
-	blacklist internal.Blacklist
+	sStore    interfaces.Database
+	blacklist interfaces.Blacklist
 	config    config.Configuration
 }
 
 func NewServer(
 	address string,
 	domain string,
-	sStore internal.Database,
-	blacklist internal.Blacklist,
+	sStore interfaces.Database,
+	blacklist interfaces.Blacklist,
 	config config.Configuration,
 ) *Server {
 	return &Server{

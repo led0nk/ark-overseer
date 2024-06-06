@@ -6,14 +6,14 @@ import (
 	"log/slog"
 	"sync"
 
-	"github.com/led0nk/ark-overseer/internal"
+	"github.com/led0nk/ark-overseer/internal/interfaces"
 	"github.com/led0nk/ark-overseer/internal/services/discord"
 	"github.com/led0nk/ark-overseer/pkg/config"
 	"github.com/led0nk/ark-overseer/pkg/events"
 )
 
 type ServiceManager struct {
-	services   map[string]internal.Notification
+	services   map[string]interfaces.Notification
 	cancelFunc map[string]context.CancelFunc
 	mu         sync.Mutex
 	initWg     *sync.WaitGroup
@@ -26,7 +26,7 @@ func NewServiceManager(
 	initWg *sync.WaitGroup,
 ) *ServiceManager {
 	return &ServiceManager{
-		services:   make(map[string]internal.Notification),
+		services:   make(map[string]interfaces.Notification),
 		cancelFunc: make(map[string]context.CancelFunc),
 		logger:     slog.Default().WithGroup("serviceManager"),
 		em:         em,

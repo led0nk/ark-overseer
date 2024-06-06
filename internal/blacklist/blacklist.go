@@ -1,4 +1,4 @@
-package blist
+package blacklist
 
 import (
 	"context"

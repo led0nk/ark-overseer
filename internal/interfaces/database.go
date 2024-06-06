@@ -1,11 +1,10 @@
-package internal
+package interfaces
 
 import (
 	"context"
 
 	"github.com/google/uuid"
 	"github.com/led0nk/ark-overseer/internal/model"
-	"github.com/led0nk/ark-overseer/pkg/events"
 )
 
 type Database interface {
@@ -16,17 +15,4 @@ type Database interface {
 	Delete(context.Context, uuid.UUID) error
 	Update(context.Context, *model.Server) error
 	Save() error
-}
-
-type Blacklist interface {
-	Create(context.Context, *model.BlacklistPlayers) (*model.BlacklistPlayers, error)
-	List(context.Context) []*model.BlacklistPlayers
-	Delete(context.Context, uuid.UUID) error
-}
-
-type Notification interface {
-	Connect(context.Context) error
-	Send(context.Context, string) error
-	HandleEvent(context.Context, events.EventMessage)
-	Disconnect() error
 }

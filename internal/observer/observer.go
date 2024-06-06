@@ -11,7 +11,7 @@ import (
 
 	"github.com/FlowingSPDG/go-steam"
 	"github.com/google/uuid"
-	"github.com/led0nk/ark-overseer/internal"
+	"github.com/led0nk/ark-overseer/internal/interfaces"
 	"github.com/led0nk/ark-overseer/internal/model"
 	"github.com/led0nk/ark-overseer/pkg/events"
 )
@@ -23,8 +23,8 @@ type Overseer interface {
 type Observer struct {
 	endpoints   map[uuid.UUID]*model.Server
 	cancelFuncs map[uuid.UUID]context.CancelFunc
-	serverStore internal.Database
-	blacklist   internal.Blacklist
+	serverStore interfaces.Database
+	blacklist   interfaces.Blacklist
 	em          *events.EventManager
 	logger      *slog.Logger
 	mu          sync.Mutex
@@ -39,8 +39,8 @@ type NotificationStatus struct {
 
 func NewObserver(
 	ctx context.Context,
-	sStore internal.Database,
-	blacklist internal.Blacklist,
+	sStore interfaces.Database,
+	blacklist interfaces.Blacklist,
 	eventManager *events.EventManager,
 ) (*Observer, error) {
 	observer := &Observer{
@@ -56,7 +56,7 @@ func NewObserver(
 	return observer, nil
 }
 
-func (o *Observer) ReadEndpoint(target *model.Server) error {
+func (o *Observer) readEndpoint(target *model.Server) error {
 	o.mu.Lock()
 	defer o.mu.Unlock()
 
@@ -68,7 +68,7 @@ func (o *Observer) ReadEndpoint(target *model.Server) error {
 	return nil
 }
 
-func (o *Observer) DataScraper(ctx context.Context, target *model.Server) chan *model.Server {
+func (o *Observer) dataScraper(ctx context.Context, target *model.Server) chan *model.Server {
 	out := make(chan *model.Server)
 	go func() {
 		defer close(out)
@@ -114,7 +114,7 @@ func (o *Observer) DataScraper(ctx context.Context, target *model.Server) chan *
 					ServerInfo:  model.ToServerInfo(infoResponse),
 					PlayersInfo: model.ToPlayerInfo(playerResponse),
 				}
-				ReplaceNullCharsInStruct(server)
+				replaceNullCharsInStruct(server)
 				server = correctPlayerNum(server)
 				out <- server
 			}
@@ -123,7 +123,7 @@ func (o *Observer) DataScraper(ctx context.Context, target *model.Server) chan *
 	return out
 }
 
-func (o *Observer) Scanner(ctx context.Context, in chan *model.Server) chan *model.Server {
+func (o *Observer) scanner(ctx context.Context, in chan *model.Server) chan *model.Server {
 	out := make(chan *model.Server)
 	go func() {
 		defer close(out)
@@ -143,7 +143,7 @@ func (o *Observer) Scanner(ctx context.Context, in chan *model.Server) chan *mod
 					continue
 				}
 
-				previousPlayers = o.Scan(ctx, blacklist, server, previousPlayers)
+				previousPlayers = o.scan(ctx, blacklist, server, previousPlayers)
 				out <- server
 			}
 		}
@@ -151,7 +151,7 @@ func (o *Observer) Scanner(ctx context.Context, in chan *model.Server) chan *mod
 	return out
 }
 
-func (o *Observer) Scan(ctx context.Context, blacklist []*model.BlacklistPlayers, server *model.Server, previousPlayers map[string]*NotificationStatus) map[string]*NotificationStatus {
+func (o *Observer) scan(ctx context.Context, blacklist []*model.BlacklistPlayers, server *model.Server, previousPlayers map[string]*NotificationStatus) map[string]*NotificationStatus {
 
 	blacklistMap := make(map[string]bool)
 	for _, blacklistedPlayer := range blacklist {
@@ -190,7 +190,7 @@ func (o *Observer) Scan(ctx context.Context, blacklist []*model.BlacklistPlayers
 	return previousPlayers
 }
 
-func (o *Observer) SpawnScraper(ctx context.Context) {
+func (o *Observer) spawnScraper(ctx context.Context) {
 	select {
 	case <-ctx.Done():
 		return
@@ -201,7 +201,7 @@ func (o *Observer) SpawnScraper(ctx context.Context) {
 		}
 
 		for _, server := range serverList {
-			err := o.AddScraper(ctx, server)
+			err := o.addScraper(ctx, server)
 			if err != nil {
 				o.logger.ErrorContext(ctx, "failed to spawn scraper", "error", err)
 				return
@@ -235,21 +235,21 @@ func (o *Observer) processResults(ctx context.Context) {
 	}
 }
 
-func (o *Observer) AddScraper(ctx context.Context, target *model.Server) error {
-	err := o.ReadEndpoint(target)
+func (o *Observer) addScraper(ctx context.Context, target *model.Server) error {
+	err := o.readEndpoint(target)
 	if err != nil {
 		return err
 	}
 
 	ctx, cancel := context.WithCancel(ctx)
 	o.cancelFuncs[target.ID] = cancel
-	pipeCh := o.DataScraper(ctx, target)
-	processCh := o.Scanner(ctx, pipeCh)
+	pipeCh := o.dataScraper(ctx, target)
+	processCh := o.scanner(ctx, pipeCh)
 	o.resultCh[target.ID] = processCh
 	return nil
 }
 
-func (o *Observer) KillScraper(targetID uuid.UUID) error {
+func (o *Observer) killScraper(targetID uuid.UUID) error {
 	o.mu.Lock()
 	defer o.mu.Unlock()
 
@@ -267,14 +267,14 @@ func (o *Observer) KillScraper(targetID uuid.UUID) error {
 func (o *Observer) HandleEvent(ctx context.Context, event events.EventMessage) {
 	switch event.Type {
 	case "init":
-		o.SpawnScraper(ctx)
+		o.spawnScraper(ctx)
 	case "server.added":
 		server, ok := event.Payload.(*model.Server)
 		if !ok {
 			o.logger.ErrorContext(ctx, "invalid payload type", "error", event.Type)
 			return
 		}
-		err := o.AddScraper(ctx, server)
+		err := o.addScraper(ctx, server)
 		if err != nil {
 			o.logger.ErrorContext(ctx, "failed to add scraper", "error", err)
 			return
@@ -285,7 +285,7 @@ func (o *Observer) HandleEvent(ctx context.Context, event events.EventMessage) {
 			o.logger.ErrorContext(ctx, "invalid payload type", "error", event.Type)
 			return
 		}
-		err := o.KillScraper(id)
+		err := o.killScraper(id)
 		if err != nil {
 			o.logger.ErrorContext(ctx, "failed to add scraper", "error", err)
 			return
@@ -297,7 +297,7 @@ func (o *Observer) HandleEvent(ctx context.Context, event events.EventMessage) {
 
 //NOTE: help-funcs for data-transfer
 
-func ReplaceNullCharsInStruct(s any) {
+func replaceNullCharsInStruct(s any) {
 	v := reflect.ValueOf(s)
 	if v.Kind() != reflect.Ptr || v.IsNil() {
 		return

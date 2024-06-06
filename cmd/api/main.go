@@ -10,13 +10,13 @@ import (
 	"sync"
 	"syscall"
 
-	"github.com/led0nk/ark-overseer/internal"
-	blist "github.com/led0nk/ark-overseer/internal/blacklist"
-	"github.com/led0nk/ark-overseer/internal/jsondb"
-	"github.com/led0nk/ark-overseer/internal/notifier"
+	"github.com/led0nk/ark-overseer/internal/blacklist"
+	"github.com/led0nk/ark-overseer/internal/interfaces"
 	"github.com/led0nk/ark-overseer/internal/observer"
-	v1 "github.com/led0nk/ark-overseer/internal/server"
+	"github.com/led0nk/ark-overseer/internal/server"
 	"github.com/led0nk/ark-overseer/internal/services"
+	"github.com/led0nk/ark-overseer/internal/storage"
+	"github.com/led0nk/ark-overseer/internal/storagewrapper"
 	"github.com/led0nk/ark-overseer/pkg/config"
 	"github.com/led0nk/ark-overseer/pkg/events"
 )
@@ -24,10 +24,9 @@ import (
 func main() {
 
 	var (
-		addr   = flag.String("addr", "localhost:8080", "server port")
-		dbpath = flag.String("db", "testdata", "path to the database")
-		blpath = flag.String("blacklist", "testdata", "path to the blacklist")
-		//grpcaddr    = flag.String("grpcaddr", "", "grpc address, e.g. localhost:4317")
+		addr        = flag.String("addr", "localhost:8080", "server port")
+		dbpath      = flag.String("db", "testdata", "path to the database")
+		blpath      = flag.String("blacklist", "testdata", "path to the blacklist")
 		domain      = flag.String("domain", "127.0.0.1", "given domain for cookies/mail")
 		logLevelStr = flag.String("loglevel", "INFO", "define the level for logs")
 		configPath  = flag.String("config", "config", "path to config-file")
@@ -52,7 +51,7 @@ func main() {
 	eventManager := events.NewEventManager()
 	serviceManager := services.NewServiceManager(eventManager, &initWg)
 
-	database, blacklist, obs, cfg, err := initServices(ctx, dbpath, blpath, configPath, eventManager)
+	database, blackList, obs, cfg, err := initServices(ctx, dbpath, blpath, configPath, eventManager)
 	if err != nil {
 		logger.ErrorContext(ctx, "failed to initialize services", "error", err)
 		os.Exit(1)
@@ -75,8 +74,8 @@ func main() {
 		eventManager.Publish(events.EventMessage{Type: "init"})
 	}()
 
-	server := v1.NewServer(*addr, *domain, database, blacklist, cfg)
-	startHTTPServer(ctx, server, &shutdownWg)
+	srv := server.NewServer(*addr, *domain, database, blackList, cfg)
+	startHTTPServer(ctx, srv, &shutdownWg)
 
 	handleShutdown(ctx, cancel, &initWg, &shutdownWg, database)
 }
@@ -88,32 +87,32 @@ func initServices(
 	configPath *string,
 	eventManager *events.EventManager,
 ) (
-	internal.Database,
-	internal.Blacklist,
+	interfaces.Database,
+	interfaces.Blacklist,
 	observer.Overseer,
 	config.Configuration,
 	error) {
 	var (
-		database  internal.Database
-		blacklist internal.Blacklist
+		database  interfaces.Database
+		blackList interfaces.Blacklist
 		obs       observer.Overseer
 		cfg       config.Configuration
 	)
 
-	database, err := jsondb.NewServerStorage(ctx, *dbpath+"/cluster.json")
+	database, err := storage.NewServerStorage(ctx, *dbpath+"/cluster.json")
 	if err != nil {
 		return nil, nil, nil, nil, fmt.Errorf("failed to create new server storage: %w", err)
 	}
 
-	notify := notifier.NewNotifier(database, eventManager)
-	database = notify
+	storageWrapper := storagewrapper.NewStorageWrapper(database, eventManager)
+	database = storageWrapper
 
-	blacklist, err = blist.NewBlacklist(*blpath + "/blacklist.json")
+	blackList, err = blacklist.NewBlacklist(*blpath + "/blacklist.json")
 	if err != nil {
 		return nil, nil, nil, nil, fmt.Errorf("failed to create blacklist: %w", err)
 	}
 
-	obs, err = observer.NewObserver(ctx, database, blacklist, eventManager)
+	obs, err = observer.NewObserver(ctx, database, blackList, eventManager)
 	if err != nil {
 		return nil, nil, nil, nil, fmt.Errorf("failed to create observer: %w", err)
 	}
@@ -123,12 +122,12 @@ func initServices(
 		return nil, nil, nil, nil, fmt.Errorf("failed to create config: %w", err)
 	}
 
-	return database, blacklist, obs, cfg, nil
+	return database, blackList, obs, cfg, nil
 }
 
 func startHTTPServer(
 	ctx context.Context,
-	server *v1.Server,
+	server *server.Server,
 	shutdownWg *sync.WaitGroup,
 ) {
 	shutdownWg.Add(1)
@@ -163,7 +162,7 @@ func handleShutdown(
 	ctx context.Context,
 	cancel context.CancelFunc,
 	initWg, shutdownWg *sync.WaitGroup,
-	database internal.Database,
+	database interfaces.Database,
 ) {
 	logger := slog.Default()
 	sigCh := make(chan os.Signal, 1)
