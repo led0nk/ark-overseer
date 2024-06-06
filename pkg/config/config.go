@@ -11,8 +11,8 @@ import (
 )
 
 type Configuration interface {
-	Read() error
-	Write() error
+	Load() error
+	Save() error
 	Update(string, string, interface{}) error
 }
 
@@ -33,9 +33,7 @@ func NewConfiguration(
 		em:       em,
 	}
 
-	cfg.config["notification-service"] = nil
-
-	err := cfg.Read()
+	err := cfg.Load()
 	if err != nil {
 		return nil, err
 	}
@@ -43,13 +41,14 @@ func NewConfiguration(
 	return cfg, nil
 }
 
-func (c *Config) Read() error {
+func (c *Config) Load() error {
 	if _, err := os.Stat(c.filename); os.IsNotExist(err) {
 		err = os.MkdirAll(filepath.Dir(c.filename), 0777)
 		if err != nil {
 			return err
 		}
-		err = c.Write()
+		c.config["notification-service"] = nil
+		err = c.Save()
 		if err != nil {
 			return err
 		}
@@ -66,11 +65,12 @@ func (c *Config) Read() error {
 		return err
 	}
 	c.config = config
+	fmt.Println(config)
 
 	return nil
 }
 
-func (c *Config) Write() error {
+func (c *Config) Save() error {
 	data, err := yaml.Marshal(c.config)
 	if err != nil {
 		return err
@@ -88,14 +88,14 @@ func (c *Config) Update(section string, key string, value interface{}) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	sectionMap, ok := c.config[section].(map[interface{}]interface{})
+	sectionMap, ok := c.config[section].(map[string]interface{})
 	if !ok {
-		sectionMap = make(map[interface{}]interface{})
+		sectionMap = make(map[string]interface{})
 		c.config[section] = sectionMap
 	}
 	sectionMap[key] = value
 
-	err := c.Write()
+	err := c.Save()
 	if err != nil {
 		return err
 	}
@@ -104,10 +104,16 @@ func (c *Config) Update(section string, key string, value interface{}) error {
 	return nil
 }
 
-func (c *Config) GetSection(section string) (map[interface{}]interface{}, error) {
-	sectionMap, ok := c.config[section].(map[interface{}]interface{})
-	if !ok {
+func (c *Config) GetSection(section string) (map[string]interface{}, error) {
+	sectionMap, exists := c.config[section]
+	if !exists {
 		return nil, fmt.Errorf("section %s not found", section)
 	}
-	return sectionMap, nil
+
+	sectionData, ok := sectionMap.(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("section %s not a valid type", section)
+	}
+
+	return sectionData, nil
 }

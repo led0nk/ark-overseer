@@ -22,13 +22,13 @@ func NewBlacklist(filename string) (*Blacklist, error) {
 		filename:  filename,
 		blacklist: make(map[uuid.UUID]*model.BlacklistPlayers),
 	}
-	if err := blacklist.readJSON(); err != nil {
+	if err := blacklist.load(); err != nil {
 		return nil, err
 	}
 	return blacklist, nil
 }
 
-func (b *Blacklist) writeJSON() error {
+func (b *Blacklist) save() error {
 	as_json, err := json.MarshalIndent(b.blacklist, "", "\t")
 	if err != nil {
 		return err
@@ -41,13 +41,13 @@ func (b *Blacklist) writeJSON() error {
 	return nil
 }
 
-func (b *Blacklist) readJSON() error {
+func (b *Blacklist) load() error {
 	if _, err := os.Stat(b.filename); os.IsNotExist(err) {
 		err = os.MkdirAll(filepath.Dir(b.filename), 0644)
 		if err != nil {
 			return err
 		}
-		err = b.writeJSON()
+		err = b.save()
 		if err != nil {
 			return err
 		}
@@ -68,7 +68,7 @@ func (b *Blacklist) Create(ctx context.Context, player *model.BlacklistPlayers) 
 	}
 
 	b.blacklist[player.ID] = player
-	if err := b.writeJSON(); err != nil {
+	if err := b.save(); err != nil {
 		return nil, err
 	}
 	return player, nil
@@ -79,7 +79,7 @@ func (b *Blacklist) Delete(ctx context.Context, id uuid.UUID) error {
 	defer b.mu.Unlock()
 
 	delete(b.blacklist, id)
-	if err := b.writeJSON(); err != nil {
+	if err := b.save(); err != nil {
 		return err
 	}
 	return nil

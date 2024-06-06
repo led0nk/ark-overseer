@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"sync"
 	"syscall"
 
@@ -99,7 +100,7 @@ func initServices(
 		cfg       config.Configuration
 	)
 
-	database, err := storage.NewServerStorage(ctx, *dbpath+"/cluster.json")
+	database, err := storage.NewServerStorage(ctx, filepath.Join(*dbpath, "cluster.json"))
 	if err != nil {
 		return nil, nil, nil, nil, fmt.Errorf("failed to create new server storage: %w", err)
 	}
@@ -107,7 +108,7 @@ func initServices(
 	storageWrapper := storagewrapper.NewStorageWrapper(database, eventManager)
 	database = storageWrapper
 
-	blackList, err = blacklist.NewBlacklist(*blpath + "/blacklist.json")
+	blackList, err = blacklist.NewBlacklist(filepath.Join(*blpath, "blacklist.json"))
 	if err != nil {
 		return nil, nil, nil, nil, fmt.Errorf("failed to create blacklist: %w", err)
 	}
@@ -117,7 +118,7 @@ func initServices(
 		return nil, nil, nil, nil, fmt.Errorf("failed to create observer: %w", err)
 	}
 
-	cfg, err = config.NewConfiguration(*configPath+"/config.yaml", eventManager)
+	cfg, err = config.NewConfiguration(filepath.Join(*configPath, "config.yaml"), eventManager)
 	if err != nil {
 		return nil, nil, nil, nil, fmt.Errorf("failed to create config: %w", err)
 	}

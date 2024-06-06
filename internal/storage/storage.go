@@ -35,8 +35,6 @@ func NewServerStorage(ctx context.Context, filename string) (*ServerStorage, err
 }
 
 func (s *ServerStorage) Save() error {
-	s.mu.Lock()
-	defer s.mu.Unlock()
 	as_json, err := json.MarshalIndent(s.server, "", "\t")
 	if err != nil {
 		return err
@@ -138,13 +136,12 @@ func (s *ServerStorage) GetByID(ctx context.Context, id uuid.UUID) (*model.Serve
 		return nil, errors.New("empty uuid")
 	}
 
-	fetchedServer := &model.Server{}
 	for _, server := range s.server {
 		if server.ID == id {
-			fetchedServer = server
+			return server, nil
 		}
 	}
-	return fetchedServer, nil
+	return nil, errors.New("server not found")
 }
 
 func (s *ServerStorage) Delete(ctx context.Context, ID uuid.UUID) error {
