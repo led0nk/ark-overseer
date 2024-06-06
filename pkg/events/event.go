@@ -66,12 +66,14 @@ func (e *EventManager) Publish(emsg EventMessage) {
 	}
 }
 
-func (e *EventManager) StartListening(ctx context.Context, handler EventHandler, serviceName string) {
+func (e *EventManager) StartListening(ctx context.Context, handler EventHandler, serviceName string, onSubscribe func()) {
 	id, ch := e.Subscribe(serviceName)
 	if id == uuid.Nil {
 		return
 	}
 	defer e.Unsubscribe(id, serviceName)
+
+	onSubscribe()
 
 	for {
 		select {

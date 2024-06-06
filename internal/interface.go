@@ -8,7 +8,7 @@ import (
 	"github.com/led0nk/ark-overseer/pkg/events"
 )
 
-type ServerStore interface {
+type Database interface {
 	Create(context.Context, *model.Server) (*model.Server, error)
 	List(context.Context) ([]*model.Server, error)
 	GetByName(context.Context, string) (*model.Server, error)
@@ -16,16 +16,6 @@ type ServerStore interface {
 	Delete(context.Context, uuid.UUID) error
 	Update(context.Context, *model.Server) error
 	Save() error
-}
-
-type Observer interface {
-	ReadEndpoint(*model.Server) error
-	DataScraper(context.Context, *model.Server) chan *model.Server
-	Scanner(context.Context, chan *model.Server) chan *model.Server
-	SpawnScraper(context.Context)
-	AddScraper(context.Context, *model.Server) error
-	KillScraper(uuid.UUID) error
-	HandleEvent(context.Context, events.EventMessage)
 }
 
 type Blacklist interface {

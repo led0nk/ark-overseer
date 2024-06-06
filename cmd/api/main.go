@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -13,9 +14,9 @@ import (
 	blist "github.com/led0nk/ark-overseer/internal/blacklist"
 	"github.com/led0nk/ark-overseer/internal/jsondb"
 	"github.com/led0nk/ark-overseer/internal/notifier"
+	"github.com/led0nk/ark-overseer/internal/observer"
 	v1 "github.com/led0nk/ark-overseer/internal/server"
 	"github.com/led0nk/ark-overseer/internal/services"
-	"github.com/led0nk/ark-overseer/observer"
 	"github.com/led0nk/ark-overseer/pkg/config"
 	"github.com/led0nk/ark-overseer/pkg/events"
 )
@@ -24,102 +25,147 @@ func main() {
 
 	var (
 		addr   = flag.String("addr", "localhost:8080", "server port")
-		db     = flag.String("db", "testdata", "path to the database")
+		dbpath = flag.String("db", "testdata", "path to the database")
 		blpath = flag.String("blacklist", "testdata", "path to the blacklist")
 		//grpcaddr    = flag.String("grpcaddr", "", "grpc address, e.g. localhost:4317")
 		domain      = flag.String("domain", "127.0.0.1", "given domain for cookies/mail")
 		logLevelStr = flag.String("loglevel", "INFO", "define the level for logs")
 		configPath  = flag.String("config", "config", "path to config-file")
-		sStore      internal.ServerStore
-		obs         internal.Observer
-		blacklist   internal.Blacklist
-		cfg         config.Configuration
 		logLevel    slog.Level
 		shutdownWg  sync.WaitGroup
 		initWg      sync.WaitGroup
+		listenerWg  sync.WaitGroup
 	)
 	flag.Parse()
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	err := logLevel.UnmarshalText([]byte(*logLevelStr))
-	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: logLevel}))
+	logger, err := setupLogger(logLevelStr, logLevel)
 	if err != nil {
-		logger.ErrorContext(ctx, "error parsing loglevel", "loglevel", *logLevelStr, "error", err)
+		logger.ErrorContext(ctx, "failed to setup logger", "error", err)
 		os.Exit(1)
 	}
-	slog.SetDefault(logger)
 
 	logger.Info("server address", "addr", *addr)
 
-	sStore, err = jsondb.NewServerStorage(ctx, *db+"/cluster.json")
+	eventManager := events.NewEventManager()
+	serviceManager := services.NewServiceManager(eventManager, &initWg)
+
+	database, blacklist, obs, cfg, err := initServices(ctx, dbpath, blpath, configPath, eventManager)
 	if err != nil {
-		logger.ErrorContext(ctx, "failed to create new cluster", "error", err)
+		logger.ErrorContext(ctx, "failed to initialize services", "error", err)
 		os.Exit(1)
 	}
 
-	em := events.NewEventManager()
-	sm := services.NewServiceManager(em, &initWg)
+	listenerWg.Add(2)
+	startEventListeners(ctx, eventManager, &listenerWg, &shutdownWg, serviceManager, obs)
+	listenerWg.Wait()
 
-	notify := notifier.NewNotifier(sStore, em)
-	sStore = notify
-
-	cfg, err = config.NewConfiguration(*configPath+"/config.yaml", em)
-	if err != nil {
-		logger.Error("failed to create new config", "error", err)
-	}
-
-	blacklist, err = blist.NewBlacklist(*blpath + "/blacklist.json")
-	if err != nil {
-		logger.ErrorContext(ctx, "failed to create blacklist", "error", err)
-		os.Exit(1)
-	}
-
-	obs, err = observer.NewObserver(ctx, sStore, blacklist, em)
-	if err != nil {
-		logger.ErrorContext(ctx, "failed to create endpoint storage", "error", err)
-		os.Exit(1)
-	}
-
-	shutdownWg.Add(1)
-	go func() {
-		defer shutdownWg.Done()
-		em.StartListening(ctx, sm, "serviceManager")
-	}()
-
-	//NOTE: Wait group for initialization, 2 because the first 1 is the publish for init.services and the 2nd is the handled event
 	initWg.Add(2)
-	go func() {
+	go func(config.Configuration) {
 		defer initWg.Done()
-		em.Publish(events.EventMessage{Type: "init.services", Payload: cfg})
-	}()
-
-	shutdownWg.Add(1)
-	go func(cfg config.Configuration) {
-		defer shutdownWg.Done()
-		em.StartListening(ctx, obs, "observer")
+		eventManager.Publish(events.EventMessage{Type: "init.services", Payload: cfg})
 	}(cfg)
-
 	initWg.Wait()
+
 	initWg.Add(1)
 	go func() {
 		defer initWg.Done()
-		em.Publish(events.EventMessage{Type: "init"})
+		eventManager.Publish(events.EventMessage{Type: "init"})
 	}()
 
-	server := v1.NewServer(*addr, *domain, logger, sStore, blacklist, cfg)
+	server := v1.NewServer(*addr, *domain, database, blacklist, cfg)
+	startHTTPServer(ctx, server, &shutdownWg)
+
+	handleShutdown(ctx, cancel, &initWg, &shutdownWg, database)
+}
+
+func initServices(
+	ctx context.Context,
+	dbpath *string,
+	blpath *string,
+	configPath *string,
+	eventManager *events.EventManager,
+) (
+	internal.Database,
+	internal.Blacklist,
+	observer.Overseer,
+	config.Configuration,
+	error) {
+	var (
+		database  internal.Database
+		blacklist internal.Blacklist
+		obs       observer.Overseer
+		cfg       config.Configuration
+	)
+
+	database, err := jsondb.NewServerStorage(ctx, *dbpath+"/cluster.json")
+	if err != nil {
+		return nil, nil, nil, nil, fmt.Errorf("failed to create new server storage: %w", err)
+	}
+
+	notify := notifier.NewNotifier(database, eventManager)
+	database = notify
+
+	blacklist, err = blist.NewBlacklist(*blpath + "/blacklist.json")
+	if err != nil {
+		return nil, nil, nil, nil, fmt.Errorf("failed to create blacklist: %w", err)
+	}
+
+	obs, err = observer.NewObserver(ctx, database, blacklist, eventManager)
+	if err != nil {
+		return nil, nil, nil, nil, fmt.Errorf("failed to create observer: %w", err)
+	}
+
+	cfg, err = config.NewConfiguration(*configPath+"/config.yaml", eventManager)
+	if err != nil {
+		return nil, nil, nil, nil, fmt.Errorf("failed to create config: %w", err)
+	}
+
+	return database, blacklist, obs, cfg, nil
+}
+
+func startHTTPServer(
+	ctx context.Context,
+	server *v1.Server,
+	shutdownWg *sync.WaitGroup,
+) {
+	shutdownWg.Add(1)
+	go func() {
+		defer shutdownWg.Done()
+		server.ServeHTTP(ctx)
+	}()
+}
+
+func startEventListeners(
+	ctx context.Context,
+	em *events.EventManager,
+	listenerWg, shutdownWg *sync.WaitGroup,
+	sm *services.ServiceManager,
+	obs observer.Overseer,
+) {
+	shutdownWg.Add(1)
+	go func() {
+		defer shutdownWg.Done()
+		em.StartListening(ctx, sm, "serviceManager", func() { listenerWg.Done() })
+		fmt.Println("after listening")
+	}()
 
 	shutdownWg.Add(1)
 	go func() {
 		defer shutdownWg.Done()
-		err := server.ServeHTTP(ctx)
-		if err != nil {
-			logger.ErrorContext(ctx, "failed to shutdown http server", "error", err)
-			return
-		}
+		em.StartListening(ctx, obs, "observer", func() { listenerWg.Done() })
 	}()
+}
 
+func handleShutdown(
+	ctx context.Context,
+	cancel context.CancelFunc,
+	initWg, shutdownWg *sync.WaitGroup,
+	database internal.Database,
+) {
+	logger := slog.Default()
 	sigCh := make(chan os.Signal, 1)
 	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
 
@@ -134,10 +180,22 @@ func main() {
 	shutdownWg.Add(1)
 
 	logger.InfoContext(ctx, "finally saving server storage", "info", "shutdown")
-	err = sStore.Save()
+	err := database.Save()
 	if err != nil {
 		logger.ErrorContext(ctx, "failed to save server storage", "error", err)
+		return
 	}
 
 	logger.InfoContext(ctx, "application stopped gracefully", "info", "shutdown")
+}
+
+func setupLogger(logLevelStr *string, logLevel slog.Level) (*slog.Logger, error) {
+	err := logLevel.UnmarshalText([]byte(*logLevelStr))
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: logLevel}))
+	if err != nil {
+		return nil, fmt.Errorf("error parsing logLevel: %w", err)
+	}
+	slog.SetDefault(logger)
+
+	return logger, nil
 }

@@ -16,10 +16,14 @@ import (
 	"github.com/led0nk/ark-overseer/pkg/events"
 )
 
+type Overseer interface {
+	HandleEvent(context.Context, events.EventMessage)
+}
+
 type Observer struct {
 	endpoints   map[uuid.UUID]*model.Server
 	cancelFuncs map[uuid.UUID]context.CancelFunc
-	serverStore internal.ServerStore
+	serverStore internal.Database
 	blacklist   internal.Blacklist
 	em          *events.EventManager
 	logger      *slog.Logger
@@ -35,7 +39,7 @@ type NotificationStatus struct {
 
 func NewObserver(
 	ctx context.Context,
-	sStore internal.ServerStore,
+	sStore internal.Database,
 	blacklist internal.Blacklist,
 	eventManager *events.EventManager,
 ) (*Observer, error) {

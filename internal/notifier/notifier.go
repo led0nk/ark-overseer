@@ -10,11 +10,11 @@ import (
 )
 
 type Notifier struct {
-	sStore internal.ServerStore
+	sStore internal.Database
 	em     *events.EventManager
 }
 
-func NewNotifier(s internal.ServerStore, eventManager *events.EventManager) *Notifier {
+func NewNotifier(s internal.Database, eventManager *events.EventManager) *Notifier {
 	return &Notifier{
 		sStore: s,
 		em:     eventManager,
