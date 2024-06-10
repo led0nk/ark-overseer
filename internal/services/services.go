@@ -6,14 +6,14 @@ import (
 	"log/slog"
 	"sync"
 
-	"github.com/led0nk/ark-overseer/internal"
+	"github.com/led0nk/ark-overseer/internal/interfaces"
 	"github.com/led0nk/ark-overseer/internal/services/discord"
 	"github.com/led0nk/ark-overseer/pkg/config"
 	"github.com/led0nk/ark-overseer/pkg/events"
 )
 
 type ServiceManager struct {
-	services   map[string]internal.Notification
+	services   map[string]interfaces.Notification
 	cancelFunc map[string]context.CancelFunc
 	mu         sync.Mutex
 	initWg     *sync.WaitGroup
@@ -26,7 +26,7 @@ func NewServiceManager(
 	initWg *sync.WaitGroup,
 ) *ServiceManager {
 	return &ServiceManager{
-		services:   make(map[string]internal.Notification),
+		services:   make(map[string]interfaces.Notification),
 		cancelFunc: make(map[string]context.CancelFunc),
 		logger:     slog.Default().WithGroup("serviceManager"),
 		em:         em,
@@ -41,6 +41,7 @@ func (sm *ServiceManager) HandleEvent(ctx context.Context, event events.EventMes
 	switch event.Type {
 	case "init.services":
 		defer sm.initWg.Done()
+
 		cfg, ok := event.Payload.(*config.Config)
 		if !ok {
 			sm.logger.ErrorContext(ctx, "invalid payload type", "error", event.Type)
@@ -55,38 +56,14 @@ func (sm *ServiceManager) HandleEvent(ctx context.Context, event events.EventMes
 		for key, value := range nService {
 			switch key {
 			case "discord":
-				discordConfig, ok := value.(map[interface{}]interface{})
-				if !ok {
-					sm.logger.ErrorContext(ctx, "discord section has wrong type", "error", "discord")
-					continue
-				}
-
-				token, ok := discordConfig["token"].(string)
-				if !ok {
-					sm.logger.ErrorContext(ctx, "token was not found or has wrong type", "error", "discord")
-					continue
-				}
-
-				channelID, ok := discordConfig["channelID"].(string)
-				if !ok {
-					sm.logger.ErrorContext(ctx, "channelID was not found or has wrong type", "error", "discord")
-					continue
-				}
-
-				newDiscord, err := discord.NewDiscordNotifier(ctx, token, channelID)
+				err := sm.createDiscordService(ctx, value)
 				if err != nil {
-					sm.logger.ErrorContext(ctx, "failed to create notification service", "error", err)
-					delete(sm.services, "discord")
+					sm.logger.ErrorContext(ctx, "failed to create discord service", "error", err)
 					continue
 				}
-				sm.services["discord"] = newDiscord
 			}
 		}
-		for serviceName, service := range sm.services {
-			ctx, cancel := context.WithCancel(context.Background())
-			sm.cancelFunc[serviceName] = cancel
-			go sm.em.StartListening(ctx, service, serviceName)
-		}
+		sm.createServices()
 
 	case "config.changed":
 		sectionMap, ok := event.Payload.(map[interface{}]interface{})
@@ -96,57 +73,67 @@ func (sm *ServiceManager) HandleEvent(ctx context.Context, event events.EventMes
 		}
 
 		for serviceName, service := range sm.services {
-			fmt.Println("before disconnect")
 			err := service.Disconnect()
 			if err != nil {
 				sm.logger.ErrorContext(ctx, "failed to disconnect notification service", "error", serviceName)
 				continue
 			}
 		}
-
-		for serviceName, cancel := range sm.cancelFunc {
-			cancel()
-			delete(sm.cancelFunc, serviceName)
-			delete(sm.services, serviceName)
-		}
+		sm.deleteServices()
 
 		//NOTE: range over sectionMap for notification services
 		for k, v := range sectionMap {
 			switch k {
 			case "discord":
-				newConfig, ok := v.(map[interface{}]interface{})
-				if !ok {
-					sm.logger.Error("invalid payload type", "error", event.Type)
-					continue
-				}
-
-				token, ok := newConfig["token"].(string)
-				if !ok {
-					sm.logger.Error("invalid payload type", "error", event.Type)
-					continue
-				}
-
-				channelID, ok := newConfig["channelID"].(string)
-				if !ok {
-					sm.logger.Error("invalid payload type", "error", event.Type)
-					continue
-				}
-
-				var err error
-				newDiscord, err := discord.NewDiscordNotifier(ctx, token, channelID)
+				err := sm.createDiscordService(ctx, v)
 				if err != nil {
-					sm.logger.ErrorContext(ctx, "failed to create discord notifier", "error ", err)
+					sm.logger.ErrorContext(ctx, "failed to create discord service", "error", err)
 					continue
 				}
-				sm.services["discord"] = newDiscord
-
 			}
 		}
-		for serviceName, service := range sm.services {
-			ctx, cancel := context.WithCancel(context.Background())
-			sm.cancelFunc[serviceName] = cancel
-			go sm.em.StartListening(ctx, service, serviceName)
-		}
+		sm.createServices()
+	}
+}
+
+func (sm *ServiceManager) createDiscordService(ctx context.Context, v interface{}) error {
+
+	newConfig, ok := v.(map[interface{}]interface{})
+	if !ok {
+		return fmt.Errorf("invalid payload type")
 	}
 
+	token, ok := newConfig["token"].(string)
+	if !ok {
+		return fmt.Errorf("invalid token type")
+	}
+
+	channelID, ok := newConfig["channelID"].(string)
+	if !ok {
+		return fmt.Errorf("invalid channelID type")
+	}
+
+	var err error
+	newDiscord, err := discord.NewDiscordNotifier(ctx, token, channelID)
+	if err != nil {
+		return fmt.Errorf("failed to create discord notifier: %w", err)
+	}
+	sm.services["discord"] = newDiscord
+	return nil
+}
+
+func (sm *ServiceManager) createServices() {
+	for serviceName, service := range sm.services {
+		ctx, cancel := context.WithCancel(context.Background())
+		sm.cancelFunc[serviceName] = cancel
+		go sm.em.StartListening(ctx, service, serviceName, func() {})
+	}
+}
+
+func (sm *ServiceManager) deleteServices() {
+	for serviceName, cancel := range sm.cancelFunc {
+		cancel()
+		delete(sm.cancelFunc, serviceName)
+		delete(sm.services, serviceName)
+	}
 }

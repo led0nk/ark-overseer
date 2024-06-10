@@ -1,4 +1,4 @@
-package v1
+package server
 
 import (
 	"bytes"
@@ -112,8 +112,14 @@ func (s *Server) sseServerUpdate(w http.ResponseWriter, r *http.Request) {
 					status = `<span class="inline-flex items-center gap-1 rounded-full dark:bg-[#0D1117] bg-red-50 px-2 py-1 text-xs font-semibold text-red-600"><span class="h-1.5 w-1.5 rounded-full bg-red-600"></span>offline</span>`
 				}
 				playerInfo := strconv.Itoa(srv.ServerInfo.Players) + "/" + strconv.Itoa(srv.ServerInfo.MaxPlayers)
-				dataCh <- event{Type: "PlayerCounter", Data: playerInfo}
-				dataCh <- event{Type: "ServerStatus", Data: status}
+				select {
+				case dataCh <- event{Type: "PlayerCounter", Data: playerInfo}:
+				default:
+				}
+				select {
+				case dataCh <- event{Type: "ServerStatus", Data: status}:
+				default:
+				}
 				time.Sleep(5 * time.Second)
 			}
 		}
@@ -121,7 +127,7 @@ func (s *Server) sseServerUpdate(w http.ResponseWriter, r *http.Request) {
 	<-ctx.Done()
 }
 
-func (s *Server) updatePlayerInfo(w http.ResponseWriter, r *http.Request) {
+func (s *Server) ssePlayerInfo(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/event-stream")
 	w.Header().Set("Cache-Control", "no-cache")
 	w.Header().Set("Connection", "keep-alive")

@@ -40,7 +40,7 @@ func (e *EventManager) Subscribe(name string) (uuid.UUID, <-chan EventMessage) {
 		return uuid.Nil, nil
 	}
 
-	ch := make(chan EventMessage)
+	ch := make(chan EventMessage, 5)
 	e.subscriber[id] = ch
 
 	e.logger.Info("service subscribed to eventManager", "service id", id, "service name", name)
@@ -61,17 +61,23 @@ func (e *EventManager) Publish(emsg EventMessage) {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 	for subscriber, ch := range e.subscriber {
-		e.logger.Debug("publish eventMessage", "debug", "publish", subscriber.String(), fmt.Sprintf("%s", emsg))
-		ch <- emsg
+		select {
+		case ch <- emsg:
+			e.logger.Debug("publish eventMessage", "debug", "publish", subscriber.String(), fmt.Sprintf("%s", emsg))
+		default:
+			e.logger.Debug("channel blocked, skipping subscriber", "subscriber", subscriber.String())
+		}
 	}
 }
 
-func (e *EventManager) StartListening(ctx context.Context, handler EventHandler, serviceName string) {
+func (e *EventManager) StartListening(ctx context.Context, handler EventHandler, serviceName string, onSubscribe func()) {
 	id, ch := e.Subscribe(serviceName)
 	if id == uuid.Nil {
 		return
 	}
 	defer e.Unsubscribe(id, serviceName)
+
+	onSubscribe()
 
 	for {
 		select {
