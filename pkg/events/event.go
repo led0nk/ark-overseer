@@ -61,8 +61,11 @@ func (e *EventManager) Publish(emsg EventMessage) {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 	for subscriber, ch := range e.subscriber {
-		e.logger.Debug("publish eventMessage", "debug", "publish", subscriber.String(), fmt.Sprintf("%s", emsg))
-		ch <- emsg
+		select {
+		case ch <- emsg:
+			e.logger.Debug("publish eventMessage", "debug", "publish", subscriber.String(), fmt.Sprintf("%s", emsg))
+		default:
+		}
 	}
 }
 

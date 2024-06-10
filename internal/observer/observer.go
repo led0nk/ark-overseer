@@ -116,7 +116,10 @@ func (o *Observer) dataScraper(ctx context.Context, target *model.Server) chan *
 				}
 				replaceNullCharsInStruct(server)
 				server = correctPlayerNum(server)
-				out <- server
+				select {
+				case out <- server:
+				default:
+				}
 			}
 		}
 	}()
@@ -136,22 +139,22 @@ func (o *Observer) scanner(ctx context.Context, in chan *model.Server) chan *mod
 				if !ok {
 					return
 				}
-
 				blacklist := o.blacklist.List(ctx)
-
 				if server.PlayersInfo == nil {
 					continue
 				}
-
-				previousPlayers = o.scan(ctx, blacklist, server, previousPlayers)
-				out <- server
+				previousPlayers = o.scan(blacklist, server, previousPlayers)
+				select {
+				case out <- server:
+				default:
+				}
 			}
 		}
 	}()
 	return out
 }
 
-func (o *Observer) scan(ctx context.Context, blacklist []*model.BlacklistPlayers, server *model.Server, previousPlayers map[string]*NotificationStatus) map[string]*NotificationStatus {
+func (o *Observer) scan(blacklist []*model.BlacklistPlayers, server *model.Server, previousPlayers map[string]*NotificationStatus) map[string]*NotificationStatus {
 
 	blacklistMap := make(map[string]bool)
 	for _, blacklistedPlayer := range blacklist {
