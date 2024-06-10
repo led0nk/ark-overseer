@@ -53,7 +53,7 @@ func TestConfigCRUD(t *testing.T) {
 			name:      "update and get section",
 			section:   "notification-service",
 			key:       "discord",
-			value:     map[string]interface{}{"token": "123456", "channelID": "abcdef"},
+			value:     map[interface{}]interface{}{"token": "123456", "channelID": "abcdef"},
 			expectErr: false,
 		},
 		{
@@ -94,7 +94,7 @@ func TestSaveAndLoadConfig(t *testing.T) {
 
 	section := "notification-service"
 	key := "discord"
-	value := map[string]interface{}{"token": "123456", "channelID": "abcdef"}
+	value := map[interface{}]interface{}{"token": "123456", "channelID": "abcdef"}
 	err = cfg.Update(section, key, value)
 	assert.NoError(t, err)
 

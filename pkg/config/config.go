@@ -19,7 +19,7 @@ type Configuration interface {
 type Config struct {
 	filename string
 	mu       sync.Mutex
-	config   map[string]interface{}
+	config   map[interface{}]interface{}
 	em       *events.EventManager
 }
 
@@ -29,7 +29,7 @@ func NewConfiguration(
 ) (*Config, error) {
 	cfg := &Config{
 		filename: filename,
-		config:   make(map[string]interface{}),
+		config:   make(map[interface{}]interface{}),
 		em:       em,
 	}
 
@@ -42,15 +42,18 @@ func NewConfiguration(
 }
 
 func (c *Config) Load() error {
-	if _, err := os.Stat(c.filename); os.IsNotExist(err) {
-		err = os.MkdirAll(filepath.Dir(c.filename), 0777)
-		if err != nil {
-			return err
-		}
-		c.config["notification-service"] = nil
-		err = c.Save()
-		if err != nil {
-			return err
+	_, err := os.Stat(c.filename)
+	if err != nil {
+		if os.IsNotExist(err) {
+			err = os.MkdirAll(filepath.Dir(c.filename), 0777)
+			if err != nil {
+				return err
+			}
+			c.config["notification-service"] = nil
+			err = c.Save()
+			if err != nil {
+				return err
+			}
 		}
 	}
 
@@ -59,13 +62,12 @@ func (c *Config) Load() error {
 		return err
 	}
 
-	var config map[string]interface{}
+	var config map[interface{}]interface{}
 	err = yaml.Unmarshal(data, &config)
 	if err != nil {
 		return err
 	}
 	c.config = config
-	fmt.Println(config)
 
 	return nil
 }
@@ -88,9 +90,9 @@ func (c *Config) Update(section string, key string, value interface{}) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	sectionMap, ok := c.config[section].(map[string]interface{})
+	sectionMap, ok := c.config[section].(map[interface{}]interface{})
 	if !ok {
-		sectionMap = make(map[string]interface{})
+		sectionMap = make(map[interface{}]interface{})
 		c.config[section] = sectionMap
 	}
 	sectionMap[key] = value
@@ -104,13 +106,13 @@ func (c *Config) Update(section string, key string, value interface{}) error {
 	return nil
 }
 
-func (c *Config) GetSection(section string) (map[string]interface{}, error) {
+func (c *Config) GetSection(section string) (map[interface{}]interface{}, error) {
 	sectionMap, exists := c.config[section]
 	if !exists {
 		return nil, fmt.Errorf("section %s not found", section)
 	}
 
-	sectionData, ok := sectionMap.(map[string]interface{})
+	sectionData, ok := sectionMap.(map[interface{}]interface{})
 	if !ok {
 		return nil, fmt.Errorf("section %s not a valid type", section)
 	}

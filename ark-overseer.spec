@@ -27,9 +27,9 @@ ark-overseer is a steam observation tool to track players
 %goprep
 %autosetup 
 
-#%generate_buildrequires
+#%%generate_buildrequires
 
-#%go_generate_buildrequires
+#%%go_generate_buildrequires
 
 %build
 go build -v -buildmode pie -mod vendor -o %{gobuilddir}/bin/%{name} cmd/api/main.go
