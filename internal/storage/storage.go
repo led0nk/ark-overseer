@@ -12,7 +12,10 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/led0nk/ark-overseer/internal/model"
+	"go.opentelemetry.io/otel"
 )
+
+var tracer = otel.GetTracerProvider().Tracer("github.com/led0nk/ark-overseer/internal/storage")
 
 type ServerStorage struct {
 	filename string
@@ -83,7 +86,13 @@ func (s *ServerStorage) load() error {
 }
 
 func (s *ServerStorage) Create(ctx context.Context, server *model.Server) (*model.Server, error) {
+	_, span := tracer.Start(ctx, "Create")
+	defer span.End()
+
+	span.AddEvent("Lock")
 	s.mu.Lock()
+
+	defer span.AddEvent("Unlock")
 	defer s.mu.Unlock()
 
 	if server.ID == uuid.Nil {
@@ -99,7 +108,13 @@ func (s *ServerStorage) Create(ctx context.Context, server *model.Server) (*mode
 }
 
 func (s *ServerStorage) Update(ctx context.Context, server *model.Server) error {
+	_, span := tracer.Start(ctx, "Update")
+	defer span.End()
+
+	span.AddEvent("Lock")
 	s.mu.Lock()
+
+	defer span.AddEvent("Unlock")
 	defer s.mu.Unlock()
 
 	select {
@@ -112,7 +127,13 @@ func (s *ServerStorage) Update(ctx context.Context, server *model.Server) error 
 }
 
 func (s *ServerStorage) GetByName(ctx context.Context, name string) (*model.Server, error) {
+	_, span := tracer.Start(ctx, "GetByName")
+	defer span.End()
+
+	span.AddEvent("Lock")
 	s.mu.Lock()
+
+	span.AddEvent("Unlock")
 	defer s.mu.Unlock()
 
 	if name == "" {
@@ -129,7 +150,13 @@ func (s *ServerStorage) GetByName(ctx context.Context, name string) (*model.Serv
 }
 
 func (s *ServerStorage) GetByID(ctx context.Context, id uuid.UUID) (*model.Server, error) {
+	_, span := tracer.Start(ctx, "GetByID")
+	defer span.End()
+
+	span.AddEvent("Lock")
 	s.mu.Lock()
+
+	defer span.AddEvent("Unlock")
 	defer s.mu.Unlock()
 
 	if id == uuid.Nil {
@@ -145,7 +172,13 @@ func (s *ServerStorage) GetByID(ctx context.Context, id uuid.UUID) (*model.Serve
 }
 
 func (s *ServerStorage) Delete(ctx context.Context, ID uuid.UUID) error {
+	_, span := tracer.Start(ctx, "Delete")
+	defer span.End()
+
+	span.AddEvent("Lock")
 	s.mu.Lock()
+
+	defer span.AddEvent("Unlock")
 	defer s.mu.Unlock()
 
 	if ID == uuid.Nil {
@@ -162,7 +195,13 @@ func (s *ServerStorage) Delete(ctx context.Context, ID uuid.UUID) error {
 }
 
 func (s *ServerStorage) List(ctx context.Context) ([]*model.Server, error) {
+	_, span := tracer.Start(ctx, "List")
+	defer span.End()
+
+	span.AddEvent("Lock")
 	s.mu.Lock()
+
+	defer span.AddEvent("Unlock")
 	defer s.mu.Unlock()
 
 	serverlist := make([]*model.Server, 0, len(s.server))

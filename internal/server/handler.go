@@ -13,18 +13,28 @@ import (
 	"github.com/google/uuid"
 	"github.com/led0nk/ark-overseer/cmd/web"
 	"github.com/led0nk/ark-overseer/internal/model"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/trace"
 )
+
+var tracer = otel.GetTracerProvider().Tracer("github.com/led0nk/ark-overseer/internal/server")
 
 func (s *Server) mainPage(w http.ResponseWriter, r *http.Request) {
 	var (
 		serverList []*model.Server
 		err        error
+		span       trace.Span
 	)
 
 	ctx := r.Context()
+	ctx, span = tracer.Start(ctx, "mainPage")
+	defer span.End()
 
 	serverList, err = s.sStore.List(ctx)
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		s.logger.ErrorContext(ctx, "failed to get server info", "error", err)
 	}
 
@@ -32,6 +42,8 @@ func (s *Server) mainPage(w http.ResponseWriter, r *http.Request) {
 
 	err = web.Render(ctx, w, web.Main(serverList))
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		s.logger.ErrorContext(ctx, "failed to render templ", "error", err)
 		return
 	}
@@ -39,25 +51,35 @@ func (s *Server) mainPage(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) showPlayers(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+	ctx, span := tracer.Start(ctx, "showPlayers")
 
 	id, err := uuid.Parse(r.PathValue("ID"))
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		s.logger.ErrorContext(ctx, "failed to parse uuid", "error", err)
 		return
 	}
 	server, err := s.sStore.GetByID(ctx, id)
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		s.logger.ErrorContext(ctx, "failed to get server", "error", err)
 		return
 	}
 	err = web.Render(ctx, w, web.PlayerTable(server))
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		s.logger.ErrorContext(ctx, "failed to render templ", "error", err)
 		return
 	}
 }
 
 func (s *Server) sseServerUpdate(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	ctx, span := tracer.Start(ctx, "sseServerUpdate")
+
 	type event struct {
 		Type string
 		Data any
@@ -65,7 +87,6 @@ func (s *Server) sseServerUpdate(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/event-stream")
 	w.Header().Set("Cache-Control", "no-cache")
 	w.Header().Set("Connection", "keep-alive")
-	ctx := r.Context()
 	dataCh := make(chan event)
 
 	ctx, cancel := context.WithCancel(ctx)
@@ -93,15 +114,21 @@ func (s *Server) sseServerUpdate(w http.ResponseWriter, r *http.Request) {
 			default:
 				id, err := uuid.Parse(r.PathValue("ID"))
 				if err != nil {
+					span.RecordError(err)
+					span.SetStatus(codes.Error, err.Error())
 					s.logger.ErrorContext(ctx, "failed to parse uuid", "error", err)
 					continue
 				}
 				srv, err := s.sStore.GetByID(ctx, id)
 				if err != nil {
+					span.RecordError(err)
+					span.SetStatus(codes.Error, err.Error())
 					s.logger.ErrorContext(ctx, "failed to get server", "error", err)
 					continue
 				}
 				if srv.ServerInfo == nil {
+					span.RecordError(err)
+					span.SetStatus(codes.Error, err.Error())
 					s.logger.ErrorContext(ctx, "server not found", "error", err)
 					time.Sleep(time.Second)
 					continue
@@ -132,6 +159,7 @@ func (s *Server) ssePlayerInfo(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Cache-Control", "no-cache")
 	w.Header().Set("Connection", "keep-alive")
 	ctx := r.Context()
+	ctx, _ = tracer.Start(ctx, "ssePlayerInfo")
 	dataCh := make(chan *model.Server)
 
 	ctx, cancel := context.WithCancel(ctx)
@@ -175,15 +203,20 @@ func (s *Server) ssePlayerInfo(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) deleteServer(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+	ctx, span := tracer.Start(ctx, "deleteServer")
 
 	id, err := uuid.Parse(r.PathValue("ID"))
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		s.logger.ErrorContext(ctx, "failed to parse uuid", "error", err)
 		return
 	}
 
 	err = s.sStore.Delete(ctx, id)
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		s.logger.ErrorContext(ctx, "failed to delete target", "error", err)
 		return
 	}
@@ -191,9 +224,12 @@ func (s *Server) deleteServer(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) showServerInput(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+	ctx, span := tracer.Start(ctx, "showServerInput")
 
 	err := web.Render(ctx, w, web.NewServerInput())
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		s.logger.ErrorContext(ctx, "failed to render templ", "error", err)
 		return
 	}
@@ -201,9 +237,12 @@ func (s *Server) showServerInput(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) addServer(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+	ctx, span := tracer.Start(ctx, "addServer")
 
 	err := r.ParseForm()
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		s.logger.ErrorContext(ctx, "failed to parse form", "error", err)
 		return
 	}
@@ -214,6 +253,8 @@ func (s *Server) addServer(w http.ResponseWriter, r *http.Request) {
 	}
 	_, err = s.sStore.Create(ctx, newServer)
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		s.logger.ErrorContext(ctx, "failed to create server", "error", err)
 	}
 
@@ -221,6 +262,8 @@ func (s *Server) addServer(w http.ResponseWriter, r *http.Request) {
 
 	_, err = s.sStore.GetByID(ctx, newServer.ID)
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		s.logger.ErrorContext(ctx, "failed to get server", "error", err)
 		return
 	}
@@ -228,10 +271,13 @@ func (s *Server) addServer(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) blacklistPage(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+	ctx, span := tracer.Start(ctx, "blacklistPage")
 
 	blacklist := s.blacklist.List(ctx)
 	err := web.Render(ctx, w, web.Blacklist(blacklist))
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		s.logger.ErrorContext(ctx, "failed to render templ", "error", err)
 		return
 	}
@@ -239,9 +285,12 @@ func (s *Server) blacklistPage(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) setupPage(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+	ctx, span := tracer.Start(ctx, "setupPage")
 
 	err := web.Render(ctx, w, web.Setup())
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		s.logger.ErrorContext(ctx, "failed to render templ", "error", err)
 		return
 	}
@@ -249,11 +298,13 @@ func (s *Server) setupPage(w http.ResponseWriter, r *http.Request) {
 
 // NOTE: possible implementation of other services
 func (s *Server) saveChanges(w http.ResponseWriter, r *http.Request) {
-
 	ctx := r.Context()
+	ctx, span := tracer.Start(ctx, "saveChanges")
 
 	err := r.ParseForm()
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		s.logger.ErrorContext(ctx, "failed to parse form", "error", err)
 		return
 	}
@@ -264,6 +315,8 @@ func (s *Server) saveChanges(w http.ResponseWriter, r *http.Request) {
 
 	err = s.config.Update("notification-service", "discord", sectionMap)
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		s.logger.ErrorContext(ctx, "failed to update config", "error", err)
 		return
 	}
@@ -273,9 +326,12 @@ func (s *Server) saveChanges(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) blacklistAdd(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+	ctx, span := tracer.Start(ctx, "blacklistAdd")
 
 	err := r.ParseForm()
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		s.logger.ErrorContext(ctx, "failed to parse form", "error", err)
 		return
 	}
@@ -283,6 +339,8 @@ func (s *Server) blacklistAdd(w http.ResponseWriter, r *http.Request) {
 		Name: r.FormValue("blacklistPlayer"),
 	})
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		s.logger.ErrorContext(ctx, "failed to add player to blacklist", "error", err)
 		return
 	}
@@ -291,6 +349,8 @@ func (s *Server) blacklistAdd(w http.ResponseWriter, r *http.Request) {
 
 	err = web.Render(ctx, w, web.BlacklistTable(newBlacklist))
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		s.logger.ErrorContext(ctx, "failed to render templ", "error", err)
 		return
 	}
@@ -298,14 +358,19 @@ func (s *Server) blacklistAdd(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) blacklistDelete(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+	ctx, span := tracer.Start(ctx, "blacklistDelete")
 
 	id, err := uuid.Parse(r.PathValue("ID"))
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		s.logger.ErrorContext(ctx, "failed to parse uuid", "error", err)
 		return
 	}
 	err = s.blacklist.Delete(ctx, id)
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		s.logger.ErrorContext(ctx, "failed to delete from blacklist", "error", err)
 		return
 	}
