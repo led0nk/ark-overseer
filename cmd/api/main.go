@@ -20,14 +20,22 @@ import (
 	"github.com/led0nk/ark-overseer/internal/storagewrapper"
 	"github.com/led0nk/ark-overseer/pkg/config"
 	"github.com/led0nk/ark-overseer/pkg/events"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
+	"go.opentelemetry.io/otel/sdk/metric"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 func main() {
 
 	var (
 		addr        = flag.String("addr", "localhost:8080", "server port")
-		dbpath      = flag.String("db", "testdata", "path to the database")
-		blpath      = flag.String("blacklist", "testdata", "path to the blacklist")
+		grpcAddr    = flag.String("grpc", "", "grpc address, e.g. localhost:4317")
+		dbPath      = flag.String("db", "testdata", "path to the database")
+		blPath      = flag.String("blacklist", "testdata", "path to the blacklist")
 		domain      = flag.String("domain", "127.0.0.1", "given domain for cookies/mail")
 		logLevelStr = flag.String("loglevel", "INFO", "define the level for logs")
 		configPath  = flag.String("config", "config", "path to config-file")
@@ -48,11 +56,23 @@ func main() {
 	}
 
 	logger.Info("server address", "addr", *addr)
+	logger.Info("grpc address", "grpcaddr", *grpcAddr)
+	logger.Info("level for logging", "loglevel", *logLevelStr)
+	logger.Info("path to database", "db", *dbPath)
+	logger.Info("path to config", "config", *configPath)
+	logger.Info("path to blacklist", "blacklist", *blPath)
+
+	conn, err := setupOTEL(ctx, *grpcAddr)
+	if err != nil {
+		logger.ErrorContext(ctx, "failed to setup OTEL", "error", err)
+		os.Exit(1)
+	}
+	defer conn.Close()
 
 	eventManager := events.NewEventManager()
 	serviceManager := services.NewServiceManager(eventManager, &initWg)
 
-	database, blackList, obs, cfg, err := initServices(ctx, dbpath, blpath, configPath, eventManager)
+	database, blackList, obs, cfg, err := initServices(ctx, dbPath, blPath, configPath, eventManager)
 	if err != nil {
 		logger.ErrorContext(ctx, "failed to initialize services", "error", err)
 		os.Exit(1)
@@ -198,4 +218,30 @@ func setupLogger(logLevelStr *string, logLevel slog.Level) (*slog.Logger, error)
 	slog.SetDefault(logger)
 
 	return logger, nil
+}
+
+func setupOTEL(ctx context.Context, grpcaddr string) (conn *grpc.ClientConn, err error) {
+	if grpcaddr != "" {
+		//grpc.WithBlock is deprecated, but will be supported soon
+		grpcOptions := []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
+		conn, err := grpc.NewClient(grpcaddr, grpcOptions...)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create grpc client: %w", err)
+		}
+
+		oteltraceExporter, err := otlptracegrpc.New(ctx, otlptracegrpc.WithGRPCConn(conn))
+		if err != nil {
+			return nil, fmt.Errorf("failed to create otlp trace exporter: %w", err)
+		}
+		tp := sdktrace.NewTracerProvider(sdktrace.WithSyncer(oteltraceExporter))
+		otel.SetTracerProvider(tp)
+
+		otelmetricsExporter, err := otlpmetricgrpc.New(ctx, otlpmetricgrpc.WithGRPCConn(conn))
+		if err != nil {
+			return nil, fmt.Errorf("failed to create otlp metrics exporter: %w", err)
+		}
+		mp := metric.NewMeterProvider(metric.WithReader(metric.NewPeriodicReader(otelmetricsExporter)))
+		otel.SetMeterProvider(mp)
+	}
+	return conn, nil
 }

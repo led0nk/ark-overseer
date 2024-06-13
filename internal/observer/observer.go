@@ -14,7 +14,11 @@ import (
 	"github.com/led0nk/ark-overseer/internal/interfaces"
 	"github.com/led0nk/ark-overseer/internal/model"
 	"github.com/led0nk/ark-overseer/pkg/events"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/metric"
 )
+
+var meter = otel.GetMeterProvider().Meter("github.com/led0nk/ark-overseer/internal/observer")
 
 type Overseer interface {
 	HandleEvent(context.Context, events.EventMessage)
@@ -69,6 +73,24 @@ func (o *Observer) readEndpoint(target *model.Server) error {
 }
 
 func (o *Observer) dataScraper(ctx context.Context, target *model.Server) chan *model.Server {
+	scrapesCtr, err := meter.Int64UpDownCounter(
+		"scrapeCtr",
+		metric.WithDescription("number of data scrapes from steam server"),
+		metric.WithUnit("{InfoResponse}"),
+	)
+	if err != nil {
+		return nil
+	}
+
+	failedScrapesCtr, err := meter.Int64UpDownCounter(
+		"scrapeCtr",
+		metric.WithDescription("number of data scrapes from steam server"),
+		metric.WithUnit("{InfoResponse}"),
+	)
+	if err != nil {
+		return nil
+	}
+
 	out := make(chan *model.Server)
 	go func() {
 		defer close(out)
@@ -86,8 +108,10 @@ func (o *Observer) dataScraper(ctx context.Context, target *model.Server) chan *
 				infoResponse, err := helpSrv.Info()
 				if err != nil {
 					o.logger.ErrorContext(ctx, "error fetching ServerInfo", "error", err)
+					failedScrapesCtr.Add(ctx, 1)
 					continue
 				}
+				scrapesCtr.Add(ctx, 1)
 
 				playerResponse, err := helpSrv.PlayersInfo()
 				if err != nil {
@@ -127,6 +151,14 @@ func (o *Observer) dataScraper(ctx context.Context, target *model.Server) chan *
 }
 
 func (o *Observer) scanner(ctx context.Context, in chan *model.Server) chan *model.Server {
+	scanCtr, err := meter.Int64UpDownCounter(
+		"scanCtr",
+		metric.WithDescription("number of scans happened"),
+	)
+	if err != nil {
+		return nil
+	}
+
 	out := make(chan *model.Server)
 	go func() {
 		defer close(out)
@@ -146,6 +178,7 @@ func (o *Observer) scanner(ctx context.Context, in chan *model.Server) chan *mod
 				previousPlayers = o.scan(blacklist, server, previousPlayers)
 				select {
 				case out <- server:
+					scanCtr.Add(ctx, 1)
 				default:
 				}
 			}
@@ -214,6 +247,14 @@ func (o *Observer) spawnScraper(ctx context.Context) {
 }
 
 func (o *Observer) processResults(ctx context.Context) {
+	processCtr, err := meter.Int64Counter(
+		"processCtr",
+		metric.WithDescription("number of processed server data"),
+	)
+	if err != nil {
+		return
+	}
+
 	for {
 		select {
 		case <-ctx.Done():
@@ -231,6 +272,7 @@ func (o *Observer) processResults(ctx context.Context) {
 					if err != nil {
 						o.logger.Error("failed to update server info", "error", err)
 					}
+					processCtr.Add(ctx, 1)
 				}
 			}
 

@@ -7,7 +7,10 @@ import (
 
 	"github.com/led0nk/ark-overseer/internal/interfaces"
 	"github.com/led0nk/ark-overseer/pkg/config"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	sloghttp "github.com/samber/slog-http"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type Server struct {
@@ -39,7 +42,9 @@ func NewServer(
 func (s *Server) ServeHTTP(ctx context.Context) {
 	r := http.NewServeMux()
 
-	slogmw := sloghttp.NewWithConfig(
+	otelMw := otelhttp.NewMiddleware("ark-overseer")
+	traceMw := SlogAddTraceAttributes()
+	slogMw := sloghttp.NewWithConfig(
 		s.logger, sloghttp.Config{
 			DefaultLevel:     slog.LevelInfo,
 			ClientErrorLevel: slog.LevelWarn,
@@ -48,6 +53,7 @@ func (s *Server) ServeHTTP(ctx context.Context) {
 		},
 	)
 
+	r.Handle("GET /metrics", promhttp.Handler())
 	r.Handle("GET /", http.HandlerFunc(s.mainPage))
 	r.Handle("POST /", http.HandlerFunc(s.showServerInput))
 	r.Handle("PUT /", http.HandlerFunc(s.addServer))
@@ -65,7 +71,7 @@ func (s *Server) ServeHTTP(ctx context.Context) {
 
 	srv := http.Server{
 		Addr:    s.addr,
-		Handler: slogmw(r),
+		Handler: slogMw(traceMw(otelMw(r))),
 	}
 
 	go func() {
@@ -88,4 +94,18 @@ func (s *Server) ServeHTTP(ctx context.Context) {
 
 	<-ctx.Done()
 	s.logger.InfoContext(ctx, "server shutdown completed", "info", "shutdown")
+}
+
+func SlogAddTraceAttributes() func(h http.Handler) http.Handler {
+	return func(h http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			sloghttp.AddCustomAttributes(r,
+				slog.String("trace-id", trace.SpanFromContext(r.Context()).SpanContext().TraceID().String()),
+			)
+			sloghttp.AddCustomAttributes(r,
+				slog.String("span-id", trace.SpanFromContext(r.Context()).SpanContext().SpanID().String()),
+			)
+			h.ServeHTTP(w, r)
+		})
+	}
 }

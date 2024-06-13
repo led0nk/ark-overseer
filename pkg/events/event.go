@@ -7,7 +7,11 @@ import (
 	"sync"
 
 	"github.com/google/uuid"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/metric"
 )
+
+var meter = otel.GetMeterProvider().Meter("github.com/led0nk/ark-overseer/internal/events")
 
 type EventHandler interface {
 	HandleEvent(context.Context, EventMessage)
@@ -58,11 +62,22 @@ func (e *EventManager) Unsubscribe(id uuid.UUID, name string) {
 }
 
 func (e *EventManager) Publish(emsg EventMessage) {
+	ctx := context.Background()
+	eventCtr, err := meter.Int64Counter(
+		"eventCtr",
+		metric.WithDescription("number of events published"),
+	)
+	if err != nil {
+		return
+	}
+
 	e.mu.Lock()
 	defer e.mu.Unlock()
+
 	for subscriber, ch := range e.subscriber {
 		select {
 		case ch <- emsg:
+			eventCtr.Add(ctx, 1)
 			e.logger.Debug("publish eventMessage", "debug", "publish", subscriber.String(), fmt.Sprintf("%s", emsg))
 		default:
 			e.logger.Debug("channel blocked, skipping subscriber", "subscriber", subscriber.String())
