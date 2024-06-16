@@ -83,7 +83,7 @@ func (o *Observer) dataScraper(ctx context.Context, target *model.Server) chan *
 	}
 
 	failedScrapesCtr, err := meter.Int64UpDownCounter(
-		"scrapeCtr",
+		"failedScrapeCtr",
 		metric.WithDescription("number of data scrapes from steam server"),
 		metric.WithUnit("{InfoResponse}"),
 	)
