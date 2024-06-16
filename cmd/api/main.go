@@ -169,7 +169,6 @@ func startEventListeners(
 	go func() {
 		defer shutdownWg.Done()
 		em.StartListening(ctx, sm, "serviceManager", func() { listenerWg.Done() })
-		fmt.Println("after listening")
 	}()
 
 	shutdownWg.Add(1)
@@ -222,7 +221,6 @@ func setupLogger(logLevelStr *string, logLevel slog.Level) (*slog.Logger, error)
 
 func setupOTEL(ctx context.Context, grpcaddr string) (conn *grpc.ClientConn, err error) {
 	if grpcaddr != "" {
-		//grpc.WithBlock is deprecated, but will be supported soon
 		grpcOptions := []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
 		conn, err := grpc.NewClient(grpcaddr, grpcOptions...)
 		if err != nil {

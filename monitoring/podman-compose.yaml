@@ -8,11 +8,11 @@ services:
       - "127.0.0.1:3000:3000"
       - "127.0.0.1:4317:4317"
       - "127.0.0.1:4318:4318"
-  guestbook:
+  ark-overseer:
     networks:
       - backend
     image: ghcr.io/led0nk/ark-overseer:latest
-    command: /ark-overseer -config=testdata -grpcaddr=grafana:4317
+    command: /ark-overseer -addr=0.0.0.0:8080 -config=testdata -grpc=grafana:4317
     ports:
       - "127.0.0.1:8080:8080"
     volumes:
