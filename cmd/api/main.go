@@ -12,7 +12,6 @@ import (
 	"syscall"
 
 	"github.com/led0nk/ark-overseer/internal/blacklist"
-	"github.com/led0nk/ark-overseer/internal/interfaces"
 	"github.com/led0nk/ark-overseer/internal/observer"
 	"github.com/led0nk/ark-overseer/internal/server"
 	"github.com/led0nk/ark-overseer/internal/services"
@@ -72,7 +71,13 @@ func main() {
 	eventManager := events.NewEventManager()
 	serviceManager := services.NewServiceManager(eventManager, &initWg)
 
-	database, blackList, obs, cfg, err := initServices(ctx, dbPath, blPath, configPath, eventManager)
+	database, blackList, obs, cfg, err := initServices(
+		ctx,
+		dbPath,
+		blPath,
+		configPath,
+		eventManager,
+	)
 	if err != nil {
 		logger.ErrorContext(ctx, "failed to initialize services", "error", err)
 		os.Exit(1)
@@ -108,14 +113,14 @@ func initServices(
 	configPath *string,
 	eventManager *events.EventManager,
 ) (
-	interfaces.Database,
-	interfaces.Blacklist,
+	storage.Database,
+	blacklist.Blacklister,
 	observer.Overseer,
 	config.Configuration,
 	error) {
 	var (
-		database  interfaces.Database
-		blackList interfaces.Blacklist
+		database  storage.Database
+		blackList blacklist.Blacklister
 		obs       observer.Overseer
 		cfg       config.Configuration
 	)
@@ -182,7 +187,7 @@ func handleShutdown(
 	ctx context.Context,
 	cancel context.CancelFunc,
 	initWg, shutdownWg *sync.WaitGroup,
-	database interfaces.Database,
+	database storage.Database,
 ) {
 	logger := slog.Default()
 	sigCh := make(chan os.Signal, 1)
@@ -238,7 +243,9 @@ func setupOTEL(ctx context.Context, grpcaddr string) (conn *grpc.ClientConn, err
 		if err != nil {
 			return nil, fmt.Errorf("failed to create otlp metrics exporter: %w", err)
 		}
-		mp := metric.NewMeterProvider(metric.WithReader(metric.NewPeriodicReader(otelmetricsExporter)))
+		mp := metric.NewMeterProvider(
+			metric.WithReader(metric.NewPeriodicReader(otelmetricsExporter)),
+		)
 		otel.SetMeterProvider(mp)
 	}
 	return conn, nil

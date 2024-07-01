@@ -17,6 +17,16 @@ import (
 
 var tracer = otel.GetTracerProvider().Tracer("github.com/led0nk/ark-overseer/internal/storage")
 
+type Database interface {
+	Create(context.Context, *model.Server) (*model.Server, error)
+	List(context.Context) ([]*model.Server, error)
+	GetByName(context.Context, string) (*model.Server, error)
+	GetByID(context.Context, uuid.UUID) (*model.Server, error)
+	Delete(context.Context, uuid.UUID) error
+	Update(context.Context, *model.Server) error
+	Save() error
+}
+
 type ServerStorage struct {
 	filename string
 	server   map[uuid.UUID]*model.Server

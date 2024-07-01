@@ -3,7 +3,7 @@ Description=ark-overseer
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/ark-overseer -db /etc/ark-overseer/ -blist /etc/ark-overseer/
+ExecStart=/usr/bin/ark-overseer -db /etc/ark-overseer/ -blacklist /etc/ark-overseer/ -config /etc/ark-overseer/
 
 [Install]
 WantedBy=multi-user.target

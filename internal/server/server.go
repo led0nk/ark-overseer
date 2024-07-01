@@ -5,7 +5,8 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/led0nk/ark-overseer/internal/interfaces"
+	"github.com/led0nk/ark-overseer/internal/blacklist"
+	"github.com/led0nk/ark-overseer/internal/storage"
 	"github.com/led0nk/ark-overseer/pkg/config"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	sloghttp "github.com/samber/slog-http"
@@ -17,16 +18,16 @@ type Server struct {
 	addr      string
 	domain    string
 	logger    *slog.Logger
-	sStore    interfaces.Database
-	blacklist interfaces.Blacklist
+	sStore    storage.Database
+	blacklist blacklist.Blacklister
 	config    config.Configuration
 }
 
 func NewServer(
 	address string,
 	domain string,
-	sStore interfaces.Database,
-	blacklist interfaces.Blacklist,
+	sStore storage.Database,
+	blacklist blacklist.Blacklister,
 	config config.Configuration,
 ) *Server {
 	return &Server{
@@ -99,11 +100,19 @@ func (s *Server) ServeHTTP(ctx context.Context) {
 func SlogAddTraceAttributes() func(h http.Handler) http.Handler {
 	return func(h http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			sloghttp.AddCustomAttributes(r,
-				slog.String("trace-id", trace.SpanFromContext(r.Context()).SpanContext().TraceID().String()),
+			sloghttp.AddCustomAttributes(
+				r,
+				slog.String(
+					"trace-id",
+					trace.SpanFromContext(r.Context()).SpanContext().TraceID().String(),
+				),
 			)
-			sloghttp.AddCustomAttributes(r,
-				slog.String("span-id", trace.SpanFromContext(r.Context()).SpanContext().SpanID().String()),
+			sloghttp.AddCustomAttributes(
+				r,
+				slog.String(
+					"span-id",
+					trace.SpanFromContext(r.Context()).SpanContext().SpanID().String(),
+				),
 			)
 			h.ServeHTTP(w, r)
 		})
