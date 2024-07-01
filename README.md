@@ -58,6 +58,20 @@ dnf install ark-overseer
 ark-overseer
 ```
 
+##### Note for systemd-service:
+
+When installing the application via rpm, you will get a systemd service installed
+and enabled, which ensures to launch the application on system startup.
+
+Therefore the directories for the database and blacklist are expected like the following:
+
+| component | directory |
+| -------------- | --------------- |
+| database | /etc/ark-overseer/ |
+| blacklist | /etc/ark-overseer |
+
+
+
 ### via Docker
 
 The most simple way of installation is to just run the application in a container.
