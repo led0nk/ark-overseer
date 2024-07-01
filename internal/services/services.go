@@ -6,14 +6,20 @@ import (
 	"log/slog"
 	"sync"
 
-	"github.com/led0nk/ark-overseer/internal/interfaces"
 	"github.com/led0nk/ark-overseer/internal/services/discord"
 	"github.com/led0nk/ark-overseer/pkg/config"
 	"github.com/led0nk/ark-overseer/pkg/events"
 )
 
+type Notification interface {
+	Connect(context.Context) error
+	Send(context.Context, string) error
+	HandleEvent(context.Context, events.EventMessage)
+	Disconnect() error
+}
+
 type ServiceManager struct {
-	services   map[string]interfaces.Notification
+	services   map[string]Notification
 	cancelFunc map[string]context.CancelFunc
 	mu         sync.Mutex
 	initWg     *sync.WaitGroup
@@ -26,7 +32,7 @@ func NewServiceManager(
 	initWg *sync.WaitGroup,
 ) *ServiceManager {
 	return &ServiceManager{
-		services:   make(map[string]interfaces.Notification),
+		services:   make(map[string]Notification),
 		cancelFunc: make(map[string]context.CancelFunc),
 		logger:     slog.Default().WithGroup("serviceManager"),
 		em:         em,
@@ -75,7 +81,12 @@ func (sm *ServiceManager) HandleEvent(ctx context.Context, event events.EventMes
 		for serviceName, service := range sm.services {
 			err := service.Disconnect()
 			if err != nil {
-				sm.logger.ErrorContext(ctx, "failed to disconnect notification service", "error", serviceName)
+				sm.logger.ErrorContext(
+					ctx,
+					"failed to disconnect notification service",
+					"error",
+					serviceName,
+				)
 				continue
 			}
 		}

@@ -11,6 +11,12 @@ import (
 	"github.com/led0nk/ark-overseer/internal/model"
 )
 
+type Blacklister interface {
+	Create(context.Context, *model.BlacklistPlayers) (*model.BlacklistPlayers, error)
+	List(context.Context) []*model.BlacklistPlayers
+	Delete(context.Context, uuid.UUID) error
+}
+
 type Blacklist struct {
 	filename  string
 	blacklist map[uuid.UUID]*model.BlacklistPlayers
@@ -59,7 +65,10 @@ func (b *Blacklist) load() error {
 	return json.Unmarshal(data, &b.blacklist)
 }
 
-func (b *Blacklist) Create(ctx context.Context, player *model.BlacklistPlayers) (*model.BlacklistPlayers, error) {
+func (b *Blacklist) Create(
+	ctx context.Context,
+	player *model.BlacklistPlayers,
+) (*model.BlacklistPlayers, error) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 

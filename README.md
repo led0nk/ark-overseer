@@ -68,7 +68,8 @@ Therefore the directories for the database and blacklist are expected like the f
 | component | directory |
 | -------------- | --------------- |
 | database | /etc/ark-overseer/ |
-| blacklist | /etc/ark-overseer |
+| blacklist | /etc/ark-overseer/ |
+| config | /etc/ark-overseer/ |
 
 
 

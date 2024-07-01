@@ -4,18 +4,18 @@ import (
 	"context"
 
 	"github.com/google/uuid"
-	"github.com/led0nk/ark-overseer/internal/interfaces"
 	"github.com/led0nk/ark-overseer/internal/model"
+	"github.com/led0nk/ark-overseer/internal/storage"
 	"github.com/led0nk/ark-overseer/pkg/events"
 )
 
 type StorageWrapper struct {
-	store interfaces.Database
+	store storage.Database
 	em    *events.EventManager
 }
 
 func NewStorageWrapper(
-	s interfaces.Database,
+	s storage.Database,
 	eventManager *events.EventManager,
 ) *StorageWrapper {
 	return &StorageWrapper{

@@ -11,8 +11,9 @@ import (
 
 	"github.com/FlowingSPDG/go-steam"
 	"github.com/google/uuid"
-	"github.com/led0nk/ark-overseer/internal/interfaces"
+	"github.com/led0nk/ark-overseer/internal/blacklist"
 	"github.com/led0nk/ark-overseer/internal/model"
+	"github.com/led0nk/ark-overseer/internal/storage"
 	"github.com/led0nk/ark-overseer/pkg/events"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/metric"
@@ -27,8 +28,8 @@ type Overseer interface {
 type Observer struct {
 	endpoints   map[uuid.UUID]*model.Server
 	cancelFuncs map[uuid.UUID]context.CancelFunc
-	serverStore interfaces.Database
-	blacklist   interfaces.Blacklist
+	serverStore storage.Database
+	blacklist   blacklist.Blacklister
 	em          *events.EventManager
 	logger      *slog.Logger
 	mu          sync.Mutex
@@ -43,8 +44,8 @@ type NotificationStatus struct {
 
 func NewObserver(
 	ctx context.Context,
-	sStore interfaces.Database,
-	blacklist interfaces.Blacklist,
+	sStore storage.Database,
+	blacklist blacklist.Blacklister,
 	eventManager *events.EventManager,
 ) (*Observer, error) {
 	observer := &Observer{
@@ -187,7 +188,11 @@ func (o *Observer) scanner(ctx context.Context, in chan *model.Server) chan *mod
 	return out
 }
 
-func (o *Observer) scan(blacklist []*model.BlacklistPlayers, server *model.Server, previousPlayers map[string]*NotificationStatus) map[string]*NotificationStatus {
+func (o *Observer) scan(
+	blacklist []*model.BlacklistPlayers,
+	server *model.Server,
+	previousPlayers map[string]*NotificationStatus,
+) map[string]*NotificationStatus {
 
 	blacklistMap := make(map[string]bool)
 	for _, blacklistedPlayer := range blacklist {
@@ -208,7 +213,12 @@ func (o *Observer) scan(blacklist []*model.BlacklistPlayers, server *model.Serve
 
 		if blacklistMap[player.Name] {
 			if !status.joinedNotified {
-				o.em.Publish(events.EventMessage{Type: "player.joined", Payload: player.Name + " joined the server " + server.Name})
+				o.em.Publish(
+					events.EventMessage{
+						Type:    "player.joined",
+						Payload: player.Name + " joined the server " + server.Name,
+					},
+				)
 				status.joinedNotified = true
 				status.leftNotified = false
 			}
@@ -217,7 +227,12 @@ func (o *Observer) scan(blacklist []*model.BlacklistPlayers, server *model.Serve
 
 	for playerName, status := range previousPlayers {
 		if blacklistMap[playerName] && !status.isActive && !status.leftNotified {
-			o.em.Publish(events.EventMessage{Type: "player.left", Payload: playerName + " left the server " + server.Name})
+			o.em.Publish(
+				events.EventMessage{
+					Type:    "player.left",
+					Payload: playerName + " left the server " + server.Name,
+				},
+			)
 			status.leftNotified = true
 			status.joinedNotified = false
 		}
