@@ -16,7 +16,11 @@ type DiscordNotifier struct {
 	channelID string
 }
 
-func NewDiscordNotifier(ctx context.Context, token string, channelID string) (*DiscordNotifier, error) {
+func NewDiscordNotifier(
+	ctx context.Context,
+	token string,
+	channelID string,
+) (*DiscordNotifier, error) {
 	discord := &DiscordNotifier{
 		logger:    slog.Default().WithGroup("discord"),
 		token:     token,
@@ -24,7 +28,12 @@ func NewDiscordNotifier(ctx context.Context, token string, channelID string) (*D
 	}
 	err := discord.Connect(ctx)
 	if err != nil {
-		discord.logger.ErrorContext(ctx, "failed to connect discord notification service", "error", err)
+		discord.logger.ErrorContext(
+			ctx,
+			"failed to connect discord notification service",
+			"error",
+			err,
+		)
 		return nil, err
 	}
 	return discord, nil
@@ -35,7 +44,12 @@ func (dn *DiscordNotifier) HandleEvent(ctx context.Context, event events.EventMe
 	case "player.joined":
 		msg, ok := event.Payload.(string)
 		if !ok {
-			dn.logger.ErrorContext(ctx, "invalid payload type for playerJoined event", "error", errors.New("payload not of type string"))
+			dn.logger.ErrorContext(
+				ctx,
+				"invalid payload type for playerJoined event",
+				"error",
+				errors.New("payload not of type string"),
+			)
 			return
 		}
 		err := dn.Send(ctx, msg)
@@ -45,7 +59,12 @@ func (dn *DiscordNotifier) HandleEvent(ctx context.Context, event events.EventMe
 	case "player.left":
 		msg, ok := event.Payload.(string)
 		if !ok {
-			dn.logger.ErrorContext(ctx, "invalid payload type for playerLeft event", "error", errors.New("payload not of type string"))
+			dn.logger.ErrorContext(
+				ctx,
+				"invalid payload type for playerLeft event",
+				"error",
+				errors.New("payload not of type string"),
+			)
 			return
 		}
 		err := dn.Send(ctx, msg)
@@ -64,6 +83,7 @@ func (dn *DiscordNotifier) Connect(ctx context.Context) error {
 		return err
 	}
 
+	session.AddHandler(dn.messageCreate)
 	dn.session = session
 	err = dn.session.Open()
 	if err != nil {
@@ -100,4 +120,19 @@ func (dn *DiscordNotifier) Disconnect() error {
 	dn.token = ""
 
 	return dn.session.Close()
+}
+
+func (dn *DiscordNotifier) messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
+	ctx := context.Background()
+	if m.Author.ID == dn.session.State.User.ID {
+		return
+	}
+	switch m.Content {
+	case "ping":
+		err := dn.Send(ctx, "pong")
+		if err != nil {
+			return
+		}
+	default:
+	}
 }

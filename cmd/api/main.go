@@ -56,30 +56,38 @@ func main() {
 	}
 
 	logger.Info("server address", "addr", *addr)
-	logger.Info("grpc address", "grpcaddr", *grpcAddr)
 	logger.Info("level for logging", "loglevel", *logLevelStr)
 	logger.Info("path to database", "db", *dbPath)
 	logger.Info("path to config", "config", *configPath)
 	logger.Info("path to blacklist", "blacklist", *blPath)
 
-	conn, err := setupOTEL(ctx, *grpcAddr)
-	if err != nil {
-		logger.ErrorContext(ctx, "failed to setup OTEL", "error", err)
-		os.Exit(1)
+	if *grpcAddr != "" {
+		logger.Info("grpc address", "grpcaddr", *grpcAddr)
+		conn, err := setupOTEL(ctx, *grpcAddr)
+		if err != nil {
+			logger.ErrorContext(ctx, "failed to setup OTEL", "error", err)
+			os.Exit(1)
+		}
+		defer conn.Close()
 	}
-	defer conn.Close()
 
 	eventManager := events.NewEventManager()
-	serviceManager := services.NewServiceManager(eventManager, &initWg)
 
-	database, blackList, obs, cfg, err := initServices(ctx, dbPath, blPath, configPath, eventManager)
+	database, blackList, cfg, eventListeners, err := initServicesAndListener(
+		ctx,
+		dbPath,
+		blPath,
+		configPath,
+		eventManager,
+		&initWg,
+	)
 	if err != nil {
 		logger.ErrorContext(ctx, "failed to initialize services", "error", err)
 		os.Exit(1)
 	}
 
-	listenerWg.Add(2)
-	startEventListeners(ctx, eventManager, &listenerWg, &shutdownWg, serviceManager, obs)
+	listenerWg.Add(len(eventListeners))
+	startEventListeners(ctx, eventManager, &listenerWg, &shutdownWg, eventListeners)
 	listenerWg.Wait()
 
 	initWg.Add(2)
@@ -101,24 +109,25 @@ func main() {
 	handleShutdown(ctx, cancel, &initWg, &shutdownWg, database)
 }
 
-func initServices(
+func initServicesAndListener(
 	ctx context.Context,
 	dbpath *string,
 	blpath *string,
 	configPath *string,
 	eventManager *events.EventManager,
+	initWg *sync.WaitGroup,
 ) (
 	interfaces.Database,
 	interfaces.Blacklist,
-	observer.Overseer,
 	config.Configuration,
+	map[string]events.EventHandler,
 	error) {
 	var (
 		database  interfaces.Database
 		blackList interfaces.Blacklist
-		obs       observer.Overseer
 		cfg       config.Configuration
 	)
+	eventListeners := make(map[string]events.EventHandler)
 
 	database, err := storage.NewServerStorage(ctx, filepath.Join(*dbpath, "cluster.json"))
 	if err != nil {
@@ -133,17 +142,15 @@ func initServices(
 		return nil, nil, nil, nil, fmt.Errorf("failed to create blacklist: %w", err)
 	}
 
-	obs, err = observer.NewObserver(ctx, database, blackList, eventManager)
-	if err != nil {
-		return nil, nil, nil, nil, fmt.Errorf("failed to create observer: %w", err)
-	}
-
 	cfg, err = config.NewConfiguration(filepath.Join(*configPath, "config.yaml"), eventManager)
 	if err != nil {
 		return nil, nil, nil, nil, fmt.Errorf("failed to create config: %w", err)
 	}
 
-	return database, blackList, obs, cfg, nil
+	eventListeners["observer"] = observer.NewObserver(ctx, database, blackList, eventManager)
+	eventListeners["serviceManager"] = services.NewServiceManager(eventManager, initWg)
+
+	return database, blackList, cfg, eventListeners, nil
 }
 
 func startHTTPServer(
@@ -162,20 +169,17 @@ func startEventListeners(
 	ctx context.Context,
 	em *events.EventManager,
 	listenerWg, shutdownWg *sync.WaitGroup,
-	sm *services.ServiceManager,
-	obs observer.Overseer,
+	eventListeners map[string]events.EventHandler,
 ) {
-	shutdownWg.Add(1)
-	go func() {
-		defer shutdownWg.Done()
-		em.StartListening(ctx, sm, "serviceManager", func() { listenerWg.Done() })
-	}()
+	onSubscribe := func() { listenerWg.Done() }
 
-	shutdownWg.Add(1)
-	go func() {
-		defer shutdownWg.Done()
-		em.StartListening(ctx, obs, "observer", func() { listenerWg.Done() })
-	}()
+	for listenerName, listenerHandler := range eventListeners {
+		shutdownWg.Add(1)
+		go func() {
+			defer shutdownWg.Done()
+			em.StartListening(ctx, listenerHandler, listenerName, onSubscribe)
+		}()
+	}
 }
 
 func handleShutdown(
@@ -220,26 +224,24 @@ func setupLogger(logLevelStr *string, logLevel slog.Level) (*slog.Logger, error)
 }
 
 func setupOTEL(ctx context.Context, grpcaddr string) (conn *grpc.ClientConn, err error) {
-	if grpcaddr != "" {
-		grpcOptions := []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
-		conn, err := grpc.NewClient(grpcaddr, grpcOptions...)
-		if err != nil {
-			return nil, fmt.Errorf("failed to create grpc client: %w", err)
-		}
-
-		oteltraceExporter, err := otlptracegrpc.New(ctx, otlptracegrpc.WithGRPCConn(conn))
-		if err != nil {
-			return nil, fmt.Errorf("failed to create otlp trace exporter: %w", err)
-		}
-		tp := sdktrace.NewTracerProvider(sdktrace.WithSyncer(oteltraceExporter))
-		otel.SetTracerProvider(tp)
-
-		otelmetricsExporter, err := otlpmetricgrpc.New(ctx, otlpmetricgrpc.WithGRPCConn(conn))
-		if err != nil {
-			return nil, fmt.Errorf("failed to create otlp metrics exporter: %w", err)
-		}
-		mp := metric.NewMeterProvider(metric.WithReader(metric.NewPeriodicReader(otelmetricsExporter)))
-		otel.SetMeterProvider(mp)
+	grpcOptions := []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
+	conn, err = grpc.NewClient(grpcaddr, grpcOptions...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create grpc client: %w", err)
 	}
+
+	oteltraceExporter, err := otlptracegrpc.New(ctx, otlptracegrpc.WithGRPCConn(conn))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create otlp trace exporter: %w", err)
+	}
+	tp := sdktrace.NewTracerProvider(sdktrace.WithSyncer(oteltraceExporter))
+	otel.SetTracerProvider(tp)
+
+	otelmetricsExporter, err := otlpmetricgrpc.New(ctx, otlpmetricgrpc.WithGRPCConn(conn))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create otlp metrics exporter: %w", err)
+	}
+	mp := metric.NewMeterProvider(metric.WithReader(metric.NewPeriodicReader(otelmetricsExporter)))
+	otel.SetMeterProvider(mp)
 	return conn, nil
 }

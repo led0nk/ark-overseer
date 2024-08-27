@@ -12,6 +12,10 @@ import (
 	"github.com/led0nk/ark-overseer/pkg/events"
 )
 
+type Services interface {
+	HandleEvent(context.Context, events.EventMessage)
+}
+
 type ServiceManager struct {
 	services   map[string]interfaces.Notification
 	cancelFunc map[string]context.CancelFunc

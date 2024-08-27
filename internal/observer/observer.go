@@ -46,7 +46,7 @@ func NewObserver(
 	sStore interfaces.Database,
 	blacklist interfaces.Blacklist,
 	eventManager *events.EventManager,
-) (*Observer, error) {
+) *Observer {
 	observer := &Observer{
 		endpoints:   make(map[uuid.UUID]*model.Server),
 		cancelFuncs: make(map[uuid.UUID]context.CancelFunc),
@@ -57,7 +57,7 @@ func NewObserver(
 		resultCh:    make(map[uuid.UUID]chan *model.Server),
 	}
 	go observer.processResults(ctx)
-	return observer, nil
+	return observer
 }
 
 func (o *Observer) readEndpoint(target *model.Server) error {

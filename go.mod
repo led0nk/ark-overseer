@@ -4,7 +4,7 @@ go 1.22
 
 require (
 	github.com/FlowingSPDG/go-steam v0.0.0-20200304111708-e30ea2f91a83
-	github.com/a-h/templ v0.2.680
+	github.com/a-h/templ v0.2.747
 	github.com/bwmarrin/discordgo v0.28.1
 	github.com/google/uuid v1.6.0
 	github.com/prometheus/client_golang v1.19.1
@@ -41,7 +41,7 @@ require (
 	go.opentelemetry.io/proto/otlp v1.2.0 // indirect
 	golang.org/x/crypto v0.23.0 // indirect
 	golang.org/x/net v0.25.0 // indirect
-	golang.org/x/sys v0.20.0 // indirect
+	golang.org/x/sys v0.21.0 // indirect
 	golang.org/x/text v0.15.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20240520151616-dc85e6b867a5 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240515191416-fc5f0ca64291 // indirect
