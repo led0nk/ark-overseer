@@ -302,7 +302,8 @@ func (o *Observer) killScraper(targetID uuid.UUID) error {
 		cancel()
 		delete(o.cancelFuncs, targetID)
 		delete(o.endpoints, targetID)
-		close(o.resultCh[targetID])
+		//TODO: double close of channel, firstly closed in o.scanner() when defering
+		//close(o.resultCh[targetID])
 		delete(o.resultCh, targetID)
 		return nil
 	}
