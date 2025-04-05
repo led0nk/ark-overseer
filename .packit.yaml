@@ -1,6 +1,7 @@
 # See the documentation for more information:
 # https://packit.dev/docs/configuration/
 
+---
 specfile_path: ark-overseer.spec
 
 # add or remove files that should be synced

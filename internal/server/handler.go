@@ -98,8 +98,8 @@ func (s *Server) sseServerUpdate(w http.ResponseWriter, r *http.Request) {
 			case <-ctx.Done():
 				return
 			case event := <-dataCh:
-				fmt.Fprintf(w, "event: %s\n", event.Type)
-				fmt.Fprintf(w, "data: %s\n\n", event.Data)
+				_, _ = fmt.Fprintf(w, "event: %s\n", event.Type)
+				_, _ = fmt.Fprintf(w, "data: %s\n\n", event.Data)
 				w.(http.Flusher).Flush()
 			}
 		}
@@ -193,7 +193,7 @@ func (s *Server) ssePlayerInfo(w http.ResponseWriter, r *http.Request) {
 					playerRow := fmt.Sprintf(`<tr class="hover:bg-gray-50 dark:hover:bg-[#21262d]/50"><td class="px-6 py-4"><div class="font-medium text-gray-700 dark:text-gray-200">%s</div></td><td class="px-6 py-4"><div class="font-medium text-gray-700 dark:text-gray-200">%s</div></td></tr>`, player.Name, player.Duration)
 					buffer.WriteString(playerRow)
 				}
-				fmt.Fprintf(w, "data: %s\n\n", buffer.String())
+				_, _ = fmt.Fprintf(w, "data: %s\n\n", buffer.String())
 				w.(http.Flusher).Flush()
 			}
 		}

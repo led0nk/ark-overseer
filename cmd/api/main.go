@@ -66,7 +66,9 @@ func main() {
 		logger.ErrorContext(ctx, "failed to setup OTEL", "error", err)
 		os.Exit(1)
 	}
-	defer conn.Close()
+	defer func() {
+		_ = conn.Close()
+	}()
 
 	eventManager := events.NewEventManager()
 	serviceManager := services.NewServiceManager(eventManager, &initWg)

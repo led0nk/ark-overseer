@@ -1,4 +1,4 @@
-FROM golang:1.22
+FROM golang:1.24
 
 LABEL org.opencontainers.image.source=https://github.com/led0nk/ark-overseer
 
