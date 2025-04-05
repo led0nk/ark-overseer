@@ -38,35 +38,35 @@ templ Main(serverlist []*model.Server) {
 	@Table(serverlist)
 }
 
-templ Blacklist(blacklist []*model.BlacklistPlayers){
-  @Base()
-  @NavBar(BlacklistNav())
-  @BlacklistTable(blacklist)
-  @BlacklistInput()
+templ Blacklist(blacklist []*model.BlacklistPlayers) {
+	@Base()
+	@NavBar(BlacklistNav())
+	@BlacklistTable(blacklist)
+	@BlacklistInput()
 }
 
-templ Setup(){
-  @Base()
-  @NavBar(SetupNav())
-  @SetupCard()
+templ Setup() {
+	@Base()
+	@NavBar(SetupNav())
+	@SetupCard()
 }
 
-templ MainNav(){
-  @NavItem("Home","/",true, HomeIcon())
-  @NavItem("Blacklist","/blacklist",false, ListIcon())
-  @NavItem("Settings","/settings",false, GearIcon())
+templ MainNav() {
+	@NavItem("Home", "/", true, HomeIcon())
+	@NavItem("Blacklist", "/blacklist", false, ListIcon())
+	@NavItem("Settings", "/settings", false, GearIcon())
 }
 
-templ BlacklistNav(){
-  @NavItem("Home","/",false, HomeIcon())
-  @NavItem("Blacklist","/blacklist",true,ListIcon())
-  @NavItem("Settings","/settings",false, GearIcon())
+templ BlacklistNav() {
+	@NavItem("Home", "/", false, HomeIcon())
+	@NavItem("Blacklist", "/blacklist", true, ListIcon())
+	@NavItem("Settings", "/settings", false, GearIcon())
 }
 
-templ SetupNav(){
-  @NavItem("Home","/",false, HomeIcon())
-  @NavItem("Blacklist","/blacklist",false, ListIcon())
-  @NavItem("Settings","/settings",true, GearIcon())
+templ SetupNav() {
+	@NavItem("Home", "/", false, HomeIcon())
+	@NavItem("Blacklist", "/blacklist", false, ListIcon())
+	@NavItem("Settings", "/settings", true, GearIcon())
 }
 
 templ NavBar(navItems templ.Component) {
@@ -78,7 +78,7 @@ templ NavBar(navItems templ.Component) {
 				<div class="flex space-between">
 					<div>
 						<div class="flex items-baseline space-x-4">
-              @navItems 
+							@navItems
 						</div>
 					</div>
 					<!--<div class="flex items-baseline space-x-4 absolute right-10">
@@ -94,72 +94,73 @@ templ NavBar(navItems templ.Component) {
 	</nav>
 }
 
-
-templ SetupCard(){
-  <div class="overflow-hidden rounded-lg border border-gray-200 dark:border-[#30363d] shadow-md m-5">
-  <div class="w-full border-collapse dark:bg-[#21262d]/50 text-left">
-  <div class="px-6 py-4 font-semibold dark:text-gray-300">
-    Notifications:
-    </div>
-  </div>
-  <form hx-post="/settings">
-  <div class="px-6 py-4 font-semibold dark:text-gray-300">
-    @Input("Token", "text", "Discord token...", "token", "token")
-  </div>
-  <div class="px-6 py-4 font-semibold dark:text-gray-300">
-    @Input("Channel-ID", "text", "Channel-ID...", "channelID", "channelID")
-  </div>
-  <div class="px-6 py-4">
-    @ButtonSubmit("Save changes")
-    </div>
-    </form>
-  </div>
+templ SetupCard() {
+	<div class="overflow-hidden rounded-lg border border-gray-200 dark:border-[#30363d] shadow-md m-5">
+		<div class="w-full border-collapse dark:bg-[#21262d]/50 text-left">
+			<div class="px-6 py-4 font-semibold dark:text-gray-300">
+				Notifications:
+			</div>
+		</div>
+		<form hx-post="/settings">
+			<div class="px-6 py-4 font-semibold dark:text-gray-300">
+				@Input("Token", "text", "Discord token...", "token", "token")
+			</div>
+			<div class="px-6 py-4 font-semibold dark:text-gray-300">
+				@Input("Channel-ID", "text", "Channel-ID...", "channelID", "channelID")
+			</div>
+			<div class="px-6 py-4">
+				@ButtonSubmit("Save changes")
+			</div>
+		</form>
+	</div>
 }
 
 templ Table(serverlist []*model.Server) {
-			<div class="overflow-hidden rounded-lg border border-gray-200 dark:border-[#30363d] shadow-md m-5">
-				<table class="w-full border-collapse bg-white dark:bg-[#0D1117] text-left text-gray-500 ">
-					<thead class="bg-gray-50 dark:bg-[#21262d]/50">
-						<th class="px-6 py-4 font-semibold dark:text-gray-300 text-gray-900">Servername:</th>
-						<th class="px-6 py-4 font-semibold dark:text-gray-300 text-gray-900">Status:</th>
-						<th class="px-6 py-4 font-semibold dark:text-gray-300 text-gray-900">Players:</th>
-						<th class="px-6 py-4 font-semibold dark:text-gray-300 text-gray-900"></th>
-					</thead>
-					<tbody class="divide-y divide-gray-100 dark:divide-[#30363d] dark:border-[#30363d] border-t border-gray-100">
-						for _, server := range serverlist {
-							@TableRow(server)
-						}
-						<tr class="bg-gray-50 hover:bg-white dark:hover:bg-[#0D1117] dark:bg-[#21262d]/50" id="new_server-container">
-							<td colspan="4" class="px-6 py-4" hx-post="/" hx-swap="outerHTML" hx-target="#new_server-container">
-								<div class="relative flex flex-1 md:flex-none flex-col items-center justify-center rounded-lg">
-									<svg
-										xmlns="http://www.w3.org/2000/svg"
-										fill="none"
-										viewBox="0 0 24 24"
-										stroke-width="1.5"
-										stroke="currentColor"
-										class="w-12 h-12"
-									>
-										<path
-											stroke-linecap="round"
-											stroke-linejoin="round"
-											d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z"
-										></path>
-									</svg>
-								</div>
-							</td>
-						</tr>
-					</tbody>
-				</table>
-			</div>
-			<div id="player"></div>
+	<div class="overflow-hidden rounded-lg border border-gray-200 dark:border-[#30363d] shadow-md m-5">
+		<table class="w-full border-collapse bg-white dark:bg-[#0D1117] text-left text-gray-500 ">
+			<thead class="bg-gray-50 dark:bg-[#21262d]/50">
+				<th class="px-6 py-4 font-semibold dark:text-gray-300 text-gray-900">Servername:</th>
+				<th class="px-6 py-4 font-semibold dark:text-gray-300 text-gray-900">Status:</th>
+				<th class="px-6 py-4 font-semibold dark:text-gray-300 text-gray-900">Players:</th>
+				<th class="px-6 py-4 font-semibold dark:text-gray-300 text-gray-900"></th>
+			</thead>
+			<tbody class="divide-y divide-gray-100 dark:divide-[#30363d] dark:border-[#30363d] border-t border-gray-100">
+				for _, server := range serverlist {
+					@TableRow(server)
+				}
+				<tr class="bg-gray-50 hover:bg-white dark:hover:bg-[#0D1117] dark:bg-[#21262d]/50" id="new_server-container">
+					<td colspan="4" class="px-6 py-4" hx-post="/" hx-swap="outerHTML" hx-target="#new_server-container">
+						<div class="relative flex flex-1 md:flex-none flex-col items-center justify-center rounded-lg">
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								fill="none"
+								viewBox="0 0 24 24"
+								stroke-width="1.5"
+								stroke="currentColor"
+								class="w-12 h-12"
+							>
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z"
+								></path>
+							</svg>
+						</div>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+	<div id="player"></div>
 }
 
 templ TableRow(server *model.Server) {
-	<tr class="hover:bg-gray-50 dark:hover:bg-[#21262d]/50" id={ "server-" + server.ID.String() }
-  hx-ext="sse" 
-  sse-connect={ "/serverdata/" + server.ID.String() }
-  >
+	<tr
+		class="hover:bg-gray-50 dark:hover:bg-[#21262d]/50"
+		id={ "server-" + server.ID.String() }
+		hx-ext="sse"
+		sse-connect={ "/serverdata/" + server.ID.String() }
+	>
 		<td class="px-6 py-4">
 			<div class="font-medium text-gray-700 dark:text-gray-200">
 				{ server.ServerInfo.Name }
@@ -235,8 +236,7 @@ templ BlacklistTable(blacklist []*model.BlacklistPlayers) {
 			<table class="w-full border-collapse bg-white dark:bg-[#0D1117] text-left text-gray-500 ">
 				<thead class="bg-gray-50 dark:bg-[#21262d]/50">
 					<th class="px-6 py-4 font-semibold text-gray-900 dark:text-gray-300">Playername:</th>
-          <th>
-          </th>
+					<th></th>
 				</thead>
 				<tbody class="divide-y divide-gray-100 dark:divide-[#30363d] dark:border-[#30363d] border-t border-gray-100">
 					<div
@@ -244,7 +244,7 @@ templ BlacklistTable(blacklist []*model.BlacklistPlayers) {
 						id="playerinfo"
 					>
 						for _, blacklistPlayer := range blacklist {
-              @BlacklistTableRow(blacklistPlayer)
+							@BlacklistTableRow(blacklistPlayer)
 						}
 					</div>
 				</tbody>
@@ -268,26 +268,25 @@ templ BlacklistTableRow(player *model.BlacklistPlayers) {
 	</tr>
 }
 
-templ BlacklistInput(){
-  <form hx-post="/blacklist" hx-target="#player" class="overflow-hidden rounded-lg border border-gray-200 dark:border-[#30363d] shadow-md m-5">
-  <div class="m-5">
-  @Input("Name", "text", "Name...","blacklistPlayer", "blacklistPlayer")
-  </div>
-  <div class="m-5">
-  @ButtonSubmit("Add")
-  </div>
-  </form>
+templ BlacklistInput() {
+	<form hx-post="/blacklist" hx-target="#player" class="overflow-hidden rounded-lg border border-gray-200 dark:border-[#30363d] shadow-md m-5">
+		<div class="m-5">
+			@Input("Name", "text", "Name...", "blacklistPlayer", "blacklistPlayer")
+		</div>
+		<div class="m-5">
+			@ButtonSubmit("Add")
+		</div>
+	</form>
 }
-
 
 templ NewServerInput() {
 	<tr id="new_server-container" class="hover:bg-gray-50 dark:hover:bg-[#21262d]/50">
 		<form hx-put="/" hx-target="#new_server-container" hx-swap="outerHTML">
 			<td colspan="2" class="px-6 py-4">
-      @Input("Servername", "text", "Servername...", "servername", "servername")
+				@Input("Servername", "text", "Servername...", "servername", "servername")
 			</td>
 			<td colspan="1" class="px-6 py-4">
-      @Input("Address", "text", "Address...", "address", "address")
+				@Input("Address", "text", "Address...", "address", "address")
 			</td>
 			<td colspan="1" class="px-6 py-4">
 				<div class="flex justify-end gap-4">

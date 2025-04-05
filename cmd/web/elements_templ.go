@@ -299,7 +299,7 @@ func NavItem(title string, href templ.SafeURL, active bool, icon templ.Component
 			var templ_7745c5c3_Var18 string
 			templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(title)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `cmd/web/elements.templ`, Line: 67, Col: 8}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `cmd/web/elements.templ`, Line: 67, Col: 11}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
 			if templ_7745c5c3_Err != nil {
@@ -409,7 +409,7 @@ func Input(label string, typ string, placeholder string, inputName string, input
 		var templ_7745c5c3_Var23 string
 		templ_7745c5c3_Var23, templ_7745c5c3_Err = templ.JoinStringErrs(inputName)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `cmd/web/elements.templ`, Line: 84, Col: 30}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `cmd/web/elements.templ`, Line: 86, Col: 23}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var23))
 		if templ_7745c5c3_Err != nil {
@@ -422,7 +422,7 @@ func Input(label string, typ string, placeholder string, inputName string, input
 		var templ_7745c5c3_Var24 string
 		templ_7745c5c3_Var24, templ_7745c5c3_Err = templ.JoinStringErrs(label)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `cmd/web/elements.templ`, Line: 84, Col: 88}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `cmd/web/elements.templ`, Line: 86, Col: 81}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var24))
 		if templ_7745c5c3_Err != nil {
@@ -435,7 +435,7 @@ func Input(label string, typ string, placeholder string, inputName string, input
 		var templ_7745c5c3_Var25 string
 		templ_7745c5c3_Var25, templ_7745c5c3_Err = templ.JoinStringErrs(typ)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `cmd/web/elements.templ`, Line: 86, Col: 20}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `cmd/web/elements.templ`, Line: 88, Col: 12}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var25))
 		if templ_7745c5c3_Err != nil {
@@ -448,7 +448,7 @@ func Input(label string, typ string, placeholder string, inputName string, input
 		var templ_7745c5c3_Var26 string
 		templ_7745c5c3_Var26, templ_7745c5c3_Err = templ.JoinStringErrs(inputID)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `cmd/web/elements.templ`, Line: 87, Col: 22}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `cmd/web/elements.templ`, Line: 89, Col: 14}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var26))
 		if templ_7745c5c3_Err != nil {
@@ -461,7 +461,7 @@ func Input(label string, typ string, placeholder string, inputName string, input
 		var templ_7745c5c3_Var27 string
 		templ_7745c5c3_Var27, templ_7745c5c3_Err = templ.JoinStringErrs(inputName)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `cmd/web/elements.templ`, Line: 88, Col: 26}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `cmd/web/elements.templ`, Line: 90, Col: 18}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var27))
 		if templ_7745c5c3_Err != nil {
@@ -474,7 +474,7 @@ func Input(label string, typ string, placeholder string, inputName string, input
 		var templ_7745c5c3_Var28 string
 		templ_7745c5c3_Var28, templ_7745c5c3_Err = templ.JoinStringErrs(placeholder)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `cmd/web/elements.templ`, Line: 89, Col: 35}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `cmd/web/elements.templ`, Line: 91, Col: 27}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var28))
 		if templ_7745c5c3_Err != nil {

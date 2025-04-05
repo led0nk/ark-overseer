@@ -382,7 +382,7 @@ func TableRow(server *model.Server) templ.Component {
 		var templ_7745c5c3_Var12 string
 		templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs("server-" + server.ID.String())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `cmd/web/base.templ`, Line: 159, Col: 92}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `cmd/web/base.templ`, Line: 160, Col: 37}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 		if templ_7745c5c3_Err != nil {
@@ -395,7 +395,7 @@ func TableRow(server *model.Server) templ.Component {
 		var templ_7745c5c3_Var13 string
 		templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs("/serverdata/" + server.ID.String())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `cmd/web/base.templ`, Line: 161, Col: 51}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `cmd/web/base.templ`, Line: 162, Col: 51}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 		if templ_7745c5c3_Err != nil {
@@ -408,7 +408,7 @@ func TableRow(server *model.Server) templ.Component {
 		var templ_7745c5c3_Var14 string
 		templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(server.ServerInfo.Name)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `cmd/web/base.templ`, Line: 165, Col: 28}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `cmd/web/base.templ`, Line: 166, Col: 28}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 		if templ_7745c5c3_Err != nil {
@@ -421,7 +421,7 @@ func TableRow(server *model.Server) templ.Component {
 		var templ_7745c5c3_Var15 string
 		templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(server.ServerInfo.Map)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `cmd/web/base.templ`, Line: 168, Col: 27}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `cmd/web/base.templ`, Line: 169, Col: 27}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 		if templ_7745c5c3_Err != nil {
@@ -434,7 +434,7 @@ func TableRow(server *model.Server) templ.Component {
 		var templ_7745c5c3_Var16 string
 		templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(server.Addr)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `cmd/web/base.templ`, Line: 171, Col: 17}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `cmd/web/base.templ`, Line: 172, Col: 17}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
 		if templ_7745c5c3_Err != nil {
@@ -455,7 +455,7 @@ func TableRow(server *model.Server) templ.Component {
 		var templ_7745c5c3_Var17 string
 		templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.Itoa(server.ServerInfo.Players))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `cmd/web/base.templ`, Line: 183, Col: 45}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `cmd/web/base.templ`, Line: 184, Col: 45}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
 		if templ_7745c5c3_Err != nil {
@@ -468,7 +468,7 @@ func TableRow(server *model.Server) templ.Component {
 		var templ_7745c5c3_Var18 string
 		templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.Itoa(server.ServerInfo.MaxPlayers))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `cmd/web/base.templ`, Line: 183, Col: 92}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `cmd/web/base.templ`, Line: 184, Col: 92}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
 		if templ_7745c5c3_Err != nil {
@@ -517,7 +517,7 @@ func PlayerTable(server *model.Server) templ.Component {
 		var templ_7745c5c3_Var20 string
 		templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.JoinStringErrs("/serverdata/" + server.ID.String() + "/players ")
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `cmd/web/base.templ`, Line: 203, Col: 189}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `cmd/web/base.templ`, Line: 204, Col: 189}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var20))
 		if templ_7745c5c3_Err != nil {

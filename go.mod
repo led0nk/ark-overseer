@@ -1,6 +1,6 @@
 module github.com/led0nk/ark-overseer
 
-go 1.23
+go 1.24
 
 require (
 	github.com/FlowingSPDG/go-steam v0.0.0-20200304111708-e30ea2f91a83
