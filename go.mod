@@ -1,6 +1,6 @@
 module github.com/led0nk/ark-overseer
 
-go 1.24
+go 1.23.0
 
 toolchain go1.24.1
 
