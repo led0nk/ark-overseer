@@ -321,7 +321,7 @@ func (o *Observer) killScraper(targetID uuid.UUID) error {
 		delete(o.resultCh, targetID)
 		return nil
 	}
-	return errors.New("Scraper with ID not found")
+	return errors.New("scraper with ID not found")
 }
 
 func (o *Observer) HandleEvent(ctx context.Context, event events.EventMessage) {

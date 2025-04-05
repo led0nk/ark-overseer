@@ -1,5 +1,5 @@
-GO_VERSION=1.22
-GOLINT_VERSION=v1.57.2
+GO_VERSION=1.24
+GOLINT_VERSION=v2.0.2
 TEMPL_VERSION=v0.2.680
 OVERSEER_VERSION ?= 0.1.0
 PROJECT ?= ark-overseer
@@ -50,7 +50,7 @@ gomoddownload:
 
 .PHONY: tools
 tools: $(TOOLS_DIR)
-	GOBIN=$(TOOLS_DIR) go install github.com/golangci/golangci-lint/cmd/golangci-lint@$(GOLINT_VERSION)
+	GOBIN=$(TOOLS_DIR) go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@$(GOLINT_VERSION)
 	GOBIN=$(TOOLS_DIR) go install github.com/a-h/templ/cmd/templ@$(TEMPL_VERSION)
 
 .PHONY: lint
