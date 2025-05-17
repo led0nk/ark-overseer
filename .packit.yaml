@@ -28,12 +28,12 @@ jobs:
   - job: copr_build
     trigger: pull_request
     targets:
-      - fedora-40-x86_64
+      - fedora-42-x86_64
 
   - job: tests
     trigger: pull_request
     targets:
-      - fedora-40-x86_64
+      - fedora-42-x86_64
 
   - job: copr_build
     trigger: commit
@@ -41,10 +41,10 @@ jobs:
     owner: "led0nk"
     project: ark-clusterinfo
     targets:
-      - fedora-40-x86_64
+      - fedora-42-x86_64
 
   - job: tests
     trigger: commit
     branch: main
     targets:
-      - fedora-40-x86_64
+      - fedora-42-x86_64
