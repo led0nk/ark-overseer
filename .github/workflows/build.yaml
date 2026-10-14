@@ -87,10 +87,14 @@ jobs:
         run: make govet
 
   test:
-    name: Test
+    name: Test (${{ matrix.tier }})
     strategy:
       matrix:
-        go-version: ${{ fromJSON(needs.go-versions.outputs.matrix) }}
+        include:
+          - go-version: ${{ needs.go-versions.outputs.version }}
+            tier: pinned
+          - go-version: ${{ needs.go-versions.outputs.latest }}
+            tier: latest
     runs-on: ubuntu-latest
     needs: [setup-env, go-versions, checks]
 
@@ -103,12 +107,7 @@ jobs:
         with:
           go-version: ${{ matrix.go-version }}
 
-      - name: Test Go-version @version
-        if: startsWith( matrix.go-version , needs.go-versions.outputs.version )
-        run: make test
-
-      - name: Test Go-version @latest
-        if: startsWith( matrix.go-version , needs.go-versions.outputs.latest )
+      - name: Run tests
         run: make test
 
   build:
