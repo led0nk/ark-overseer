@@ -32,7 +32,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: ${{ fromJSON(needs.go-versions.outputs.version) }}
+          go-version: ${{ needs.go-versions.outputs.version }}
 
       - name: Install gomods
         run: make gomoddownload
@@ -52,7 +52,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: ${{ fromJSON(needs.go-versions.outputs.version) }}
+          go-version: ${{ needs.go-versions.outputs.version }}
 
       - name: Install gomods
         run: make gomoddownload
@@ -75,7 +75,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: ${{ fromJSON(needs.go-versions.outputs.version) }}
+          go-version: ${{ needs.go-versions.outputs.version }}
 
       - name: Check format
         run: make tools
@@ -123,7 +123,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: ${{ fromJSON(needs.go-versions.outputs.version) }}
+          go-version: ${{ needs.go-versions.outputs.version }}
 
       - name: Build
         run: make build

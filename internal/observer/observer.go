@@ -359,7 +359,7 @@ func (o *Observer) HandleEvent(ctx context.Context, event events.EventMessage) {
 
 func replaceNullCharsInStruct(s any) {
 	v := reflect.ValueOf(s)
-	if v.Kind() != reflect.Ptr || v.IsNil() {
+	if v.Kind() != reflect.Pointer || v.IsNil() {
 		return
 	}
 	replaceNullChars(v.Elem())
@@ -371,7 +371,7 @@ func replaceNullChars(v reflect.Value) {
 		str := v.Interface().(string)
 		str = strings.Trim(str, "\u0000")
 		v.SetString(str)
-	case reflect.Ptr:
+	case reflect.Pointer:
 		if v.IsNil() {
 			return
 		}
